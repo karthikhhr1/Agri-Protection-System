@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, bigint } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -23,7 +23,7 @@ export const sensorReadings = pgTable("sensor_readings", {
 // === AUDIO LOGS ===
 export const audioLogs = pgTable("audio_logs", {
   id: serial("id").primaryKey(),
-  distance: integer("distance").notNull(), // meters
+  distance: bigint("distance", { mode: "number" }).notNull(), // meters
   calculatedVolume: integer("calculated_volume").notNull(), // decibels
   createdAt: timestamp("created_at").defaultNow(),
 });
