@@ -9,9 +9,10 @@ import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   // Reports
-  createReport(report: InsertReport): Promise<Report>;
+  createReport(report: Partial<InsertReport> & { imageUrl: string }): Promise<Report>;
   getReports(): Promise<Report[]>;
   getReport(id: number): Promise<Report | undefined>;
+  updateReport(id: number, updates: Partial<Report>): Promise<Report>;
 
   // Irrigation
   createSensorReading(reading: InsertSensorReading): Promise<SensorReading>;
@@ -23,8 +24,12 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   // Reports
-  async createReport(report: InsertReport): Promise<Report> {
-    const [newReport] = await db.insert(reports).values(report).returning();
+  async createReport(report: Partial<InsertReport> & { imageUrl: string }): Promise<Report> {
+    const [newReport] = await db.insert(reports).values({
+      imageUrl: report.imageUrl,
+      status: report.status || "pending",
+      analysis: report.analysis || null,
+    }).returning();
     return newReport;
   }
 
@@ -45,14 +50,6 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async updateReport(id: number, updates: Partial<Report>): Promise<Report> {
-    const [updated] = await db.update(reports)
-      .set(updates)
-      .where(eq(reports.id, id))
-      .returning();
-    return updated;
-  }
-
   // Irrigation
   async createSensorReading(reading: InsertSensorReading): Promise<SensorReading> {
     const [newReading] = await db.insert(sensorReadings).values(reading).returning();
@@ -61,6 +58,10 @@ export class DatabaseStorage implements IStorage {
 
   async getSensorReadings(): Promise<SensorReading[]> {
     return await db.select().from(sensorReadings).orderBy(desc(sensorReadings.createdAt));
+  }
+
+  async getAudioLogs(): Promise<AudioLog[]> {
+    return await db.select().from(audioLogs).orderBy(desc(audioLogs.createdAt));
   }
 
   // Audio
