@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { UploadZone } from "@/components/UploadZone";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, Loader2, ShieldAlert, ArrowRight, Camera, Search, FileText } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Loader2, ShieldAlert, ArrowRight, Camera, Search, FileText, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,11 +13,55 @@ import { type Report } from "@shared/schema";
 export default function Analysis() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [activeReportId, setActiveReportId] = useState<number | null>(null);
+  const [showCamera, setShowCamera] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
 
   const { data: reports, isLoading: isLoadingHistory } = useQuery<Report[]>({
     queryKey: ["/api/reports"],
   });
+
+  const startCamera = async () => {
+    setShowCamera(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err) {
+      toast({
+        title: "Camera Error",
+        description: "Could not access camera. Please check permissions.",
+        variant: "destructive",
+      });
+      setShowCamera(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (videoRef.current?.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+    }
+    setShowCamera(false);
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg');
+        setSelectedImage(dataUrl);
+        stopCamera();
+      }
+    }
+  };
 
   const captureMutation = useMutation({
     mutationFn: async (imageUrl: string) => {
@@ -88,14 +132,40 @@ export default function Analysis() {
           {/* Step 1: Data Capture */}
           <Card className="border-primary/20 shadow-md relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 bg-primary h-full" />
-            <CardHeader className="pb-2">
+            <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-semibold flex items-center gap-2 uppercase tracking-wider text-primary">
                 <Camera className="w-4 h-4" />
                 Step 1: Data Capture
               </CardTitle>
+              {!selectedImage && !showCamera && (
+                <Button size="sm" variant="outline" onClick={startCamera}>
+                  <Camera className="w-4 h-4 mr-2" />
+                  Use Camera
+                </Button>
+              )}
             </CardHeader>
             <CardContent className="p-6">
-              {!selectedImage ? (
+              {showCamera ? (
+                <div className="space-y-4">
+                  <div className="relative rounded-xl overflow-hidden aspect-video border border-border bg-black">
+                    <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                    <Button 
+                      variant="destructive" 
+                      size="icon" 
+                      className="absolute top-4 right-4 rounded-full"
+                      onClick={stopCamera}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="flex justify-center">
+                    <Button onClick={capturePhoto} size="lg" className="rounded-full w-16 h-16 p-0 border-4 border-primary/20">
+                      <div className="w-10 h-10 rounded-full bg-primary" />
+                    </Button>
+                  </div>
+                  <canvas ref={canvasRef} className="hidden" />
+                </div>
+              ) : !selectedImage ? (
                 <UploadZone 
                   onImageSelected={setSelectedImage} 
                   isProcessing={captureMutation.isPending}
@@ -136,6 +206,7 @@ export default function Analysis() {
               )}
             </CardContent>
           </Card>
+... [remaining content unchanged]
 
           {/* Step 2: Scoring Component */}
           <AnimatePresence>

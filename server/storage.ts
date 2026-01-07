@@ -27,7 +27,7 @@ export class DatabaseStorage implements IStorage {
   async createReport(report: Partial<InsertReport> & { imageUrl: string }): Promise<Report> {
     const [newReport] = await db.insert(reports).values({
       imageUrl: report.imageUrl,
-      status: report.status || "pending",
+      status: (report.status as any) || "pending",
       analysis: report.analysis || null,
     }).returning();
     return newReport;
