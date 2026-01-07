@@ -7,7 +7,7 @@ export const reports = pgTable("reports", {
   id: serial("id").primaryKey(),
   imageUrl: text("image_url").notNull(),
   status: text("status", { enum: ["pending", "processing", "complete", "failed"] }).default("pending").notNull(),
-  // JSON structure: { risks: [{ risk: string, reason: string }], ipmMeasures: string[], confirmed: boolean }
+  // JSON structure: { diseaseDetected: boolean, diseases: [{ name: string, confidence: number, symptoms: string[] }], risks: [{ risk: string, reason: string }], ipmMeasures: string[], confirmed: boolean }
   analysis: jsonb("analysis"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -46,6 +46,10 @@ export type InsertAudioLog = z.infer<typeof insertAudioLogSchema>;
 
 // API Request Types
 export const analyzeImageSchema = z.object({
+  imageUrl: z.string().url(),
+});
+
+export const captureImageSchema = z.object({
   imageUrl: z.string().url(),
 });
 

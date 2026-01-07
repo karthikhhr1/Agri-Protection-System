@@ -12,6 +12,19 @@ import {
   audioLogs
 } from './schema';
 
+export { 
+  insertReportSchema, 
+  insertSensorReadingSchema, 
+  insertAudioLogSchema, 
+  analyzeImageSchema,
+  captureImageSchema,
+  irrigationRequestSchema,
+  audioRequestSchema,
+  reports,
+  sensorReadings,
+  audioLogs
+};
+
 export const errorSchemas = {
   validation: z.object({
     message: z.string(),
@@ -88,18 +101,6 @@ export const api = {
       },
     },
   },
-};
-
-export { 
-  insertReportSchema, 
-  insertSensorReadingSchema, 
-  insertAudioLogSchema, 
-  analyzeImageSchema,
-  irrigationRequestSchema,
-  audioRequestSchema,
-  reports,
-  sensorReadings,
-  audioLogs
 };
 
 export function buildUrl(path: string, params?: Record<string, string | number>): string {

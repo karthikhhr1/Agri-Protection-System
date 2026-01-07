@@ -41,17 +41,18 @@ export async function registerRoutes(
       const report = await storage.getReport(id);
       if (!report) return res.status(404).json({ message: "Report not found" });
 
-      // Call OpenAI to analyze the image
+      // Call OpenAI to analyze the image for diseases
       const prompt = `
-        Analyze this image of an agricultural estate/farm. 
-        Identify potential risks such as pests, diseases, hydration issues, or physical hazards.
-        For each risk, provide a reason and suggest IPM (Integrated Pest Management) precautionary measures.
+        Analyze this agricultural image for plant diseases (e.g., root rot, leaf spot, rust).
+        Identify the specific disease if present, list symptoms observed, and provide potential risks and IPM (Integrated Pest Management) measures.
         
         Return a JSON object with this structure:
         {
+          "diseaseDetected": boolean,
+          "diseases": [{ "name": "string", "confidence": number, "symptoms": ["string"] }],
           "risks": [{ "risk": "string", "reason": "string" }],
           "ipmMeasures": ["string"],
-          "confirmed": boolean (true if risks are clearly visible)
+          "confirmed": boolean
         }
       `;
 

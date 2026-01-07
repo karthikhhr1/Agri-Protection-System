@@ -37,6 +37,22 @@ export class DatabaseStorage implements IStorage {
     return report;
   }
 
+  async updateReport(id: number, updates: Partial<Report>): Promise<Report> {
+    const [updated] = await db.update(reports)
+      .set(updates)
+      .where(eq(reports.id, id))
+      .returning();
+    return updated;
+  }
+
+  async updateReport(id: number, updates: Partial<Report>): Promise<Report> {
+    const [updated] = await db.update(reports)
+      .set(updates)
+      .where(eq(reports.id, id))
+      .returning();
+    return updated;
+  }
+
   // Irrigation
   async createSensorReading(reading: InsertSensorReading): Promise<SensorReading> {
     const [newReading] = await db.insert(sensorReadings).values(reading).returning();
