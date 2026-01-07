@@ -10,18 +10,16 @@ interface UploadZoneProps {
 
 export function UploadZone({ onImageSelected, isProcessing }: UploadZoneProps) {
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    // In a real app, we would upload to S3 here.
-    // For this demo, we'll use a high-quality static Unsplash image to represent the "uploaded" file.
-    // Simulating upload delay
-    const demoImages = [
-      "https://images.unsplash.com/photo-1560493676-04071c5f467b?q=80&w=1000&auto=format&fit=crop", // Farm field
-      "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?q=80&w=1000&auto=format&fit=crop", // Agriculture drone
-      "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1000&auto=format&fit=crop", // Wheat field
-    ];
-    
-    // Pick a random one to simulate variety
-    const randomImage = demoImages[Math.floor(Math.random() * demoImages.length)];
-    onImageSelected(randomImage);
+    const file = acceptedFiles[0];
+    if (!file) return;
+
+    // Use FileReader to create a data URL for the actual uploaded file
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = reader.result as string;
+      onImageSelected(url);
+    };
+    reader.readAsDataURL(file);
   }, [onImageSelected]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
