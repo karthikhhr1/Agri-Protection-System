@@ -41,10 +41,15 @@ export async function registerRoutes(
       const report = await storage.getReport(id);
       if (!report) return res.status(404).json({ message: "Report not found" });
 
-      // Call OpenAI to analyze the image for diseases
+      // Call OpenAI to analyze the image for diseases with high precision
       const prompt = `
-        Analyze this agricultural image for plant diseases (e.g., root rot, leaf spot, rust).
-        Identify the specific disease if present, list symptoms observed, and provide potential risks and IPM (Integrated Pest Management) measures.
+        Analyze this agricultural image for plant diseases with extreme precision.
+        Pay close attention to subtle differences between similar diseases (e.g., Rice Tungro vs. Rice Leaf Blight).
+        
+        Rice Tungro characteristics: yellowing or orange-yellow discoloration of leaves, stunted growth, slight twisting of leaves.
+        Rice Leaf Blight characteristics: linear yellow-to-white lesions with wavy margins on leaf blades.
+        
+        Identify the specific disease if present, list exact symptoms observed, and provide potential risks and IPM (Integrated Pest Management) measures.
         
         Return a JSON object with this structure:
         {
