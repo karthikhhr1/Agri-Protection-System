@@ -4,24 +4,13 @@ import {
   insertSensorReadingSchema, 
   insertAudioLogSchema, 
   analyzeImageSchema,
+  captureImageSchema,
   irrigationRequestSchema,
   audioRequestSchema,
   reports,
   sensorReadings,
   audioLogs
 } from './schema';
-
-export { 
-  insertReportSchema, 
-  insertSensorReadingSchema, 
-  insertAudioLogSchema, 
-  analyzeImageSchema,
-  irrigationRequestSchema,
-  audioRequestSchema,
-  reports,
-  sensorReadings,
-  audioLogs
-};
 
 export const errorSchemas = {
   validation: z.object({
@@ -45,12 +34,21 @@ export const api = {
         200: z.array(z.custom<typeof reports.$inferSelect>()),
       },
     },
-    create: {
+    capture: {
       method: 'POST' as const,
-      path: '/api/reports',
-      input: analyzeImageSchema,
+      path: '/api/reports/capture',
+      input: captureImageSchema,
       responses: {
         201: z.custom<typeof reports.$inferSelect>(),
+      },
+    },
+    process: {
+      method: 'POST' as const,
+      path: '/api/reports/:id/process',
+      input: z.object({}),
+      responses: {
+        200: z.custom<typeof reports.$inferSelect>(),
+        404: errorSchemas.notFound,
         500: errorSchemas.internal,
       },
     },
@@ -90,6 +88,18 @@ export const api = {
       },
     },
   },
+};
+
+export { 
+  insertReportSchema, 
+  insertSensorReadingSchema, 
+  insertAudioLogSchema, 
+  analyzeImageSchema,
+  irrigationRequestSchema,
+  audioRequestSchema,
+  reports,
+  sensorReadings,
+  audioLogs
 };
 
 export function buildUrl(path: string, params?: Record<string, string | number>): string {
