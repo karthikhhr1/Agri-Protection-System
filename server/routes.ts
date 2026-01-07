@@ -27,7 +27,7 @@ export async function registerRoutes(
       const report = await storage.createReport({
         imageUrl,
         status: "pending",
-        analysis: null,
+        analysis: {},
       });
       res.status(201).json(report);
     } catch (err) {

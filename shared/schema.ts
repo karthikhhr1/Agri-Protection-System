@@ -6,7 +6,7 @@ import { z } from "zod";
 export const reports = pgTable("reports", {
   id: serial("id").primaryKey(),
   imageUrl: text("image_url").notNull(),
-  status: text("status", { enum: ["pending", "processing", "complete", "failed"] }).default("pending").notNull(),
+  status: text("status").default("pending").notNull(), // text enum fallback for ease of use
   // JSON structure: { diseaseDetected: boolean, diseases: [{ name: string, confidence: number, symptoms: string[] }], risks: [{ risk: string, reason: string }], ipmMeasures: string[], confirmed: boolean }
   analysis: jsonb("analysis"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -30,7 +30,7 @@ export const audioLogs = pgTable("audio_logs", {
 });
 
 // === SCHEMAS ===
-export const insertReportSchema = createInsertSchema(reports).omit({ id: true, createdAt: true, analysis: true, status: true });
+export const insertReportSchema = createInsertSchema(reports).omit({ id: true, createdAt: true });
 export const insertSensorReadingSchema = createInsertSchema(sensorReadings).omit({ id: true, createdAt: true });
 export const insertAudioLogSchema = createInsertSchema(audioLogs).omit({ id: true, createdAt: true });
 
