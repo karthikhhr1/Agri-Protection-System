@@ -103,6 +103,25 @@ export async function registerRoutes(
     res.json(report);
   });
 
+  app.delete(api.reports.delete.path, async (req, res) => {
+    try {
+      await storage.deleteReport(Number(req.params.id));
+      res.sendStatus(204);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete report" });
+    }
+  });
+
+  app.post(api.reports.bulkDelete.path, async (req, res) => {
+    try {
+      const { ids } = z.object({ ids: z.array(z.number()) }).parse(req.body);
+      await storage.bulkDeleteReports(ids);
+      res.sendStatus(204);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to bulk delete reports" });
+    }
+  });
+
   // === Irrigation ===
   app.post(api.irrigation.calculate.path, async (req, res) => {
     const { soilMoisture, humidity } = api.irrigation.calculate.input.parse(req.body);

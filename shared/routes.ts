@@ -73,6 +73,23 @@ export const api = {
         404: errorSchemas.notFound,
       },
     },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/reports/:id',
+      responses: {
+        204: z.null(),
+        500: errorSchemas.internal,
+      },
+    },
+    bulkDelete: {
+      method: 'POST' as const,
+      path: '/api/reports/bulk-delete',
+      input: z.object({ ids: z.array(z.number()) }),
+      responses: {
+        204: z.null(),
+        500: errorSchemas.internal,
+      },
+    },
   },
   irrigation: {
     calculate: {

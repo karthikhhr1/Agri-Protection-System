@@ -5,7 +5,7 @@ import {
   type InsertSensorReading, type SensorReading,
   type InsertAudioLog, type AudioLog
 } from "@shared/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // Reports
@@ -44,6 +44,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(reports.id, id))
       .returning();
     return updated;
+  }
+
+  async deleteReport(id: number): Promise<void> {
+    await db.delete(reports).where(eq(reports.id, id));
+  }
+
+  async bulkDeleteReports(ids: number[]): Promise<void> {
+    await db.delete(reports).where(inArray(reports.id, ids));
   }
 
   // Irrigation

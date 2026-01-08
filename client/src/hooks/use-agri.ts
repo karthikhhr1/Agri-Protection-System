@@ -70,6 +70,44 @@ export function useCreateReport() {
   });
 }
 
+export function useDeleteReport() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(buildUrl(api.reports.delete.path, { id }), {
+        method: api.reports.delete.method,
+      });
+      if (!res.ok) throw new Error("Failed to delete report");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.reports.list.path] });
+      toast({ title: "Report Deleted", description: "The pathology record has been removed." });
+    },
+  });
+}
+
+export function useBulkDeleteReports() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (ids: number[]) => {
+      const res = await fetch(api.reports.bulkDelete.path, {
+        method: api.reports.bulkDelete.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids }),
+      });
+      if (!res.ok) throw new Error("Failed to bulk delete reports");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.reports.list.path] });
+      toast({ title: "Reports Deleted", description: "The selected records have been removed." });
+    },
+  });
+}
+
 // === IRRIGATION ===
 
 export function useIrrigationHistory() {
