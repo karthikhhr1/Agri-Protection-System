@@ -24,7 +24,7 @@ export const sensorReadings = pgTable("sensor_readings", {
 // === AUDIO LOGS ===
 export const audioLogs = pgTable("audio_logs", {
   id: serial("id").primaryKey(),
-  distance: bigint("distance", { mode: "number" }).notNull(), // meters
+  distance: text("distance").notNull(), // stored as text to avoid bigint overflow
   calculatedVolume: integer("calculated_volume").notNull(), // decibels
   createdAt: timestamp("created_at").defaultNow(),
 });
