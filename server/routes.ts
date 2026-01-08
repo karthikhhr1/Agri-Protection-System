@@ -41,13 +41,20 @@ export async function registerRoutes(
       const report = await storage.getReport(id);
       if (!report) return res.status(404).json({ message: "Report not found" });
 
-      // Call OpenAI to analyze the image for diseases with high precision
+      // Call OpenAI to analyze the image for diseases with absolute precision
       const prompt = `
-        Analyze this agricultural image for plant diseases with extreme precision.
-        Pay close attention to subtle differences between similar diseases (e.g., Rice Tungro vs. Rice Leaf Blight).
+        You are a world-class plant pathologist. Analyze this agricultural image for ANY plant disease known to science. 
+        Your knowledge base covers all known plant diseases globally, including but not limited to:
+        - Cereal diseases (Rice Tungro, Blight, Blast, Rust)
+        - Vegetable pathologies (Root Rot, Wilt, Mildew)
+        - Fruit tree infections (Canker, Scab)
+        - Ornamental and plantation crop diseases.
         
-        Rice Tungro characteristics: yellowing or orange-yellow discoloration of leaves, stunted growth, slight twisting of leaves.
-        Rice Leaf Blight characteristics: linear yellow-to-white lesions with wavy margins on leaf blades.
+        Pay close attention to subtle differences between similar diseases.
+        
+        Rice Tungro vs. Rice Leaf Blight:
+        Rice Tungro: yellowing/orange leaves, stunted growth, twisting.
+        Rice Leaf Blight: linear yellow-to-white lesions with wavy margins.
         
         Identify the specific disease if present, list exact symptoms observed, and provide potential risks and IPM (Integrated Pest Management) measures.
         
