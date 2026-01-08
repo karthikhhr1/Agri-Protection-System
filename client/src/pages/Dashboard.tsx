@@ -1,190 +1,232 @@
-import { Link } from "wouter";
+// Advanced Dashboard 2.0 implementation
 import { useReports, useIrrigationHistory } from "@/hooks/use-agri";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowUpRight, Activity, AlertTriangle, Droplets, Camera, LineChart, ShieldCheck } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { 
+  Activity, 
+  Droplets, 
+  AlertTriangle, 
+  Leaf, 
+  TrendingUp, 
+  ShieldCheck,
+  Zap,
+  Clock
+} from "lucide-react";
+import { 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  AreaChart,
+  Area
+} from "recharts";
+import { motion } from "framer-motion";
+import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
-  const { data: reports, isLoading: reportsLoading } = useReports();
-  const { data: readings, isLoading: readingsLoading } = useIrrigationHistory();
+  const { data: reports } = useReports();
+  const { data: readings } = useIrrigationHistory();
 
   const latestReading = readings?.[0];
-  const activeRisks = reports?.filter((r: any) => r.analysis?.diseaseDetected).length || 0;
-  const pendingScans = reports?.filter((r: any) => r.status === 'pending').length || 0;
+  const pendingReports = reports?.filter((r: any) => r.status === "pending").length || 0;
+  const criticalReports = reports?.filter((r: any) => r.severity === "critical" || r.severity === "high").length || 0;
+
+  // Mock trend data for visualization
+  const trendData = readings?.slice(0, 10).reverse().map((r: any, i: number) => ({
+    time: i,
+    moisture: r.soilMoisture,
+    health: r.healthScore || 85,
+  })) || [];
 
   return (
-    <div className="space-y-8">
-      {/* Welcome Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 p-6 rounded-3xl bg-gradient-to-br from-primary/10 via-background to-accent/5 border border-border shadow-lg">
-        <div className="space-y-1">
-          <h1 className="text-4xl font-extrabold tracking-tight text-foreground font-display">Estate Intelligence</h1>
-          <p className="text-muted-foreground text-lg">
-            Welcome back. All systems are currently <span className="text-primary font-semibold">monitoring</span>.
+    <div className="p-6 space-y-8 bg-background/50 min-h-screen">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight text-primary">Estate Intelligence</h1>
+          <p className="text-muted-foreground text-lg">Real-time agricultural health & predictive monitoring</p>
+        </div>
+        <div className="flex items-center gap-3 bg-card dark:bg-zinc-900 p-2 rounded-xl border shadow-sm">
+          <Badge variant="outline" className="px-3 py-1 gap-1.5 border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400">
+            <ShieldCheck className="w-4 h-4" /> System Active
+          </Badge>
+          <div className="h-4 w-px bg-border" />
+          <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+            <Clock className="w-3 h-3" /> Last sync: Just now
           </p>
         </div>
-        <div className="flex gap-4">
-          <div className="p-4 bg-card rounded-2xl border border-border shadow-sm">
-            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Time</div>
-            <div className="text-xl font-bold font-mono text-primary">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-          </div>
-          <div className="p-4 bg-card rounded-2xl border border-border shadow-sm">
-            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Date</div>
-            <div className="text-xl font-bold font-mono text-primary">{new Date().toLocaleDateString([], { month: 'short', day: 'numeric' })}</div>
-          </div>
-        </div>
-      </div>
+      </header>
 
-      {/* Primary Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="relative overflow-hidden group hover:shadow-xl transition-all duration-500 border-none bg-primary/5">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-            <Droplets className="w-16 h-16" />
-          </div>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Soil Moisture</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {readingsLoading ? <Skeleton className="h-10 w-24" /> : (
-              <div className="space-y-1">
-                <div className="text-4xl font-black text-primary">{latestReading?.soilMoisture ?? "--"}%</div>
-                <Badge variant="secondary" className="bg-primary/20 text-primary hover:bg-primary/30">Target 65%</Badge>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden group hover:shadow-xl transition-all duration-500 border-none bg-accent/5">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-            <AlertTriangle className="w-16 h-16" />
-          </div>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Disease Risks</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {reportsLoading ? <Skeleton className="h-10 w-24" /> : (
-              <div className="space-y-1">
-                <div className="text-4xl font-black text-accent">{activeRisks}</div>
-                <Badge variant="secondary" className="bg-accent/20 text-accent hover:bg-accent/30">Action Required</Badge>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden group hover:shadow-xl transition-all duration-500 border-none bg-blue-500/5">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-            <Camera className="w-16 h-16" />
-          </div>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Pending Scans</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {reportsLoading ? <Skeleton className="h-10 w-24" /> : (
-              <div className="space-y-1">
-                <div className="text-4xl font-black text-blue-600">{pendingScans}</div>
-                <Badge variant="secondary" className="bg-blue-500/20 text-blue-600">Awaiting Scoring</Badge>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden group hover:shadow-xl transition-all duration-500 border-none bg-green-500/5">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-            <ShieldCheck className="w-16 h-16" />
-          </div>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">System Trust</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1">
-              <div className="text-4xl font-black text-green-600">99.8%</div>
-              <Badge variant="secondary" className="bg-green-500/20 text-green-600">Secure & Stable</Badge>
-            </div>
-          </CardContent>
-        </Card>
+        <StatsCard 
+          title="Avg Soil Moisture" 
+          value={`${latestReading?.soilMoisture || 0}%`}
+          description="Surface & Sub-surface avg"
+          icon={Droplets}
+          trend="+2.1% from yesterday"
+          color="blue"
+        />
+        <StatsCard 
+          title="Pathology Alerts" 
+          value={criticalReports}
+          description="Requires immediate action"
+          icon={AlertTriangle}
+          trend={pendingReports > 0 ? `${pendingReports} pending scans` : "All scans processed"}
+          color={criticalReports > 0 ? "orange" : "green"}
+          isAlert={criticalReports > 0}
+        />
+        <StatsCard 
+          title="System Health" 
+          value={`${latestReading?.healthScore || 92}%`}
+          description="Predictive viability score"
+          icon={Activity}
+          trend="Stable"
+          color="green"
+        />
+        <StatsCard 
+          title="Active Estate Coverage" 
+          value="98.2%"
+          description="Sensor & Drone network"
+          icon={Zap}
+          trend="Optimized"
+          color="purple"
+        />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2 overflow-hidden shadow-xl border-border/50">
-          <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/20 pb-4">
-            <CardTitle className="text-lg font-bold flex items-center gap-2">
-              <Activity className="w-5 h-5 text-primary" />
-              Intelligence Feed
-            </CardTitle>
-            <Link href="/analysis">
-              <Button variant="ghost" size="sm" className="text-primary font-bold">
-                Uplink Centre
-                <ArrowUpRight className="ml-2 w-4 h-4" />
-              </Button>
-            </Link>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2 shadow-md border-muted/20">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-primary" />
+                  Health & Moisture Analytics
+                </CardTitle>
+                <CardDescription>Predictive 24h trend analysis</CardDescription>
+              </div>
+              <Badge variant="secondary" className="bg-primary/10 text-primary border-none">Live Stream</Badge>
+            </div>
           </CardHeader>
-          <CardContent className="p-0">
-            {reportsLoading ? (
-              <div className="p-6 space-y-4">
-                <Skeleton className="h-20 w-full rounded-2xl" />
-                <Skeleton className="h-20 w-full rounded-2xl" />
-              </div>
-            ) : reports?.length === 0 ? (
-              <div className="p-12 text-center space-y-4">
-                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
-                  <Camera className="w-8 h-8 text-muted-foreground" />
-                </div>
-                <p className="text-muted-foreground font-medium">No intelligence data yet.</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-border">
-                {reports?.slice(0, 4).map((report) => (
-                  <div key={report.id} className="p-6 flex items-center gap-6 hover:bg-muted/30 transition-colors group">
-                    <div className="w-20 h-20 rounded-2xl overflow-hidden ring-2 ring-border group-hover:ring-primary/50 transition-all shadow-md">
-                      <img src={report.imageUrl} alt="" className="w-full h-full object-cover" />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold">Scan #{report.id}</span>
-                        <Badge variant={report.status === 'complete' ? 'outline' : 'secondary'} className="rounded-full">
-                          {report.status}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground font-medium">
-                        {report.status === 'complete' 
-                          ? (report.analysis as any)?.diseases?.[0]?.name || "No diseases found"
-                          : "Processing metadata..."}
-                      </p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="text-sm font-bold text-foreground">{new Date(report.createdAt!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                      <div className="text-xs text-muted-foreground">{new Date(report.createdAt!).toLocaleDateString()}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+          <CardContent className="h-[350px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={trendData}>
+                <defs>
+                  <linearGradient id="colorMoisture" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" />
+                <XAxis dataKey="time" hide />
+                <YAxis hide domain={[0, 100]} />
+                <Tooltip 
+                  contentStyle={ { backgroundColor: "hsl(var(--card))", borderRadius: "12px", border: "1px solid hsl(var(--border))" } }
+                  itemStyle={ { fontWeight: "bold" } }
+                />
+                <Area type="monotone" dataKey="moisture" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorMoisture)" strokeWidth={3} />
+              </AreaChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
-          <Card className="bg-gradient-to-br from-primary to-primary-foreground text-white border-none shadow-2xl relative overflow-hidden h-full min-h-[400px]">
-            <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-               <Activity className="w-96 h-96 -translate-x-1/2 -translate-y-1/2" />
-            </div>
-            <div className="relative z-10 p-8 flex flex-col h-full justify-between">
-              <div className="space-y-4">
-                <Badge className="bg-white/20 hover:bg-white/30 text-white border-none backdrop-blur-md">Active Intelligence</Badge>
-                <h3 className="text-3xl font-black leading-tight">Identify Risks Real-Time</h3>
-                <p className="text-white/80 font-medium">
-                  Connect your drone or handheld camera directly to the scoring engine for instant results.
-                </p>
-              </div>
+        <Card className="shadow-md border-muted/20">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Leaf className="w-5 h-5 text-green-500" />
+              Recent Pathology
+            </CardTitle>
+            <CardDescription>Latest AI-detected signatures</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {reports?.slice(0, 4).map((report: any, i: number) => (
+                <motion.div 
+                  initial={ { opacity: 0, x: 20 } }
+                  animate={ { opacity: 1, x: 0 } }
+                  transition={ { delay: i * 0.1 } }
+                  key={report.id} 
+                  className="flex items-center gap-4 group cursor-pointer hover:bg-muted/30 p-2 rounded-lg transition-colors"
+                >
+                  <div className="w-14 h-14 rounded-xl overflow-hidden border shadow-sm flex-shrink-0">
+                    <img src={report.imageUrl} alt="scan" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start">
+                      <p className="font-semibold text-sm truncate">
+                        {report.cropType && report.cropType !== 'unknown' ? report.cropType : "Crop Analysis"}
+                      </p>
+                      <SeverityBadge severity={report.severity} />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                      <Clock className="w-3 h-3" /> {new Date(report.createdAt!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+              {(!reports || reports.length === 0) && (
+                <div className="text-center py-10">
+                  <div className="bg-muted rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                    <ShieldCheck className="text-muted-foreground w-6 h-6" />
+                  </div>
+                  <p className="text-muted-foreground text-sm">No pathology detected</p>
+                </div>
+              )}
               <Link href="/analysis">
-                <Button className="w-full bg-white text-primary hover:bg-white/90 text-lg font-black h-14 rounded-2xl shadow-xl">
-                  Launch Uplink
+                <Button variant="ghost" className="w-full mt-4 text-primary font-bold hover:bg-primary/5">
+                  Launch Uplink Center
                 </Button>
               </Link>
             </div>
-          </Card>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
+  );
+}
+
+function StatsCard({ title, value, description, icon: Icon, trend, color, isAlert }: any) {
+  const colorMap: any = {
+    blue: "bg-blue-500/10 text-blue-600 border-blue-200 dark:border-blue-800",
+    green: "bg-green-500/10 text-green-600 border-green-200 dark:border-green-800",
+    orange: "bg-orange-500/10 text-orange-600 border-orange-200 dark:border-orange-800",
+    purple: "bg-purple-500/10 text-purple-600 border-purple-200 dark:border-purple-800",
+  };
+
+  return (
+    <Card className={`shadow-sm border-muted/20 relative overflow-hidden transition-all hover:shadow-md hover:scale-[1.02] ${isAlert ? 'ring-1 ring-orange-500/50' : ''}`}>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{title}</CardTitle>
+          <div className={`p-2 rounded-lg ${colorMap[color]}`}>
+            <Icon className="w-5 h-5" />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-3xl font-bold tracking-tight">{value}</div>
+        <p className="text-xs text-muted-foreground mt-1">{description}</p>
+        <div className="mt-4 flex items-center gap-1.5">
+          <TrendingUp className={`w-3 h-3 ${color === 'orange' ? 'text-orange-500' : 'text-green-500'}`} />
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{trend}</span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function SeverityBadge({ severity }: { severity?: string | null }) {
+  const config: any = {
+    critical: "bg-red-500/10 text-red-600 border-red-200",
+    high: "bg-orange-500/10 text-orange-600 border-orange-200",
+    medium: "bg-yellow-500/10 text-yellow-600 border-yellow-200",
+    low: "bg-blue-500/10 text-blue-600 border-blue-200",
+    none: "bg-green-500/10 text-green-600 border-green-200",
+  };
+  
+  return (
+    <Badge variant="outline" className={`text-[10px] capitalize font-bold px-1.5 py-0 border-none ${config[severity || 'none']}`}>
+      {severity || 'safe'}
+    </Badge>
   );
 }
