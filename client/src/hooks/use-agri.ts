@@ -16,7 +16,7 @@ export function useReports() {
     queryFn: async () => {
       const res = await fetch(api.reports.list.path);
       if (!res.ok) throw new Error("Failed to fetch reports");
-      return api.reports.list.responses[200].parse(await res.json());
+      return res.json();
     },
   });
 }
@@ -29,7 +29,7 @@ export function useReport(id: number) {
       const res = await fetch(url);
       if (res.status === 404) return null;
       if (!res.ok) throw new Error("Failed to fetch report");
-      return api.reports.get.responses[200].parse(await res.json());
+      return res.json();
     },
   });
 }
@@ -39,9 +39,9 @@ export function useCreateReport() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (data: AnalyzeImageRequest) => {
-      const res = await fetch(api.reports.create.path, {
-        method: api.reports.create.method,
+    mutationFn: async (data: any) => {
+      const res = await fetch(api.reports.capture.path, {
+        method: api.reports.capture.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
@@ -50,7 +50,7 @@ export function useCreateReport() {
         const error = await res.json();
         throw new Error(error.message || "Failed to analyze image");
       }
-      return api.reports.create.responses[201].parse(await res.json());
+      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.reports.list.path] });
@@ -60,7 +60,7 @@ export function useCreateReport() {
         variant: "default",
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "Analysis Failed",
         description: error.message,
@@ -78,7 +78,7 @@ export function useIrrigationHistory() {
     queryFn: async () => {
       const res = await fetch(api.irrigation.list.path);
       if (!res.ok) throw new Error("Failed to fetch irrigation history");
-      return api.irrigation.list.responses[200].parse(await res.json());
+      return res.json();
     },
   });
 }
@@ -96,9 +96,9 @@ export function useCalculateIrrigation() {
       });
 
       if (!res.ok) throw new Error("Failed to calculate irrigation advice");
-      return api.irrigation.calculate.responses[201].parse(await res.json());
+      return res.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: [api.irrigation.list.path] });
       toast({
         title: "Advice Generated",
@@ -110,9 +110,23 @@ export function useCalculateIrrigation() {
 
 // === AUDIO DETERRENT ===
 
+export function useAudioLogs() {
+  return useQuery({
+    queryKey: [api.audio.list.path],
+    queryFn: async () => {
+      const res = await fetch(api.audio.list.path);
+      if (!res.ok) throw new Error("Failed to fetch audio logs");
+      return res.json();
+    },
+  });
+}
+
 export function useCalculateAudio() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
   return useMutation({
-    mutationFn: async (data: AudioRequest) => {
+    mutationFn: async (data: any) => {
       const res = await fetch(api.audio.calculate.path, {
         method: api.audio.calculate.method,
         headers: { "Content-Type": "application/json" },
@@ -120,7 +134,10 @@ export function useCalculateAudio() {
       });
 
       if (!res.ok) throw new Error("Failed to calculate volume");
-      return api.audio.calculate.responses[201].parse(await res.json());
+      return res.json();
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.audio.list.path] });
+    }
   });
 }

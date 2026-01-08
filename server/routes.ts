@@ -150,5 +150,10 @@ export async function registerRoutes(
     res.status(201).json(log);
   });
 
+  app.get(api.audio.list.path, async (req, res) => {
+    const logs = await storage.getAudioLogs();
+    res.json(logs);
+  });
+
   return httpServer;
 }

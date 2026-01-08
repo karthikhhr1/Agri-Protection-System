@@ -100,6 +100,13 @@ export const api = {
         201: z.custom<typeof audioLogs.$inferSelect>(),
       },
     },
+    list: {
+      method: 'GET' as const,
+      path: '/api/audio',
+      responses: {
+        200: z.array(z.custom<typeof audioLogs.$inferSelect>()),
+      },
+    },
   },
 };
 

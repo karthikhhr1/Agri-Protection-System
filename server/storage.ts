@@ -61,6 +61,10 @@ export class DatabaseStorage implements IStorage {
     const [newLog] = await db.insert(audioLogs).values(log).returning();
     return newLog;
   }
+
+  async getAudioLogs(): Promise<AudioLog[]> {
+    return await db.select().from(audioLogs).orderBy(desc(audioLogs.createdAt));
+  }
 }
 
 export const storage = new DatabaseStorage();
