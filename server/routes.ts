@@ -43,24 +43,21 @@ export async function registerRoutes(
 
       // Call OpenAI to analyze the image for diseases with absolute precision
       const prompt = `
-        You are a world-class plant pathologist. Analyze this agricultural image for ANY plant disease known to science. 
-        Your knowledge base covers all known plant diseases globally, including but not limited to:
-        - Cereal diseases (Rice Tungro, Blight, Blast, Rust)
-        - Vegetable pathologies (Root Rot, Wilt, Mildew)
-        - Fruit tree infections (Canker, Scab)
-        - Ornamental and plantation crop diseases.
+        You are a world-class plant pathologist and agricultural data scientist. 
+        Analyze this agricultural image for ANY plant disease known to science. 
         
-        Pay close attention to subtle differences between similar diseases.
+        Identify:
+        1. Specific Disease (if present)
+        2. Symptoms observed
+        3. SEVERITY LEVEL: (none, low, medium, high, critical)
+        4. CROP TYPE: Identify the crop in the image.
+        5. IPM measures and risks.
         
-        Rice Tungro vs. Rice Leaf Blight:
-        Rice Tungro: yellowing/orange leaves, stunted growth, twisting.
-        Rice Leaf Blight: linear yellow-to-white lesions with wavy margins.
-        
-        Identify the specific disease if present, list exact symptoms observed, and provide potential risks and IPM (Integrated Pest Management) measures.
-        
-        Return a JSON object with this structure:
+        Return a JSON object with this exact structure:
         {
           "diseaseDetected": boolean,
+          "severity": "string",
+          "cropType": "string",
           "diseases": [{ "name": "string", "confidence": number, "symptoms": ["string"] }],
           "risks": [{ "risk": "string", "reason": "string" }],
           "ipmMeasures": ["string"],
@@ -71,6 +68,7 @@ export async function registerRoutes(
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [
+          { role: "system", content: "You are a specialized agricultural AI pathology unit." },
           {
             role: "user",
             content: [
@@ -87,7 +85,9 @@ export async function registerRoutes(
 
       const updatedReport = await storage.updateReport(id, {
         analysis,
-        status: "complete"
+        status: "complete",
+        severity: analysis.severity || "none",
+        cropType: analysis.cropType || "unknown",
       });
 
       res.json(updatedReport);
@@ -124,6 +124,7 @@ export async function registerRoutes(
       soilMoisture,
       humidity,
       irrigationAdvice: advice,
+      healthScore: Math.round((soilMoisture + humidity) / 2), // Simple heuristic for now
     });
 
     res.status(201).json(reading);
@@ -136,13 +137,14 @@ export async function registerRoutes(
 
   // === Audio ===
   app.post(api.audio.calculate.path, async (req, res) => {
-    const { distance } = api.audio.calculate.input.parse(req.body);
+    const { distance, coordinates } = api.audio.calculate.input.parse(req.body);
     const TARGET_DB = 85;
-    const volume = Math.round(TARGET_DB + 20 * Math.log10(distance));
+    const volume = Math.round(TARGET_DB + 20 * Math.log10(Number(distance)));
 
     const log = await storage.createAudioLog({
-      distance,
+      distance: String(distance),
       calculatedVolume: volume,
+      coordinates,
     });
 
     res.status(201).json(log);

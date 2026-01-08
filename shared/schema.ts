@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, bigint } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -6,7 +6,9 @@ import { z } from "zod";
 export const reports = pgTable("reports", {
   id: serial("id").primaryKey(),
   imageUrl: text("image_url").notNull(),
-  status: text("status").default("pending").notNull(), // text enum fallback for ease of use
+  status: text("status").default("pending").notNull(),
+  severity: text("severity").default("none"), // none, low, medium, high, critical
+  cropType: text("crop_type").default("unknown"),
   // JSON structure: { diseaseDetected: boolean, diseases: [{ name: string, confidence: number, symptoms: string[] }], risks: [{ risk: string, reason: string }], ipmMeasures: string[], confirmed: boolean }
   analysis: jsonb("analysis"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -18,6 +20,7 @@ export const sensorReadings = pgTable("sensor_readings", {
   soilMoisture: integer("soil_moisture").notNull(), // 0-100
   humidity: integer("humidity").notNull(), // 0-100
   irrigationAdvice: text("irrigation_advice").notNull(),
+  healthScore: integer("health_score").default(100), // Predictive health score 0-100
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -26,6 +29,7 @@ export const audioLogs = pgTable("audio_logs", {
   id: serial("id").primaryKey(),
   distance: text("distance").notNull(), // stored as text to avoid bigint overflow
   calculatedVolume: integer("calculated_volume").notNull(), // decibels
+  coordinates: jsonb("coordinates"), // { x: number, y: number } for spatial viz
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -59,5 +63,9 @@ export const irrigationRequestSchema = z.object({
 });
 
 export const audioRequestSchema = z.object({
-  distance: z.coerce.number().positive(),
+  distance: z.string(), // changed to string for consistency with schema.ts text type
+  coordinates: z.object({
+    x: z.number(),
+    y: z.number(),
+  }).optional(),
 });
