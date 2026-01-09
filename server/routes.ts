@@ -126,6 +126,10 @@ export async function registerRoutes(
   app.post(api.irrigation.calculate.path, async (req, res) => {
     const { soilMoisture, humidity } = api.irrigation.calculate.input.parse(req.body);
 
+    // Simulated real-time environmental data
+    const temperature = Math.floor(Math.random() * 15) + 20; // 20-35 C
+    const ambientHumidity = Math.floor(Math.random() * 40) + 40; // 40-80 %
+
     let advice = "";
     if (soilMoisture < 30) {
       advice = "CRITICAL: Irrigate immediately. Soil moisture is dangerously low.";
@@ -142,8 +146,10 @@ export async function registerRoutes(
     const reading = await storage.createSensorReading({
       soilMoisture,
       humidity,
+      temperature,
+      ambientHumidity,
       irrigationAdvice: advice,
-      healthScore: Math.round((soilMoisture + humidity) / 2), // Simple heuristic for now
+      healthScore: Math.round((soilMoisture + humidity + (100 - (temperature - 20) * 4)) / 3),
     });
 
     res.status(201).json(reading);

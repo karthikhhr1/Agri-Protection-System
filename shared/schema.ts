@@ -19,6 +19,8 @@ export const sensorReadings = pgTable("sensor_readings", {
   id: serial("id").primaryKey(),
   soilMoisture: integer("soil_moisture").notNull(), // 0-100
   humidity: integer("humidity").notNull(), // 0-100
+  temperature: integer("temperature").default(25).notNull(), // Celsius
+  ambientHumidity: integer("ambient_humidity").default(50).notNull(), // 0-100
   irrigationAdvice: text("irrigation_advice").notNull(),
   healthScore: integer("health_score").default(100), // Predictive health score 0-100
   createdAt: timestamp("created_at").defaultNow(),

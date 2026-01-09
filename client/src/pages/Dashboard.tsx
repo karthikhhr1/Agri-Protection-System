@@ -54,6 +54,8 @@ export default function Dashboard() {
     time: i,
     moisture: r.soilMoisture,
     health: r.healthScore || 85,
+    temp: r.temperature || 25,
+    humidity: r.ambientHumidity || 50,
   })) || [];
 
   return (
@@ -77,19 +79,35 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
         <StatsCard 
           title="Hydration Index" 
           value={`${latestReading?.soilMoisture || 0}%`}
-          description="Avg soil saturation"
+          description="Soil saturation"
           icon={Droplets}
           trend="+0.8% variance"
           color="blue"
         />
         <StatsCard 
+          title="Ambient Temp" 
+          value={`${latestReading?.temperature || 24}°C`}
+          description="Field temperature"
+          icon={TrendingUp}
+          trend="Steady"
+          color="orange"
+        />
+        <StatsCard 
+          title="Field Humidity" 
+          value={`${latestReading?.ambientHumidity || 48}%`}
+          description="Ambient humidity"
+          icon={Droplets}
+          trend="Optimal"
+          color="blue"
+        />
+        <StatsCard 
           title="Pathology Risk" 
           value={criticalReports}
-          description="High-severity threats"
+          description="Critical threats"
           icon={AlertTriangle}
           trend={pendingReports > 0 ? `${pendingReports} in queue` : "Scanning clear"}
           color={criticalReports > 0 ? "orange" : "green"}
@@ -98,18 +116,10 @@ export default function Dashboard() {
         <StatsCard 
           title="Estate Vitality" 
           value={`${latestReading?.healthScore || 94}%`}
-          description="Overall health score"
+          description="Health score"
           icon={Activity}
           trend="Positive trend"
           color="green"
-        />
-        <StatsCard 
-          title="Node Response" 
-          value="12ms"
-          description="Latency performance"
-          icon={Zap}
-          trend="Ultra-low"
-          color="purple"
         />
       </div>
 
@@ -124,8 +134,9 @@ export default function Dashboard() {
               <CardDescription>Sensor telemetry & trend forecasting</CardDescription>
             </div>
             <div className="flex gap-2">
-              <Badge variant="outline" className="bg-background">Soil Moisture</Badge>
-              <Badge variant="outline" className="bg-background">Viability</Badge>
+              <Badge variant="outline" className="bg-background">Moisture</Badge>
+              <Badge variant="outline" className="bg-background">Temp</Badge>
+              <Badge variant="outline" className="bg-background">Humidity</Badge>
             </div>
           </CardHeader>
           <CardContent className="pt-8 h-[400px]">
@@ -135,6 +146,10 @@ export default function Dashboard() {
                   <linearGradient id="colorMoisture" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2}/>
                     <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorTemp" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.2}/>
+                    <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" />
@@ -146,6 +161,7 @@ export default function Dashboard() {
                   cursor={ { stroke: 'hsl(var(--primary))', strokeWidth: 2 } }
                 />
                 <Area type="monotone" dataKey="moisture" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorMoisture)" strokeWidth={4} dot={ { r: 4, fill: 'hsl(var(--primary))' } } />
+                <Area type="monotone" dataKey="temp" stroke="#f97316" fillOpacity={1} fill="url(#colorTemp)" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
