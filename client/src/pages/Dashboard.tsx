@@ -175,27 +175,29 @@ export default function Dashboard() {
                       <p className="text-[10px] text-muted-foreground flex items-center gap-1">
                         <Clock className="w-3 h-3" /> {new Date(report.createdAt!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Record?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action will permanently remove this pathology intelligence from the system.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Keep Record</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => deleteMutation.mutate(report.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                              Remove
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive">
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Record?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action will permanently remove this pathology intelligence from the system. This cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Keep Record</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteMutation.mutate(report.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                Remove
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
