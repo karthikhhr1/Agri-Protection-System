@@ -11,7 +11,9 @@ import {
   ShieldCheck,
   Zap,
   Clock,
-  Trash2
+  Trash2,
+  ChevronRight,
+  BarChart3
 } from "lucide-react";
 import { 
   XAxis, 
@@ -22,7 +24,7 @@ import {
   AreaChart,
   Area
 } from "recharts";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,6 +38,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useState } from "react";
 
 export default function Dashboard() {
   const { data: reports } = useReports();
@@ -56,77 +59,81 @@ export default function Dashboard() {
   return (
     <div className="p-6 space-y-8 bg-background/50 min-h-screen">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight text-primary">Estate Intelligence</h1>
-          <p className="text-muted-foreground text-lg">Real-time health insights & automated monitoring</p>
+        <div className="space-y-1">
+          <h1 className="text-4xl font-black tracking-tighter text-foreground flex items-center gap-3">
+            <ShieldCheck className="w-10 h-10 text-primary" />
+            Estate Intelligence
+          </h1>
+          <p className="text-muted-foreground text-lg font-medium">Real-time pathology & asset monitoring</p>
         </div>
-        <div className="flex items-center gap-3 bg-card dark:bg-zinc-900 p-2 rounded-xl border shadow-sm">
-          <Badge variant="outline" className="px-3 py-1 gap-1.5 border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400">
-            <ShieldCheck className="w-4 h-4" /> Operations Stable
-          </Badge>
-          <div className="h-4 w-px bg-border" />
-          <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-            <Clock className="w-3 h-3" /> System Synchronized
-          </p>
+        <div className="flex items-center gap-4 bg-card p-3 rounded-2xl border shadow-sm">
+          <div className="flex flex-col items-end">
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">System Status</span>
+            <span className="text-sm font-bold text-green-600 flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              Optimal Performance
+            </span>
+          </div>
         </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard 
-          title="Field Hydration" 
+          title="Hydration Index" 
           value={`${latestReading?.soilMoisture || 0}%`}
-          description="Avg soil saturation levels"
+          description="Avg soil saturation"
           icon={Droplets}
-          trend="+1.2% variance"
+          trend="+0.8% variance"
           color="blue"
         />
         <StatsCard 
-          title="Active Hazards" 
+          title="Pathology Risk" 
           value={criticalReports}
-          description="Requiring immediate intervention"
+          description="High-severity threats"
           icon={AlertTriangle}
-          trend={pendingReports > 0 ? `${pendingReports} analysis in queue` : "Scanning complete"}
+          trend={pendingReports > 0 ? `${pendingReports} in queue` : "Scanning clear"}
           color={criticalReports > 0 ? "orange" : "green"}
           isAlert={criticalReports > 0}
         />
         <StatsCard 
-          title="Viability Score" 
+          title="Estate Vitality" 
           value={`${latestReading?.healthScore || 94}%`}
-          description="Overall plant productivity index"
+          description="Overall health score"
           icon={Activity}
           trend="Positive trend"
           color="green"
         />
         <StatsCard 
-          title="Network Coverage" 
-          value="99.2%"
-          description="Connected agricultural nodes"
+          title="Node Response" 
+          value="12ms"
+          description="Latency performance"
           icon={Zap}
-          trend="Peak performance"
+          trend="Ultra-low"
           color="purple"
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 shadow-md border-muted/20">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-xl flex items-center gap-2 font-display">
-                  <TrendingUp className="w-5 h-5 text-primary" />
-                  Predictive Health Analytics
-                </CardTitle>
-                <CardDescription>Historical trends vs current performance</CardDescription>
-              </div>
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-none">Real-time Analysis</Badge>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <Card className="lg:col-span-2 overflow-hidden border-none shadow-xl bg-card">
+          <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/30 pb-4">
+            <div className="space-y-1">
+              <CardTitle className="text-xl font-black flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-primary" />
+                Predictive Analytics
+              </CardTitle>
+              <CardDescription>Sensor telemetry & trend forecasting</CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Badge variant="outline" className="bg-background">Soil Moisture</Badge>
+              <Badge variant="outline" className="bg-background">Viability</Badge>
             </div>
           </CardHeader>
-          <CardContent className="h-[350px]">
+          <CardContent className="pt-8 h-[400px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trendData}>
                 <defs>
                   <linearGradient id="colorMoisture" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2}/>
                     <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
@@ -134,85 +141,107 @@ export default function Dashboard() {
                 <XAxis dataKey="time" hide />
                 <YAxis hide domain={[0, 100]} />
                 <Tooltip 
-                  contentStyle={ { backgroundColor: "hsl(var(--card))", borderRadius: "12px", border: "1px solid hsl(var(--border))", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" } }
-                  itemStyle={ { fontWeight: "bold" } }
+                  contentStyle={ { backgroundColor: "hsl(var(--card))", borderRadius: "16px", border: "1px solid hsl(var(--border))", boxShadow: "var(--shadow-xl)" } }
+                  itemStyle={ { fontWeight: "800" } }
+                  cursor={ { stroke: 'hsl(var(--primary))', strokeWidth: 2 } }
                 />
-                <Area type="monotone" dataKey="moisture" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorMoisture)" strokeWidth={3} />
+                <Area type="monotone" dataKey="moisture" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorMoisture)" strokeWidth={4} dot={ { r: 4, fill: 'hsl(var(--primary))' } } />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card className="shadow-md border-muted/20 flex flex-col">
-          <CardHeader>
-            <CardTitle className="text-xl flex items-center gap-2 font-display">
-              <Leaf className="w-5 h-5 text-green-500" />
-              Pathology Record
-            </CardTitle>
-            <CardDescription>Latest intelligence summaries</CardDescription>
+        <Card className="flex flex-col border-none shadow-xl bg-card overflow-hidden">
+          <CardHeader className="border-b bg-muted/30 pb-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <CardTitle className="text-xl font-black flex items-center gap-2">
+                  <Leaf className="w-5 h-5 text-green-600" />
+                  Pathology Feed
+                </CardTitle>
+                <CardDescription>Latest intelligence</CardDescription>
+              </div>
+              <Link href="/analysis">
+                <Button size="icon" variant="ghost" className="rounded-full hover-elevate">
+                  <ChevronRight className="w-5 h-5" />
+                </Button>
+              </Link>
+            </div>
           </CardHeader>
-          <CardContent className="flex-1 overflow-auto max-h-[450px]">
-            <div className="space-y-4">
-              {reports?.slice(0, 8).map((report: any, i: number) => (
-                <motion.div 
-                  initial={ { opacity: 0, y: 10 } }
-                  animate={ { opacity: 1, y: 0 } }
-                  transition={ { delay: i * 0.05 } }
-                  key={report.id} 
-                  className="flex items-center gap-4 group hover:bg-muted/30 p-2 rounded-xl transition-all duration-300"
-                >
-                  <div className="w-14 h-14 rounded-xl overflow-hidden border shadow-sm flex-shrink-0 bg-muted">
-                    <img src={report.imageUrl} alt="scan" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start">
-                      <p className="font-bold text-sm truncate text-foreground">
-                        {report.cropType && report.cropType !== 'unknown' ? report.cropType : "Unidentified Crop"}
-                      </p>
-                      <SeverityBadge severity={report.severity} />
+          <CardContent className="flex-1 overflow-auto p-0">
+            <div className="divide-y divide-border/50">
+              <AnimatePresence initial={false}>
+                {reports?.slice(0, 10).map((report: any, i: number) => (
+                  <motion.div 
+                    layout
+                    initial={ { opacity: 0, x: -20 } }
+                    animate={ { opacity: 1, x: 0 } }
+                    exit={ { opacity: 0, scale: 0.95 } }
+                    transition={ { duration: 0.2 } }
+                    key={report.id} 
+                    className="group flex items-center gap-4 p-4 hover:bg-muted/30 transition-all cursor-default"
+                  >
+                    <div className="relative">
+                      <div className="w-16 h-16 rounded-2xl overflow-hidden border shadow-sm bg-muted flex-shrink-0">
+                        <img src={report.imageUrl} alt="scan" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                      </div>
+                      <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-card ${report.severity === 'critical' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-green-500'}`} />
                     </div>
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> {new Date(report.createdAt!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Record?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action will permanently remove this pathology intelligence from the system. This cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Keep Record</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => deleteMutation.mutate(report.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                Remove
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start mb-1">
+                        <p className="font-black text-sm text-foreground truncate uppercase tracking-tight">
+                          {report.cropType && report.cropType !== 'unknown' ? report.cropType : "Unknown"}
+                        </p>
+                        <SeverityBadge severity={report.severity} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> {new Date(report.createdAt!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive rounded-xl">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="rounded-3xl border-none shadow-2xl">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="text-2xl font-black tracking-tighter">Delete Record?</AlertDialogTitle>
+                                <AlertDialogDescription className="text-base font-medium">
+                                  This action will permanently remove this pathology intelligence from the estate archives.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter className="gap-3">
+                                <AlertDialogCancel className="rounded-2xl font-bold h-12 border-none bg-muted hover:bg-muted/80">Discard</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => {
+                                    deleteMutation.mutate(report.id);
+                                  }} 
+                                  className="rounded-2xl font-bold h-12 bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-lg shadow-destructive/20"
+                                >
+                                  Confirm Removal
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
               {(!reports || reports.length === 0) && (
-                <div className="text-center py-20 opacity-40">
-                  <Activity className="w-10 h-10 mx-auto mb-4" />
-                  <p className="text-sm font-medium">Monitoring in progress</p>
+                <div className="text-center py-32 opacity-20">
+                  <Activity className="w-16 h-16 mx-auto mb-4" />
+                  <p className="text-lg font-black uppercase tracking-widest">Active Monitoring</p>
                 </div>
               )}
             </div>
           </CardContent>
-          <div className="p-4 border-t mt-auto">
+          <div className="p-4 bg-muted/30 border-t">
             <Link href="/analysis">
-              <Button className="w-full font-bold h-11 rounded-xl shadow-sm">
+              <Button className="w-full font-black text-sm uppercase tracking-widest h-12 rounded-2xl shadow-lg shadow-primary/20 hover-elevate">
                 Initiate New Scan
               </Button>
             </Link>
@@ -232,21 +261,22 @@ function StatsCard({ title, value, description, icon: Icon, trend, color, isAler
   };
 
   return (
-    <Card className={`shadow-sm border-muted/20 relative overflow-hidden transition-all hover:shadow-md hover:scale-[1.02] ${isAlert ? 'ring-1 ring-orange-500/50' : ''}`}>
+    <Card className={`group relative border-none shadow-lg bg-card transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 overflow-hidden rounded-3xl ${isAlert ? 'ring-2 ring-orange-500/30' : ''}`}>
+      <div className={`absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full opacity-10 blur-3xl ${color === 'blue' ? 'bg-blue-500' : color === 'orange' ? 'bg-orange-500' : color === 'purple' ? 'bg-purple-500' : 'bg-green-500'}`} />
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{title}</CardTitle>
-          <div className={`p-2 rounded-lg ${colorMap[color]}`}>
-            <Icon className="w-5 h-5" />
+          <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">{title}</CardTitle>
+          <div className={`p-3 rounded-2xl shadow-sm ${colorMap[color]}`}>
+            <Icon className="w-6 h-6" />
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="text-3xl font-bold tracking-tight">{value}</div>
-        <p className="text-xs text-muted-foreground mt-1">{description}</p>
-        <div className="mt-4 flex items-center gap-1.5">
-          <TrendingUp className={`w-3 h-3 ${color === 'orange' ? 'text-orange-500' : 'text-green-500'}`} />
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{trend}</span>
+        <div className="text-4xl font-black tracking-tighter mb-1 transition-transform group-hover:scale-105 origin-left">{value}</div>
+        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{description}</p>
+        <div className="mt-6 pt-4 border-t border-muted flex items-center gap-2">
+          <div className={`w-1.5 h-1.5 rounded-full ${color === 'orange' ? 'bg-orange-500' : 'bg-green-500'}`} />
+          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">{trend}</span>
         </div>
       </CardContent>
     </Card>
@@ -255,15 +285,15 @@ function StatsCard({ title, value, description, icon: Icon, trend, color, isAler
 
 function SeverityBadge({ severity }: { severity?: string | null }) {
   const config: any = {
-    critical: "bg-red-500/10 text-red-600 border-red-200",
-    high: "bg-orange-500/10 text-orange-600 border-orange-200",
-    medium: "bg-yellow-500/10 text-yellow-600 border-yellow-200",
-    low: "bg-blue-500/10 text-blue-600 border-blue-200",
-    none: "bg-green-500/10 text-green-600 border-green-200",
+    critical: "bg-red-500 text-white shadow-lg shadow-red-500/20",
+    high: "bg-orange-500 text-white shadow-lg shadow-orange-500/20",
+    medium: "bg-yellow-500 text-black shadow-lg shadow-yellow-500/20",
+    low: "bg-blue-500 text-white shadow-lg shadow-blue-500/20",
+    none: "bg-green-500 text-white shadow-lg shadow-green-500/20",
   };
   
   return (
-    <Badge variant="outline" className={`text-[10px] capitalize font-bold px-1.5 py-0 border-none ${config[severity || 'none']}`}>
+    <Badge className={`text-[10px] font-black uppercase tracking-tighter px-2.5 py-0.5 border-none rounded-lg ${config[severity || 'none']}`}>
       {severity || 'safe'}
     </Badge>
   );
