@@ -3,8 +3,22 @@ import { motion, AnimatePresence } from "framer-motion";
 import { UploadZone } from "@/components/UploadZone";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, Loader2, ShieldAlert, ArrowRight, Camera, Search, FileText, X } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  AlertTriangle, 
+  CheckCircle2, 
+  Loader2, 
+  ShieldAlert, 
+  ArrowRight, 
+  Camera, 
+  Search, 
+  FileText, 
+  X,
+  Scan,
+  ShieldCheck,
+  RefreshCw,
+  Upload
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -25,7 +39,9 @@ export default function Analysis() {
   const startCamera = async () => {
     setShowCamera(true);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } 
+      });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
@@ -103,249 +119,257 @@ export default function Analysis() {
     processMutation.mutate(id);
   };
 
+  useEffect(() => {
+    return () => stopCamera();
+  }, []);
+
   const activeReport = reports?.find(r => r.id === activeReportId) || reports?.find(r => r.status === 'pending');
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Disease Detection & Scoring</h1>
-          <p className="text-muted-foreground mt-2">
-            Multi-stage analysis: Capture data from drone or upload, then process for disease scoring.
-          </p>
-        </div>
-        <div className="flex gap-2">
-           <Badge variant="outline" className="px-3 py-1">
-             <Camera className="w-3 h-3 mr-2" />
-             Data Capture
-           </Badge>
-           <ArrowRight className="w-4 h-4 text-muted-foreground" />
-           <Badge variant="outline" className="px-3 py-1">
-             <Search className="w-3 h-3 mr-2" />
-             Scoring Analysis
-           </Badge>
-        </div>
-      </div>
+    <div className="p-6 max-w-5xl mx-auto space-y-8 bg-background/50 min-h-screen">
+      <header className="space-y-1">
+        <h1 className="text-4xl font-black tracking-tighter text-foreground flex items-center gap-3">
+          <Scan className="w-10 h-10 text-primary" />
+          Uplink Center
+        </h1>
+        <p className="text-muted-foreground text-lg font-medium">Pathology analysis & diagnostic intelligence</p>
+      </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          {/* Step 1: Data Capture */}
-          <Card className="border-primary/20 shadow-md relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-1 bg-primary h-full" />
-            <CardHeader className="pb-2 flex flex-row items-center justify-between">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2 uppercase tracking-wider text-primary">
-                <Camera className="w-4 h-4" />
-                Step 1: Data Capture
-              </CardTitle>
-              {!selectedImage && !showCamera && (
-                <Button size="sm" variant="outline" onClick={startCamera}>
-                  <Camera className="w-4 h-4 mr-2" />
-                  Use Camera
-                </Button>
-              )}
-            </CardHeader>
-            <CardContent className="p-6">
-              {showCamera ? (
-                <div className="space-y-4">
-                  <div className="relative rounded-xl overflow-hidden aspect-video border border-border bg-black">
-                    <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
-                    <Button 
-                      variant="destructive" 
-                      size="icon" 
-                      className="absolute top-4 right-4 rounded-full"
-                      onClick={stopCamera}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <Card className="border-none shadow-2xl bg-card overflow-hidden rounded-3xl">
+          <CardHeader className="bg-muted/30 border-b pb-6">
+            <CardTitle className="text-xl font-black flex items-center gap-2">
+              <Camera className="w-5 h-5 text-primary" />
+              Capture Intelligence
+            </CardTitle>
+            <CardDescription>Direct uplink from field cameras or local storage</CardDescription>
+          </CardHeader>
+          <CardContent className="p-8">
+            <div className="space-y-6">
+              <div className="relative aspect-video rounded-2xl bg-muted/50 border-2 border-dashed border-muted flex items-center justify-center overflow-hidden group">
+                <AnimatePresence mode="wait">
+                  {showCamera ? (
+                    <motion.div 
+                      key="camera"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0"
                     >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="flex justify-center">
-                    <Button onClick={capturePhoto} size="lg" className="rounded-full w-16 h-16 p-0 border-4 border-primary/20">
-                      <div className="w-10 h-10 rounded-full bg-primary" />
-                    </Button>
-                  </div>
-                  <canvas ref={canvasRef} className="hidden" />
-                </div>
-              ) : !selectedImage ? (
-                <UploadZone 
-                  onImageSelected={setSelectedImage} 
-                  isProcessing={captureMutation.isPending}
-                />
-              ) : (
-                <div className="space-y-4">
-                  <div className="relative rounded-xl overflow-hidden aspect-video border border-border shadow-inner bg-muted">
-                    <img 
-                      src={selectedImage} 
-                      alt="Captured data" 
-                      className="w-full h-full object-cover"
-                    />
-                    <Button 
-                      variant="destructive" 
-                      size="sm" 
-                      className="absolute top-4 right-4"
-                      onClick={() => setSelectedImage(null)}
-                      disabled={captureMutation.isPending}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                  <div className="flex justify-end gap-3">
-                    <Button 
-                      className="btn-primary"
-                      onClick={handleCapture}
-                      disabled={captureMutation.isPending}
-                    >
-                      {captureMutation.isPending ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      ) : (
-                        <Camera className="w-4 h-4 mr-2" />
-                      )}
-                      Capture & Save Data
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-... [remaining content unchanged]
-
-          {/* Step 2: Scoring Component */}
-          <AnimatePresence>
-            {activeReport && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-              >
-                <Card className="border-accent/20 shadow-md relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-1 bg-accent h-full" />
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-semibold flex items-center gap-2 uppercase tracking-wider text-accent">
-                      <Search className="w-4 h-4" />
-                      Step 2: Scoring & Analysis
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="flex flex-col md:flex-row gap-6 items-center">
-                      <div className="w-full md:w-48 aspect-square rounded-lg overflow-hidden shrink-0 border border-border">
-                        <img src={activeReport.imageUrl} alt="To analyze" className="w-full h-full object-cover" />
-                      </div>
-                      <div className="flex-1 space-y-4">
-                        <div className="space-y-2">
-                          <h3 className="font-bold">Ready for Disease Analysis</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Data capture # {activeReport.id} is pending scoring. The AI will analyze the plant structure for signs of root rot and other diseases.
-                          </p>
-                        </div>
-                        <Button 
-                          className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
-                          onClick={() => handleProcess(activeReport.id)}
-                          disabled={processMutation.isPending}
-                        >
-                          {processMutation.isPending ? (
-                            <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Processing Disease Scoring...
-                            </>
-                          ) : (
-                            <>
-                              <FileText className="w-4 h-4 mr-2" />
-                              Run Disease Detection Report
-                            </>
-                          )}
+                      <video 
+                        ref={videoRef} 
+                        autoPlay 
+                        playsInline 
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4">
+                        <Button onClick={capturePhoto} size="lg" className="rounded-full w-16 h-16 shadow-2xl hover-elevate bg-white text-black hover:bg-white/90">
+                          <div className="w-12 h-12 rounded-full border-2 border-black/20" />
+                        </Button>
+                        <Button onClick={stopCamera} variant="destructive" size="icon" className="rounded-full w-16 h-16 shadow-2xl hover-elevate">
+                          <X className="w-6 h-6" />
                         </Button>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Reports History */}
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              Analysis History
-            </h2>
-            {isLoadingHistory ? (
-              <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
-            ) : (
-              <div className="grid gap-4">
-                {reports?.filter(r => r.status === 'complete' || r.status === 'failed').map((report) => {
-                  const data = report.analysis as any;
-                  return (
-                    <motion.div
-                      key={report.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="bg-card border border-border rounded-xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row gap-6"
+                    </motion.div>
+                  ) : selectedImage ? (
+                    <motion.div 
+                      key="preview"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0"
                     >
-                      <div className="w-full md:w-48 h-32 rounded-lg overflow-hidden shrink-0">
-                        <img src={report.imageUrl} alt="Report thumbnail" className="w-full h-full object-cover" />
-                      </div>
-                      <div className="flex-1 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-bold text-lg">Report #{report.id}</h3>
-                          <Badge variant={report.status === 'complete' ? 'outline' : 'destructive'}>
-                            {report.status}
-                          </Badge>
-                        </div>
-
-                        {data?.diseases?.length > 0 ? (
-                          <div className="flex flex-wrap gap-2">
-                            {data.diseases.map((d: any, i: number) => (
-                              <Badge key={i} variant="destructive" className="bg-red-100 text-red-700 hover:bg-red-200 border-red-200">
-                                <AlertTriangle className="w-3 h-3 mr-1" />
-                                {d.name} ({Math.round(d.confidence * 100)}%)
-                              </Badge>
-                            ))}
-                          </div>
-                        ) : (
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                            <CheckCircle2 className="w-3 h-3 mr-1" />
-                            Healthy / No Disease Detected
-                          </Badge>
-                        )}
-
-                        <div className="text-sm text-muted-foreground">
-                          <strong>Observed Symptoms:</strong> {data?.diseases?.flatMap((d: any) => d.symptoms).join(", ") || "None"}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Analyzed on {new Date(report.createdAt!).toLocaleString()}
-                        </div>
+                      <img src={selectedImage} alt="preview" className="w-full h-full object-cover" />
+                      <div className="absolute top-4 right-4">
+                        <Button 
+                          onClick={() => setSelectedImage(null)} 
+                          variant="destructive" 
+                          size="icon" 
+                          className="rounded-full shadow-lg"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
                       </div>
                     </motion.div>
-                  );
-                })}
+                  ) : (
+                    <motion.div 
+                      key="empty"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="text-center space-y-4 p-8 w-full"
+                    >
+                      <UploadZone 
+                        onImageSelected={setSelectedImage} 
+                        isProcessing={captureMutation.isPending}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <canvas ref={canvasRef} className="hidden" />
               </div>
-            )}
-          </div>
-        </div>
 
-        <div className="space-y-6">
-          <Card className="bg-secondary/30 border-secondary">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ShieldAlert className="w-5 h-5 text-accent" />
-                Detection Protocol
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm space-y-4">
-              <p>
-                Our vision system is trained to identify complex plant pathologies including:
-              </p>
-              <ul className="list-disc pl-4 space-y-2 text-muted-foreground">
-                <li><strong>Root Rot:</strong> Characterized by dark, mushy roots and stunted growth.</li>
-                <li><strong>Leaf Rust:</strong> Identified by orange/brown pustules on foliage.</li>
-                <li><strong>Blight:</strong> Rapid browning and death of plant tissues.</li>
-                <li><strong>Mildew:</strong> White powdery substance on leaf surfaces.</li>
-              </ul>
-              <div className="p-3 bg-background/50 rounded-lg border border-border text-xs italic">
-                Note: Captured images are stored in the data lake before being passed to the scoring engine.
+              <div className="grid grid-cols-2 gap-4">
+                <Button 
+                  onClick={startCamera} 
+                  disabled={showCamera}
+                  variant="outline" 
+                  className="h-14 rounded-2xl font-black uppercase tracking-widest hover-elevate border-2"
+                >
+                  <Camera className="w-5 h-5 mr-2" />
+                  Live Camera
+                </Button>
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => setSelectedImage(reader.result as string);
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                  />
+                  <Button variant="outline" className="w-full h-14 rounded-2xl font-black uppercase tracking-widest border-2">
+                    <Upload className="w-5 h-5 mr-2" />
+                    Upload File
+                  </Button>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+
+              <Button 
+                onClick={handleCapture}
+                disabled={!selectedImage || captureMutation.isPending}
+                className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover-elevate transition-all disabled:opacity-50"
+              >
+                {captureMutation.isPending ? (
+                  <RefreshCw className="w-6 h-6 animate-spin" />
+                ) : (
+                  <>
+                    <Scan className="w-6 h-6 mr-2" />
+                    Capture & Analyze
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-2xl bg-card rounded-3xl overflow-hidden">
+          <CardHeader className="bg-muted/30 border-b pb-6">
+            <CardTitle className="text-xl font-black flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-green-500" />
+              Production Safeguards
+            </CardTitle>
+            <CardDescription>Diagnostic integrity & encrypted transmission</CardDescription>
+          </CardHeader>
+          <CardContent className="p-8 space-y-6">
+            <div className="space-y-4">
+              <div className="p-4 rounded-2xl bg-green-500/5 border border-green-500/20 flex gap-4">
+                <ShieldCheck className="w-6 h-6 text-green-500 shrink-0" />
+                <div>
+                  <p className="font-black text-sm uppercase tracking-tight text-green-600">Encrypted Uplink</p>
+                  <p className="text-xs text-muted-foreground font-medium mt-1">End-to-end security for all camera data transfers.</p>
+                </div>
+              </div>
+              <div className="p-4 rounded-2xl bg-orange-500/5 border border-orange-500/20 flex gap-4">
+                <AlertTriangle className="w-6 h-6 text-orange-500 shrink-0" />
+                <div>
+                  <p className="font-black text-sm uppercase tracking-tight text-orange-600">Smart Alerting</p>
+                  <p className="text-xs text-muted-foreground font-medium mt-1">Critical pathologies trigger immediate field protocols.</p>
+                </div>
+              </div>
+            </div>
+            
+            <AnimatePresence>
+              {activeReport && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  className="pt-6 border-t"
+                >
+                  <div className="flex gap-4 items-center">
+                    <div className="w-20 h-20 rounded-xl overflow-hidden border">
+                      <img src={activeReport.imageUrl} alt="Target" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <p className="text-sm font-black uppercase tracking-widest text-primary">Pending Analysis</p>
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleProcess(activeReport.id)}
+                        disabled={processMutation.isPending}
+                        className="w-full font-bold h-10 rounded-xl"
+                      >
+                        {processMutation.isPending ? (
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                        ) : (
+                          "Run Full Report"
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="space-y-4">
+        <h2 className="text-2xl font-black flex items-center gap-2 uppercase tracking-tighter">
+          <FileText className="w-6 h-6 text-primary" />
+          Intelligence Archive
+        </h2>
+        {isLoadingHistory ? (
+          <div className="flex justify-center p-12"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {reports?.filter(r => r.status === 'complete' || r.status === 'failed').map((report) => {
+              const data = report.analysis as any;
+              return (
+                <motion.div
+                  key={report.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-card border-none shadow-lg rounded-3xl p-6 flex gap-6 hover:shadow-2xl transition-all"
+                >
+                  <div className="w-24 h-24 rounded-2xl overflow-hidden shrink-0 border">
+                    <img src={report.imageUrl} alt="Report" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-black text-lg tracking-tighter uppercase">Entry #{report.id}</h3>
+                      <Badge className={report.status === 'complete' ? 'bg-green-500' : 'bg-red-500'}>
+                        {report.status}
+                      </Badge>
+                    </div>
+
+                    {data?.diseases?.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {data.diseases.map((d: any, i: number) => (
+                          <Badge key={i} variant="destructive" className="bg-red-500/10 text-red-600 border-none font-bold">
+                            {d.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <Badge variant="outline" className="bg-green-500/10 text-green-600 border-none font-bold">
+                        Pathology Clear
+                      </Badge>
+                    )}
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pt-2">
+                      Logged {new Date(report.createdAt!).toLocaleDateString()}
+                    </p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
