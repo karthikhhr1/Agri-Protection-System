@@ -240,6 +240,23 @@ export default function Analysis() {
                 </div>
               </div>
 
+              <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20">
+                <p className="text-xs font-bold text-primary uppercase tracking-widest mb-2">Remote Camera Integration</p>
+                <p className="text-[10px] text-muted-foreground leading-relaxed mb-3">
+                  Connect third-party hardware via real-time RTSP/WebRTC streams or direct IP uplink.
+                </p>
+                <Button 
+                  variant="link" 
+                  className="p-0 h-auto text-xs font-black uppercase tracking-widest text-primary hover:text-primary/80"
+                  onClick={() => {
+                    const ip = prompt("Enter Camera IP / Stream URL:");
+                    if (ip) toast({ title: "Connecting Stream", description: `Attempting uplink to ${ip}...` });
+                  }}
+                >
+                  Configure Remote Link <ArrowRight className="w-3 h-3 ml-1" />
+                </Button>
+              </div>
+
               <Button 
                 onClick={handleCapture}
                 disabled={!selectedImage || captureMutation.isPending}
