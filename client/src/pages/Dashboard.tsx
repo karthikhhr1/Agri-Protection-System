@@ -61,18 +61,49 @@ export default function Dashboard() {
   return (
     <div className="p-6 space-y-8 bg-background/50 min-h-screen">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b pb-8">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <div className="h-px w-8 bg-primary/30" />
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">AgriGuard Strategic Command</span>
+        <div className="space-y-2 group cursor-default">
+          <div className="flex items-center gap-2 overflow-hidden">
+            <motion.div 
+              initial={ { width: 0 } }
+              animate={ { width: 32 } }
+              transition={ { duration: 1.5, ease: [0.16, 1, 0.3, 1] } }
+              className="h-px bg-primary/30 shrink-0" 
+            />
+            <motion.span 
+              initial={ { x: -20, opacity: 0 } }
+              animate={ { x: 0, opacity: 1 } }
+              transition={ { duration: 1, delay: 0.5, ease: "easeOut" } }
+              className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60"
+            >
+              AgriGuard Strategic Command
+            </motion.span>
           </div>
-          <h1 className="text-5xl font-black tracking-tighter text-foreground leading-[0.8] flex items-baseline gap-2">
-            Estate Intelligence
-            <span className="text-primary text-6xl">.</span>
-          </h1>
-          <p className="text-muted-foreground/80 text-lg font-medium tracking-tight">Ecological durability & tactical asset oversight</p>
+          <div className="overflow-hidden">
+            <motion.h1 
+              initial={ { y: 100 } }
+              animate={ { y: 0 } }
+              transition={ { duration: 1.2, ease: [0.16, 1, 0.3, 1] } }
+              className="text-5xl font-black tracking-tighter text-foreground leading-[0.8] flex items-baseline gap-2"
+            >
+              Estate Intelligence
+              <span className="text-primary text-6xl">.</span>
+            </motion.h1>
+          </div>
+          <motion.p 
+            initial={ { opacity: 0 } }
+            animate={ { opacity: 1 } }
+            transition={ { duration: 2, delay: 1 } }
+            className="text-muted-foreground/80 text-lg font-medium tracking-tight"
+          >
+            Ecological durability & tactical asset oversight
+          </motion.p>
         </div>
-        <div className="flex items-center gap-8 px-6 py-4 bg-card rounded-sm border shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)]">
+        <motion.div 
+          initial={ { opacity: 0, scale: 0.95 } }
+          animate={ { opacity: 1, scale: 1 } }
+          transition={ { duration: 1, delay: 1.2 } }
+          className="flex items-center gap-8 px-6 py-4 bg-card rounded-sm border shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)]"
+        >
           <div className="flex flex-col items-end">
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">Network Status</span>
             <div className="flex items-center gap-2">
@@ -80,7 +111,7 @@ export default function Dashboard() {
               <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
             </div>
           </div>
-        </div>
+        </motion.div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
@@ -232,6 +263,16 @@ export default function Dashboard() {
                                   This operation will purge this specific diagnostic record from the archival database.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
+                              {report.analysis?.precautions && (
+                                <div className="mt-4 space-y-2">
+                                  <p className="text-[10px] font-black uppercase tracking-widest text-primary/60">Ecological Precautions</p>
+                                  <ul className="text-[11px] font-medium text-muted-foreground list-disc pl-4 space-y-1">
+                                    {report.analysis.precautions.map((p: string, idx: number) => (
+                                      <li key={idx}>{p}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
                               <AlertDialogFooter className="mt-8 gap-4">
                                 <AlertDialogCancel className="rounded-none font-black text-[10px] uppercase tracking-widest h-12 px-8 border-none bg-muted hover:bg-muted/80">Retain</AlertDialogCancel>
                                 <AlertDialogAction 

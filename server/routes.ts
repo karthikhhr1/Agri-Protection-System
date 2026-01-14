@@ -46,12 +46,16 @@ export async function registerRoutes(
         You are a world-class plant pathologist and agricultural data scientist. 
         Analyze this agricultural image for ANY plant disease known to science. 
         
+        Focus on "Beyond Good Intentions" principles: ecological durability, semi-arid land design, and restorative agriculture.
+
         Identify:
         1. Specific Disease (if present)
         2. Symptoms observed
         3. SEVERITY LEVEL: (none, low, medium, high, critical)
         4. CROP TYPE: Identify the crop in the image.
         5. IPM measures and risks.
+        6. PRECAUTIONS: Provide detailed, actionable ecological precautions.
+        7. RESTORATIVE ACTIONS: Suggest soil-building or biodiversity-enhancing measures.
         
         Return a JSON object with this exact structure:
         {
@@ -61,6 +65,8 @@ export async function registerRoutes(
           "diseases": [{ "name": "string", "confidence": number, "symptoms": ["string"] }],
           "risks": [{ "risk": "string", "reason": "string" }],
           "ipmMeasures": ["string"],
+          "precautions": ["string"],
+          "restorativeActions": ["string"],
           "confirmed": boolean
         }
       `;
