@@ -5,70 +5,48 @@
 @tailwind utilities;
 
 :root {
-  /* Earthy Agricultural Theme - Light Mode */
+  /* Earthy Soul Forest Theme - Sophisticated Minimalist */
   --font-sans: 'Inter', sans-serif;
   --font-display: 'Space Grotesk', sans-serif;
 
-  --background: 60 20% 98%;      /* Soft cream/sage tint */
-  --foreground: 150 40% 10%;     /* Dark almost black green */
+  --background: 30 20% 96%;      /* Warmer, light sand/parchment */
+  --foreground: 160 30% 12%;     /* Deep Obsidian Green */
 
-  --card: 0 0% 100%;
-  --card-foreground: 150 40% 10%;
+  --card: 30 20% 98%;            /* Subtly different from background */
+  --card-foreground: 160 30% 12%;
 
-  --popover: 0 0% 100%;
-  --popover-foreground: 150 40% 10%;
+  --primary: 160 40% 15%;        /* Darkest Forest Green - almost black */
+  --primary-foreground: 30 20% 98%;
 
-  --primary: 146 65% 25%;        /* Deep Forest Green */
-  --primary-foreground: 146 65% 98%;
+  --secondary: 40 30% 85%;       /* Muted Earth/Terracotta tint */
+  --secondary-foreground: 160 30% 15%;
 
-  --secondary: 35 40% 90%;       /* Light Wheat/Beige */
-  --secondary-foreground: 35 60% 20%;
+  --muted: 30 15% 90%;
+  --muted-foreground: 160 10% 40%;
 
-  --muted: 150 10% 92%;
-  --muted-foreground: 150 10% 40%;
+  --accent: 140 30% 30%;         /* Sage Moss */
+  --accent-foreground: 30 20% 98%;
 
-  --accent: 25 85% 55%;          /* Alert Orange */
-  --accent-foreground: 25 85% 98%;
+  --border: 30 10% 85%;
+  --input: 30 10% 85%;
+  --ring: 160 40% 15%;
 
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 98%;
-
-  --border: 150 20% 90%;
-  --input: 150 20% 90%;
-  --ring: 146 65% 25%;
-
-  --radius: 0.75rem;
+  --radius: 0.5rem;             /* Sharper, more professional corners */
 }
 
 .dark {
-  /* Dark Mode - Deep Earth */
-  --background: 150 40% 5%;
-  --foreground: 60 20% 90%;
+  /* Dark Mode - Midnight Forest */
+  --background: 160 30% 4%;
+  --foreground: 30 20% 92%;
 
-  --card: 150 40% 8%;
-  --card-foreground: 60 20% 90%;
+  --card: 160 30% 6%;
+  --card-foreground: 30 20% 92%;
 
-  --popover: 150 40% 8%;
-  --popover-foreground: 60 20% 90%;
+  --primary: 140 30% 45%;
+  --primary-foreground: 160 30% 5%;
 
-  --primary: 146 50% 45%;
-  --primary-foreground: 146 65% 5%;
-
-  --secondary: 150 20% 15%;
-  --secondary-foreground: 60 20% 90%;
-
-  --muted: 150 20% 15%;
-  --muted-foreground: 150 10% 60%;
-
-  --accent: 25 85% 55%;
-  --accent-foreground: 0 0% 100%;
-
-  --destructive: 0 62% 30%;
-  --destructive-foreground: 0 0% 100%;
-
-  --border: 150 20% 18%;
-  --input: 150 20% 18%;
-  --ring: 146 50% 45%;
+  --border: 160 20% 12%;
+  --input: 160 20% 12%;
 }
 
 @layer base {

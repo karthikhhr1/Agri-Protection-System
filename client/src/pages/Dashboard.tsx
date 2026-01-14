@@ -60,21 +60,25 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 space-y-8 bg-background/50 min-h-screen">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="space-y-1">
-          <h1 className="text-4xl font-black tracking-tighter text-foreground flex items-center gap-3">
-            <ShieldCheck className="w-10 h-10 text-primary" />
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b pb-8">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="h-px w-8 bg-primary/30" />
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">AgriGuard Strategic Command</span>
+          </div>
+          <h1 className="text-5xl font-black tracking-tighter text-foreground leading-[0.8] flex items-baseline gap-2">
             Estate Intelligence
+            <span className="text-primary text-6xl">.</span>
           </h1>
-          <p className="text-muted-foreground text-lg font-medium">Real-time pathology & asset monitoring</p>
+          <p className="text-muted-foreground/80 text-lg font-medium tracking-tight">Ecological durability & tactical asset oversight</p>
         </div>
-        <div className="flex items-center gap-4 bg-card p-3 rounded-2xl border shadow-sm">
+        <div className="flex items-center gap-8 px-6 py-4 bg-card rounded-sm border shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)]">
           <div className="flex flex-col items-end">
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">System Status</span>
-            <span className="text-sm font-bold text-green-600 flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              Optimal Performance
-            </span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">Network Status</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black uppercase tracking-tighter text-foreground">Active Uplink</span>
+              <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+            </div>
           </div>
         </div>
       </header>
@@ -167,76 +171,76 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="flex flex-col border-none shadow-xl bg-card overflow-hidden">
-          <CardHeader className="border-b bg-muted/30 pb-4">
+        <Card className="flex flex-col border-none shadow-sm bg-card overflow-hidden rounded-none border-t-2 border-primary">
+          <CardHeader className="bg-muted/10 pb-6 pt-8 px-8">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <CardTitle className="text-xl font-black flex items-center gap-2">
-                  <Leaf className="w-5 h-5 text-green-600" />
-                  Pathology Feed
-                </CardTitle>
-                <CardDescription>Latest intelligence</CardDescription>
+                <div className="flex items-center gap-2">
+                  <div className="h-px w-4 bg-primary/30" />
+                  <CardTitle className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">
+                    Pathology Feed
+                  </CardTitle>
+                </div>
+                <CardDescription className="text-xs font-medium tracking-tight">Intelligence stream</CardDescription>
               </div>
               <Link href="/analysis">
-                <Button size="icon" variant="ghost" className="rounded-full hover-elevate">
-                  <ChevronRight className="w-5 h-5" />
+                <Button size="icon" variant="ghost" className="rounded-none hover:bg-primary/5 transition-colors">
+                  <ChevronRight className="w-4 h-4 text-primary" />
                 </Button>
               </Link>
             </div>
           </CardHeader>
-          <CardContent className="flex-1 overflow-auto p-0">
-            <div className="divide-y divide-border/50">
+          <CardContent className="flex-1 overflow-auto p-0 px-8">
+            <div className="divide-y divide-border/30">
               <AnimatePresence initial={false}>
                 {reports?.slice(0, 10).map((report: any, i: number) => (
                   <motion.div 
                     layout
-                    initial={ { opacity: 0, x: -20 } }
-                    animate={ { opacity: 1, x: 0 } }
-                    exit={ { opacity: 0, scale: 0.95 } }
-                    transition={ { duration: 0.2 } }
+                    initial={ { opacity: 0 } }
+                    animate={ { opacity: 1 } }
+                    exit={ { opacity: 0 } }
                     key={report.id} 
-                    className="group flex items-center gap-4 p-4 hover:bg-muted/30 transition-all cursor-default"
+                    className="group flex items-center gap-6 py-6 transition-all"
                   >
-                    <div className="relative">
-                      <div className="w-16 h-16 rounded-2xl overflow-hidden border shadow-sm bg-muted flex-shrink-0">
-                        <img src={report.imageUrl} alt="scan" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                    <div className="relative shrink-0">
+                      <div className="w-14 h-14 rounded-none overflow-hidden grayscale hover:grayscale-0 transition-all duration-700 border border-border/50">
+                        <img src={report.imageUrl} alt="scan" className="w-full h-full object-cover" />
                       </div>
-                      <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-card ${report.severity === 'critical' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-green-500'}`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start mb-1">
-                        <p className="font-black text-sm text-foreground truncate uppercase tracking-tight">
-                          {report.cropType && report.cropType !== 'unknown' ? report.cropType : "Unknown"}
+                      <div className="flex justify-between items-start mb-2">
+                        <p className="font-black text-[11px] text-foreground truncate uppercase tracking-[0.1em]">
+                          {report.cropType && report.cropType !== 'unknown' ? report.cropType : "Specimen"}
                         </p>
                         <SeverityBadge severity={report.severity} />
                       </div>
                       <div className="flex items-center justify-between">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
-                          <Clock className="w-3 h-3" /> {new Date(report.createdAt!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <p className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-[0.2em] flex items-center gap-2">
+                          <Clock className="w-3 h-3 opacity-50" /> {new Date(report.createdAt!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive rounded-xl">
-                                <Trash2 className="w-4 h-4" />
+                              <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground/40 hover:text-destructive rounded-none">
+                                <Trash2 className="w-3 h-3" />
                               </Button>
                             </AlertDialogTrigger>
-                            <AlertDialogContent className="rounded-3xl border-none shadow-2xl">
-                              <AlertDialogHeader>
-                                <AlertDialogTitle className="text-2xl font-black tracking-tighter">Delete Record?</AlertDialogTitle>
-                                <AlertDialogDescription className="text-base font-medium">
-                                  This action will permanently remove this pathology intelligence from the estate archives.
+                            <AlertDialogContent className="rounded-none border-none shadow-2xl bg-background p-12 max-w-lg">
+                              <AlertDialogHeader className="space-y-4">
+                                <AlertDialogTitle className="text-4xl font-black tracking-tighter uppercase leading-none">Discard Intelligence?</AlertDialogTitle>
+                                <AlertDialogDescription className="text-sm font-medium leading-relaxed">
+                                  This operation will purge this specific diagnostic record from the archival database.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
-                              <AlertDialogFooter className="gap-3">
-                                <AlertDialogCancel className="rounded-2xl font-bold h-12 border-none bg-muted hover:bg-muted/80">Discard</AlertDialogCancel>
+                              <AlertDialogFooter className="mt-8 gap-4">
+                                <AlertDialogCancel className="rounded-none font-black text-[10px] uppercase tracking-widest h-12 px-8 border-none bg-muted hover:bg-muted/80">Retain</AlertDialogCancel>
                                 <AlertDialogAction 
                                   onClick={() => {
                                     deleteMutation.mutate(report.id);
                                   }} 
-                                  className="rounded-2xl font-bold h-12 bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-lg shadow-destructive/20"
+                                  className="rounded-none font-black text-[10px] uppercase tracking-widest h-12 px-8 bg-primary text-primary-foreground hover:bg-primary/90"
                                 >
-                                  Confirm Removal
+                                  Purge Record
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -247,18 +251,12 @@ export default function Dashboard() {
                   </motion.div>
                 ))}
               </AnimatePresence>
-              {(!reports || reports.length === 0) && (
-                <div className="text-center py-32 opacity-20">
-                  <Activity className="w-16 h-16 mx-auto mb-4" />
-                  <p className="text-lg font-black uppercase tracking-widest">Active Monitoring</p>
-                </div>
-              )}
             </div>
           </CardContent>
-          <div className="p-4 bg-muted/30 border-t">
+          <div className="p-8 bg-muted/5 border-t border-border/30">
             <Link href="/analysis">
-              <Button className="w-full font-black text-sm uppercase tracking-widest h-12 rounded-2xl shadow-lg shadow-primary/20 hover-elevate">
-                Initiate New Scan
+              <Button className="w-full font-black text-[10px] uppercase tracking-[0.3em] h-14 rounded-none bg-primary text-primary-foreground hover:bg-primary/90 shadow-none transition-all">
+                Commence Scanning
               </Button>
             </Link>
           </div>
@@ -277,22 +275,19 @@ function StatsCard({ title, value, description, icon: Icon, trend, color, isAler
   };
 
   return (
-    <Card className={`group relative border-none shadow-lg bg-card transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 overflow-hidden rounded-3xl ${isAlert ? 'ring-2 ring-orange-500/30' : ''}`}>
-      <div className={`absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full opacity-10 blur-3xl ${color === 'blue' ? 'bg-blue-500' : color === 'orange' ? 'bg-orange-500' : color === 'purple' ? 'bg-purple-500' : 'bg-green-500'}`} />
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">{title}</CardTitle>
-          <div className={`p-3 rounded-2xl shadow-sm ${colorMap[color]}`}>
-            <Icon className="w-6 h-6" />
-          </div>
+    <Card className={`group relative border-none shadow-sm bg-card transition-all duration-700 hover:shadow-2xl overflow-hidden rounded-none border-l-2 ${color === 'orange' ? 'border-orange-500' : 'border-primary'}`}>
+      <CardHeader className="pb-4 pt-6 px-6">
+        <div className="flex items-center justify-between mb-4">
+          <CardTitle className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">{title}</CardTitle>
+          <Icon className={`w-5 h-5 ${color === 'orange' ? 'text-orange-500' : 'text-primary'}`} />
         </div>
+        <div className="text-5xl font-black tracking-tighter text-foreground mb-1 group-hover:translate-x-1 transition-transform duration-500">{value}</div>
+        <p className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest">{description}</p>
       </CardHeader>
-      <CardContent>
-        <div className="text-4xl font-black tracking-tighter mb-1 transition-transform group-hover:scale-105 origin-left">{value}</div>
-        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{description}</p>
-        <div className="mt-6 pt-4 border-t border-muted flex items-center gap-2">
-          <div className={`w-1.5 h-1.5 rounded-full ${color === 'orange' ? 'bg-orange-500' : 'bg-green-500'}`} />
-          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">{trend}</span>
+      <CardContent className="px-6 pb-6">
+        <div className="mt-4 pt-4 border-t border-muted/50 flex items-center justify-between">
+          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">{trend}</span>
+          <div className={`w-1 h-1 rounded-full ${color === 'orange' ? 'bg-orange-500' : 'bg-primary'}`} />
         </div>
       </CardContent>
     </Card>
