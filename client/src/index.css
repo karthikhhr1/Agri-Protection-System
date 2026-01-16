@@ -41,6 +41,45 @@
   --vitality: 140 70% 40%;
 }
 
+/* Custom Google Translate Styling */
+.google-translate-styled {
+  @apply overflow-hidden;
+}
+
+.google-translate-styled .goog-te-gadget {
+  font-family: var(--font-sans) !important;
+  color: transparent !important;
+  font-size: 0 !important;
+}
+
+.google-translate-styled .goog-te-gadget .goog-te-combo {
+  @apply bg-transparent border-none text-[11px] font-bold text-foreground cursor-pointer outline-none w-full m-0 p-0 h-auto;
+  font-family: var(--font-sans) !important;
+}
+
+.google-translate-styled .goog-te-gadget-simple {
+  @apply bg-transparent border-none p-0 !important;
+}
+
+/* Hide Google Branding */
+.goog-logo-link, 
+.goog-te-gadget span,
+.goog-te-banner-frame {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+}
+
+.skiptranslate {
+  display: none !important;
+}
+
+.skiptranslate.goog-te-gadget {
+  display: block !important;
+}
+
 .dark {
   /* Dark Mode - Midnight Forest */
   --background: 160 30% 4%;

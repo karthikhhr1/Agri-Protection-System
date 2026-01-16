@@ -46,9 +46,14 @@ export function Navigation() {
       </div>
 
       <div className="px-4 mb-6">
-        <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg border border-border/50">
-          <Globe className="w-3 h-3 text-primary/60" />
-          <div id="google_translate_element_global" className="scale-90 origin-left overflow-hidden"></div>
+        <div className="relative group/lang flex items-center gap-3 p-3 bg-primary/5 rounded-xl border border-primary/10 transition-all duration-300 hover:bg-primary/10 hover:border-primary/20">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+            <Globe className="w-4 h-4 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-primary/40 mb-0.5">Translation</p>
+            <div id="google_translate_element_global" className="google-translate-styled"></div>
+          </div>
         </div>
       </div>
 
