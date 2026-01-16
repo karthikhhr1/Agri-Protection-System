@@ -26,8 +26,20 @@ export function Navigation() {
           new window.google.translate.TranslateElement({
             pageLanguage: 'en',
             includedLanguages: 'hi,te,kn,ta,en',
-            layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE
+            layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
+            autoDisplay: false
           }, 'google_translate_element_global');
+
+          // Force visibility and clickability
+          const checkExist = setInterval(() => {
+            const combo = document.querySelector('.goog-te-combo');
+            if (combo) {
+              clearInterval(checkExist);
+              combo.addEventListener('change', () => {
+                console.log('Language changed');
+              });
+            }
+          }, 100);
         }
       };
     }
