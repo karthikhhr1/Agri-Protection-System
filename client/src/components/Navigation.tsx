@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Droplets, Volume2, ScanEye, Sprout } from "lucide-react";
+import { LayoutDashboard, Droplets, Volume2, ScanEye, Sprout, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
@@ -7,6 +7,7 @@ const items = [
   { href: "/analysis", label: "Drone Analysis", icon: ScanEye },
   { href: "/irrigation", label: "Irrigation", icon: Droplets },
   { href: "/deterrent", label: "Audio Deterrent", icon: Volume2 },
+  { href: "/assistant", label: "AI Assistant", icon: Bot },
 ];
 
 export function Navigation() {

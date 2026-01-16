@@ -9,6 +9,7 @@ import Dashboard from "@/pages/Dashboard";
 import Analysis from "@/pages/Analysis";
 import Irrigation from "@/pages/Irrigation";
 import Deterrent from "@/pages/Deterrent";
+import Assistant from "@/pages/Assistant";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/analysis" component={Analysis} />
       <Route path="/irrigation" component={Irrigation} />
       <Route path="/deterrent" component={Deterrent} />
+      <Route path="/assistant" component={Assistant} />
       <Route component={NotFound} />
     </Switch>
   );

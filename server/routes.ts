@@ -186,5 +186,26 @@ export async function registerRoutes(
     res.json(logs);
   });
 
+  // === AI Assistant ===
+  app.post("/api/chat", async (req, res) => {
+    try {
+      const { message } = z.object({ message: z.string() }).parse(req.body);
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          { 
+            role: "system", 
+            content: "You are an AI agricultural assistant for AgriGuard. You help farmers with crop diseases, irrigation, and land management. Use the 'Beyond Good Intentions' principles: ecological durability, semi-arid land design, and restorative agriculture. Answer concisely and practically." 
+          },
+          { role: "user", content: message },
+        ],
+      });
+      res.json({ message: response.choices[0].message.content });
+    } catch (err) {
+      console.error("Chat error:", err);
+      res.status(500).json({ message: "Failed to process AI request" });
+    }
+  });
+
   return httpServer;
 }
