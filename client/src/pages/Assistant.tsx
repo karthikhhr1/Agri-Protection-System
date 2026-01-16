@@ -51,20 +51,6 @@ export default function Assistant() {
     }
   };
 
-  useEffect(() => {
-    // Inject Google Translate script
-    const addScript = document.createElement("script");
-    addScript.setAttribute("src", "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit");
-    document.body.appendChild(addScript);
-    window.googleTranslateElementInit = () => {
-      new window.google.translate.TranslateElement({
-        pageLanguage: 'en',
-        includedLanguages: 'hi,te,kn,ta,en',
-        layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE
-      }, 'google_translate_element');
-    };
-  }, []);
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -72,7 +58,6 @@ export default function Assistant() {
           <h1 className="text-4xl font-black tracking-tighter text-foreground">AI Assistant</h1>
           <p className="text-muted-foreground font-medium">Expert agricultural guidance in your language</p>
         </div>
-        <div id="google_translate_element" className="p-2 bg-card border rounded-md shadow-sm"></div>
       </div>
 
       <Card className="border-none shadow-xl bg-card overflow-hidden h-[600px] flex flex-col rounded-none border-t-2 border-primary">

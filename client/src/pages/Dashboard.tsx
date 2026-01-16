@@ -137,7 +137,7 @@ export default function Dashboard() {
           description="Ambient humidity"
           icon={Droplets}
           trend="Optimal"
-          color="blue"
+          color="sky"
         />
         <StatsCard 
           title="Pathology Risk" 
@@ -145,7 +145,7 @@ export default function Dashboard() {
           description="Critical threats"
           icon={AlertTriangle}
           trend={pendingReports > 0 ? `${pendingReports} in queue` : "Scanning clear"}
-          color={criticalReports > 0 ? "orange" : "green"}
+          color={criticalReports > 0 ? "red" : "green"}
           isAlert={criticalReports > 0}
         />
         <StatsCard 
@@ -309,18 +309,35 @@ export default function Dashboard() {
 
 function StatsCard({ title, value, description, icon: Icon, trend, color, isAlert }: any) {
   const colorMap: any = {
-    blue: "bg-blue-500/10 text-blue-600 border-blue-200 dark:border-blue-800",
-    green: "bg-green-500/10 text-green-600 border-green-200 dark:border-green-800",
-    orange: "bg-orange-500/10 text-orange-600 border-orange-200 dark:border-orange-800",
-    purple: "bg-purple-500/10 text-purple-600 border-purple-200 dark:border-purple-800",
+    blue: "border-l-[hydration] bg-blue-500/5",
+    orange: "border-l-[temperature] bg-orange-500/5",
+    sky: "border-l-[humidity] bg-sky-500/5",
+    red: "border-l-[risk] bg-red-500/5",
+    green: "border-l-[vitality] bg-green-500/5",
+  };
+
+  const iconColors: any = {
+    blue: "text-blue-500",
+    orange: "text-orange-500",
+    sky: "text-sky-500",
+    red: "text-red-500",
+    green: "text-green-500",
+  };
+
+  const borderColors: any = {
+    blue: "border-blue-500",
+    orange: "border-orange-500",
+    sky: "border-sky-500",
+    red: "border-red-500",
+    green: "border-green-500",
   };
 
   return (
-    <Card className={`group relative border-none shadow-sm bg-card transition-all duration-700 hover:shadow-2xl overflow-hidden rounded-none border-l-2 ${color === 'orange' ? 'border-orange-500' : 'border-primary'}`}>
+    <Card className={`group relative border-none shadow-sm transition-all duration-700 hover:shadow-xl overflow-hidden rounded-none border-l-4 ${colorMap[color] || 'bg-card border-primary'} ${borderColors[color] || ''}`}>
       <CardHeader className="pb-4 pt-6 px-6">
         <div className="flex items-center justify-between mb-4">
           <CardTitle className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">{title}</CardTitle>
-          <Icon className={`w-5 h-5 ${color === 'orange' ? 'text-orange-500' : 'text-primary'}`} />
+          <Icon className={`w-5 h-5 ${iconColors[color] || 'text-primary'}`} />
         </div>
         <div className="text-5xl font-black tracking-tighter text-foreground mb-1 group-hover:translate-x-1 transition-transform duration-500">{value}</div>
         <p className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest">{description}</p>
@@ -328,7 +345,7 @@ function StatsCard({ title, value, description, icon: Icon, trend, color, isAler
       <CardContent className="px-6 pb-6">
         <div className="mt-4 pt-4 border-t border-muted/50 flex items-center justify-between">
           <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">{trend}</span>
-          <div className={`w-1 h-1 rounded-full ${color === 'orange' ? 'bg-orange-500' : 'bg-primary'}`} />
+          <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${iconColors[color] || 'bg-primary'}`} />
         </div>
       </CardContent>
     </Card>

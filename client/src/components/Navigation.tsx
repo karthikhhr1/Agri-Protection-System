@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Droplets, Volume2, ScanEye, Sprout, Bot } from "lucide-react";
+import { LayoutDashboard, Droplets, Volume2, ScanEye, Sprout, Bot, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 
 const items = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -13,15 +14,41 @@ const items = [
 export function Navigation() {
   const [location] = useLocation();
 
+  useEffect(() => {
+    // Inject Google Translate script globally if not already present
+    if (!document.getElementById("google-translate-script")) {
+      const addScript = document.createElement("script");
+      addScript.id = "google-translate-script";
+      addScript.setAttribute("src", "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit");
+      document.body.appendChild(addScript);
+      window.googleTranslateElementInit = () => {
+        if (window.google && window.google.translate) {
+          new window.google.translate.TranslateElement({
+            pageLanguage: 'en',
+            includedLanguages: 'hi,te,kn,ta,en',
+            layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE
+          }, 'google_translate_element_global');
+        }
+      };
+    }
+  }, []);
+
   return (
     <aside className="hidden md:flex flex-col w-64 bg-card border-r border-border h-screen sticky top-0 p-4 shadow-xl shadow-black/5 z-20">
-      <div className="flex items-center gap-3 px-4 py-6 mb-6">
+      <div className="flex items-center gap-3 px-4 py-6 mb-2">
         <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
           <Sprout className="w-6 h-6 text-primary-foreground" />
         </div>
         <div>
-          <h1 className="font-bold text-xl leading-none tracking-tight">AgriGuard</h1>
+          <h1 className="font-bold text-xl leading-none tracking-tight text-primary">AgriGuard</h1>
           <p className="text-xs text-muted-foreground mt-1 font-medium">Estate Management</p>
+        </div>
+      </div>
+
+      <div className="px-4 mb-6">
+        <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg border border-border/50">
+          <Globe className="w-3 h-3 text-primary/60" />
+          <div id="google_translate_element_global" className="scale-90 origin-left overflow-hidden"></div>
         </div>
       </div>
 

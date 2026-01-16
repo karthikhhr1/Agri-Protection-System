@@ -32,6 +32,13 @@
   --ring: 160 40% 15%;
 
   --radius: 0.5rem;             /* Sharper, more professional corners */
+
+  /* Vibrant Dashboard Colors */
+  --hydration: 200 80% 45%;
+  --temperature: 25 90% 50%;
+  --humidity: 215 70% 50%;
+  --risk: 15 90% 50%;
+  --vitality: 140 70% 40%;
 }
 
 .dark {
