@@ -53,7 +53,7 @@
 }
 
 .google-translate-styled .goog-te-gadget .goog-te-combo {
-  @apply bg-transparent border-none text-[11px] font-bold text-foreground cursor-pointer outline-none w-full m-0 p-0 h-auto;
+  @apply bg-transparent border border-primary/20 rounded-md text-[12px] font-bold text-foreground cursor-pointer outline-none w-full m-0 p-1.5 h-auto transition-all hover:border-primary/40;
   font-family: var(--font-sans) !important;
 }
 

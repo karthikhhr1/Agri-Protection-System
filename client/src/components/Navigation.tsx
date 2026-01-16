@@ -51,7 +51,7 @@ export function Navigation() {
             <Globe className="w-4 h-4 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-widest text-primary/40 mb-0.5">Translation</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-primary/40 mb-0.5">Change Language / भाषा बदलें</p>
             <div id="google_translate_element_global" className="google-translate-styled"></div>
           </div>
         </div>
