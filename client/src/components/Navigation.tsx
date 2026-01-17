@@ -21,7 +21,7 @@ export function Navigation() {
   const { language, setLanguage, t } = useLanguage();
   const [isLangOpen, setIsLangOpen] = useState(false);
 
-  const languages: Language[] = ['en', 'hi', 'te', 'kn', 'ta'];
+  const languages: Language[] = ['en', 'hi', 'te', 'kn', 'ta', 'mr', 'bn', 'gu', 'pa', 'ml', 'or'];
 
   return (
     <aside className="hidden md:flex flex-col w-64 bg-card border-r border-border h-screen sticky top-0 p-4 shadow-xl shadow-black/5 z-20">
@@ -53,7 +53,7 @@ export function Navigation() {
           </button>
           
           {isLangOpen && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-50">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-50 max-h-80 overflow-y-auto">
               {languages.map((lang) => (
                 <button
                   key={lang}
