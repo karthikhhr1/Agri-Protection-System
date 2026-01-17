@@ -2,6 +2,7 @@
 import { useState, useRef } from "react";
 import { useReports, useAudioLogs } from "@/hooks/use-agri";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useLanguage } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 
 export default function Deterrent() {
+  const { t } = useLanguage();
   const [distance, setDistance] = useState("100");
   const [isCalculating, setIsCalculating] = useState(false);
   const [selectedCoord, setSelectedCoord] = useState<{ x: number, y: number } | null>(null);
@@ -45,14 +47,14 @@ export default function Deterrent() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/audio"] });
       toast({
-        title: "Acoustic Signature Calculated",
-        description: `Deterrent profile deployed at target coordinates.`,
+        title: t('deterrent.acousticSignatureCalculated'),
+        description: t('deterrent.profileDeployed'),
       });
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Calculation Error",
-        description: "Failed to calibrate acoustic deterrent.",
+        title: t('deterrent.calculationError'),
+        description: t('deterrent.calibrationFailed'),
       });
     } finally {
       setIsCalculating(false);
@@ -60,24 +62,24 @@ export default function Deterrent() {
   };
 
   return (
-    <div className="p-6 space-y-8 bg-background/50 min-h-screen">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-4xl font-bold tracking-tight text-primary">Spatial Deterrence</h1>
-        <p className="text-muted-foreground text-lg">Acoustic perimeter calibration & wildlife management</p>
+    <div className="p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8 bg-background/50 min-h-screen">
+      <header className="flex flex-col gap-1 md:gap-2">
+        <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-primary">{t('deterrent.pageTitle')}</h1>
+        <p className="text-muted-foreground text-sm md:text-base lg:text-lg">{t('deterrent.pageSubtitle')}</p>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
         <Card className="lg:col-span-2 shadow-xl border-muted/20 overflow-hidden">
           <CardHeader className="border-b bg-muted/20">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-4">
               <div>
-                <CardTitle className="text-xl flex items-center gap-2">
+                <CardTitle className="text-lg md:text-xl flex items-center gap-2">
                   <MapIcon className="w-5 h-5 text-primary" />
-                  Acoustic Coverage Map
+                  {t('deterrent.coverageMap')}
                 </CardTitle>
-                <CardDescription>Click to place deterrent units and simulate coverage</CardDescription>
+                <CardDescription className="text-xs md:text-sm">{t('deterrent.clickToPlace')}</CardDescription>
               </div>
-              <Badge variant="outline" className="border-primary/30 text-primary">Live Calibration</Badge>
+              <Badge variant="outline" className="border-primary/30 text-primary whitespace-nowrap text-xs md:text-sm">{t('deterrent.liveCalibration')}</Badge>
             </div>
           </CardHeader>
           <CardContent className="p-0">
@@ -116,35 +118,35 @@ export default function Deterrent() {
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           <Card className="shadow-lg border-primary/20 bg-primary/5">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
+              <CardTitle className="text-base md:text-lg flex items-center gap-2">
                 <Zap className="w-5 h-5 text-primary" />
-                Deterrent Calibration
+                {t('deterrent.calibrationTitle')}
               </CardTitle>
-              <CardDescription>Configure acoustic output for target range</CardDescription>
+              <CardDescription className="text-xs md:text-sm">{t('deterrent.configureOutput')}</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 md:space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="distance" className="text-sm font-bold flex items-center gap-2">
-                  <Target className="w-4 h-4" /> Effective Radius (meters)
+                <Label htmlFor="distance" className="text-xs md:text-sm font-bold flex items-center gap-2">
+                  <Target className="w-4 h-4" /> {t('deterrent.effectiveRadius')}
                 </Label>
                 <Input
                   id="distance"
                   type="number"
                   value={distance}
                   onChange={(e) => setDistance(e.target.value)}
-                  placeholder="e.g. 500"
-                  className="h-12 text-lg font-mono border-primary/20 bg-background"
+                  placeholder={t('deterrent.radiusPlaceholder')}
+                  className="h-10 md:h-12 text-base md:text-lg font-mono border-primary/20 bg-background"
                 />
               </div>
 
               {!selectedCoord && (
-                <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-start gap-3">
-                  <ShieldAlert className="w-5 h-5 text-orange-600 mt-0.5" />
-                  <p className="text-xs text-orange-700 font-medium leading-relaxed">
-                    Select a location on the coverage map to activate spatial placement.
+                <div className="p-3 md:p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-start gap-3">
+                  <ShieldAlert className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs md:text-sm text-orange-700 font-medium leading-relaxed">
+                    {t('deterrent.selectLocation')}
                   </p>
                 </div>
               )}
@@ -152,14 +154,14 @@ export default function Deterrent() {
               <Button 
                 onClick={calculateVolume} 
                 disabled={isCalculating || !selectedCoord}
-                className="w-full h-14 text-lg font-bold gap-2 shadow-xl shadow-primary/20"
+                className="w-full h-12 md:h-14 text-sm md:text-base font-bold gap-2 shadow-xl shadow-primary/20"
               >
                 {isCalculating ? (
                   <Activity className="w-5 h-5 animate-spin" />
                 ) : (
                   <>
                     <Volume2 className="w-5 h-5" />
-                    Deploy Acoustic Barrier
+                    {t('deterrent.deploy')}
                   </>
                 )}
               </Button>
@@ -168,19 +170,19 @@ export default function Deterrent() {
 
           <Card className="shadow-md border-muted/20">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                <Navigation className="w-4 h-4" /> Calibration Logs
+              <CardTitle className="text-xs md:text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <Navigation className="w-4 h-4" /> {t('deterrent.logs')}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+              <div className="space-y-3 md:space-y-4 max-h-[300px] overflow-y-auto pr-2">
                 {audioLogs?.slice(0, 10).map((log: any) => (
-                  <div key={log.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-muted transition-all hover:bg-muted/50">
+                  <div key={log.id} className="flex items-center justify-between p-2 md:p-3 rounded-lg bg-muted/30 border border-muted transition-all hover:bg-muted/50">
                     <div>
-                      <p className="text-sm font-bold">{log.calculatedVolume} dB</p>
-                      <p className="text-[10px] text-muted-foreground">Radius: {log.distance}m</p>
+                      <p className="text-xs md:text-sm font-bold">{log.calculatedVolume} dB</p>
+                      <p className="text-[10px] md:text-xs text-muted-foreground">{t('deterrent.distance')}: {log.distance}m</p>
                     </div>
-                    <Badge variant="secondary" className="text-[10px] font-mono">
+                    <Badge variant="secondary" className="text-[10px] md:text-xs font-mono whitespace-nowrap">
                       {new Date(log.createdAt!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Badge>
                   </div>
@@ -195,6 +197,7 @@ export default function Deterrent() {
 }
 
 function DeterrentMarker({ x, y, volume, isNew }: any) {
+  const { t } = useLanguage();
   return (
     <motion.div
       initial={ { scale: 0, opacity: 0 } }
@@ -223,7 +226,7 @@ function DeterrentMarker({ x, y, volume, isNew }: any) {
         
         {isNew && (
           <div className="absolute -top-8 bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg whitespace-nowrap">
-            Placement Active
+            {t('deterrent.placementActive')}
           </div>
         )}
       </div>

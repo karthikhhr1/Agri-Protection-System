@@ -39,8 +39,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
+import { useLanguage } from "@/lib/i18n";
 
 export default function Dashboard() {
+  const { t } = useLanguage();
   const { data: reports } = useReports();
   const { data: readings } = useIrrigationHistory();
   const deleteMutation = useDeleteReport();
@@ -59,8 +61,8 @@ export default function Dashboard() {
   })) || [];
 
   return (
-    <div className="p-6 space-y-8 bg-background/50 min-h-screen">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b pb-8">
+    <div className="p-4 md:p-6 space-y-6 md:space-y-8 bg-background/50 min-h-screen">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6 border-b pb-6 md:pb-8">
         <div className="space-y-2 group cursor-default">
           <div className="flex items-center gap-2 overflow-hidden">
             <motion.div 
@@ -75,7 +77,7 @@ export default function Dashboard() {
               transition={ { duration: 1, delay: 0.5, ease: "easeOut" } }
               className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60"
             >
-              AgriGuard Strategic Command
+              {t('dashboard.commandCenter')}
             </motion.span>
           </div>
           <div className="overflow-hidden">
@@ -83,98 +85,98 @@ export default function Dashboard() {
               initial={ { y: 100 } }
               animate={ { y: 0 } }
               transition={ { duration: 1.2, ease: [0.16, 1, 0.3, 1] } }
-              className="text-5xl font-black tracking-tighter text-foreground leading-[0.8] flex items-baseline gap-2"
+              className="text-3xl md:text-5xl font-black tracking-tighter text-foreground leading-[0.8] flex items-baseline gap-2"
             >
-              Estate Intelligence
-              <span className="text-primary text-6xl">.</span>
+              {t('dashboard.title')}
+              <span className="text-primary text-4xl md:text-6xl">.</span>
             </motion.h1>
           </div>
           <motion.p 
             initial={ { opacity: 0 } }
             animate={ { opacity: 1 } }
             transition={ { duration: 2, delay: 1 } }
-            className="text-muted-foreground/80 text-lg font-medium tracking-tight"
+            className="text-muted-foreground/80 text-sm md:text-lg font-medium tracking-tight"
           >
-            Ecological durability & tactical asset oversight
+            {t('dashboard.subtitle')}
           </motion.p>
         </div>
         <motion.div 
           initial={ { opacity: 0, scale: 0.95 } }
           animate={ { opacity: 1, scale: 1 } }
           transition={ { duration: 1, delay: 1.2 } }
-          className="flex items-center gap-8 px-6 py-4 bg-card rounded-sm border shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)]"
+          className="flex items-center gap-4 md:gap-8 px-4 md:px-6 py-3 md:py-4 bg-card rounded-sm border shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)] w-full md:w-auto"
         >
-          <div className="flex flex-col items-end">
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">Network Status</span>
+          <div className="flex flex-col items-start md:items-end">
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">{t('dashboard.networkStatus')}</span>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-black uppercase tracking-tighter text-foreground">Active Uplink</span>
+              <span className="text-xs font-black uppercase tracking-tighter text-foreground">{t('dashboard.activeUplink')}</span>
               <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
             </div>
           </div>
         </motion.div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-6">
         <StatsCard 
-          title="Hydration Index" 
+          title={t('dashboard.hydration')} 
           value={`${latestReading?.soilMoisture || 0}%`}
-          description="Soil saturation"
+          description={t('dashboard.soilSaturation')}
           icon={Droplets}
-          trend="+0.8% variance"
+          trend={t('dashboard.variance')}
           color="blue"
         />
         <StatsCard 
-          title="Ambient Temp" 
+          title={t('dashboard.temperature')} 
           value={`${latestReading?.temperature || 24}°C`}
-          description="Field temperature"
+          description={t('dashboard.fieldTemp')}
           icon={TrendingUp}
-          trend="Steady"
+          trend={t('dashboard.steady')}
           color="orange"
         />
         <StatsCard 
-          title="Field Humidity" 
+          title={t('dashboard.humidity')} 
           value={`${latestReading?.ambientHumidity || 48}%`}
-          description="Ambient humidity"
+          description={t('dashboard.ambientHumidity')}
           icon={Droplets}
-          trend="Optimal"
+          trend={t('dashboard.optimal')}
           color="sky"
         />
         <StatsCard 
-          title="Pathology Risk" 
+          title={t('dashboard.pathology')} 
           value={criticalReports}
-          description="Critical threats"
+          description={t('dashboard.criticalThreats')}
           icon={AlertTriangle}
-          trend={pendingReports > 0 ? `${pendingReports} in queue` : "Scanning clear"}
+          trend={pendingReports > 0 ? `${pendingReports} ${t('dashboard.inQueue')}` : t('dashboard.scanningClear')}
           color={criticalReports > 0 ? "red" : "green"}
           isAlert={criticalReports > 0}
         />
         <StatsCard 
-          title="Estate Vitality" 
+          title={t('dashboard.vitality')} 
           value={`${latestReading?.healthScore || 94}%`}
-          description="Health score"
+          description={t('dashboard.healthScore')}
           icon={Activity}
-          trend="Positive trend"
+          trend={t('dashboard.positiveTrend')}
           color="green"
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
         <Card className="lg:col-span-2 overflow-hidden border-none shadow-xl bg-card">
-          <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/30 pb-4">
+          <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b bg-muted/30 pb-4">
             <div className="space-y-1">
-              <CardTitle className="text-xl font-black flex items-center gap-2">
+              <CardTitle className="text-lg md:text-xl font-black flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-primary" />
-                Predictive Analytics
+                {t('dashboard.predictiveAnalytics')}
               </CardTitle>
-              <CardDescription>Sensor telemetry & trend forecasting</CardDescription>
+              <CardDescription className="text-sm md:text-base">{t('dashboard.telemetry')}</CardDescription>
             </div>
-            <div className="flex gap-2">
-              <Badge variant="outline" className="bg-background">Moisture</Badge>
-              <Badge variant="outline" className="bg-background">Temp</Badge>
-              <Badge variant="outline" className="bg-background">Humidity</Badge>
+            <div className="flex gap-2 flex-wrap">
+              <Badge variant="outline" className="bg-background">{t('dashboard.moisture')}</Badge>
+              <Badge variant="outline" className="bg-background">{t('dashboard.temp')}</Badge>
+              <Badge variant="outline" className="bg-background">{t('dashboard.humidityBadge')}</Badge>
             </div>
           </CardHeader>
-          <CardContent className="pt-8 h-[400px]">
+          <CardContent className="pt-8 h-[300px] md:h-[400px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trendData}>
                 <defs>
@@ -203,16 +205,16 @@ export default function Dashboard() {
         </Card>
 
         <Card className="flex flex-col border-none shadow-sm bg-card overflow-hidden rounded-none border-t-2 border-primary">
-          <CardHeader className="bg-muted/10 pb-6 pt-8 px-8">
+          <CardHeader className="bg-muted/10 pb-6 pt-8 px-6 md:px-8">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <div className="h-px w-4 bg-primary/30" />
                   <CardTitle className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">
-                    Pathology Feed
+                    {t('dashboard.pathologyFeed')}
                   </CardTitle>
                 </div>
-                <CardDescription className="text-xs font-medium tracking-tight">Intelligence stream</CardDescription>
+                <CardDescription className="text-xs font-medium tracking-tight">{t('dashboard.intelligenceStream')}</CardDescription>
               </div>
               <Link href="/analysis">
                 <Button size="icon" variant="ghost" className="rounded-none hover:bg-primary/5 transition-colors">
@@ -221,7 +223,7 @@ export default function Dashboard() {
               </Link>
             </div>
           </CardHeader>
-          <CardContent className="flex-1 overflow-auto p-0 px-8">
+          <CardContent className="flex-1 overflow-auto p-0 px-6 md:px-8">
             <div className="divide-y divide-border/30">
               <AnimatePresence initial={false}>
                 {reports?.slice(0, 10).map((report: any, i: number) => (
@@ -231,17 +233,17 @@ export default function Dashboard() {
                     animate={ { opacity: 1 } }
                     exit={ { opacity: 0 } }
                     key={report.id} 
-                    className="group flex items-center gap-6 py-6 transition-all"
+                    className="group flex items-center gap-4 md:gap-6 py-4 md:py-6 transition-all"
                   >
                     <div className="relative shrink-0">
-                      <div className="w-14 h-14 rounded-none overflow-hidden grayscale hover:grayscale-0 transition-all duration-700 border border-border/50">
+                      <div className="w-12 h-12 md:w-14 md:h-14 rounded-none overflow-hidden grayscale hover:grayscale-0 transition-all duration-700 border border-border/50">
                         <img src={report.imageUrl} alt="scan" className="w-full h-full object-cover" />
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start mb-2">
                         <p className="font-black text-[11px] text-foreground truncate uppercase tracking-[0.1em]">
-                          {report.cropType && report.cropType !== 'unknown' ? report.cropType : "Specimen"}
+                          {report.cropType && report.cropType !== 'unknown' ? report.cropType : t('dashboard.specimen')}
                         </p>
                         <SeverityBadge severity={report.severity} />
                       </div>
@@ -256,16 +258,16 @@ export default function Dashboard() {
                                 <Trash2 className="w-3 h-3" />
                               </Button>
                             </AlertDialogTrigger>
-                            <AlertDialogContent className="rounded-none border-none shadow-2xl bg-background p-12 max-w-lg">
+                            <AlertDialogContent className="rounded-none border-none shadow-2xl bg-background p-8 md:p-12 max-w-lg">
                               <AlertDialogHeader className="space-y-4">
-                                <AlertDialogTitle className="text-4xl font-black tracking-tighter uppercase leading-none">Discard Intelligence?</AlertDialogTitle>
+                                <AlertDialogTitle className="text-2xl md:text-4xl font-black tracking-tighter uppercase leading-none">{t('dashboard.discardIntelligence')}</AlertDialogTitle>
                                 <AlertDialogDescription className="text-sm font-medium leading-relaxed">
-                                  This operation will purge this specific diagnostic record from the archival database.
+                                  {t('dashboard.purgeDescription')}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               {report.analysis?.precautions && (
                                 <div className="mt-4 space-y-2">
-                                  <p className="text-[10px] font-black uppercase tracking-widest text-primary/60">Ecological Precautions</p>
+                                  <p className="text-[10px] font-black uppercase tracking-widest text-primary/60">{t('dashboard.ecologicalPrecautions')}</p>
                                   <ul className="text-[11px] font-medium text-muted-foreground list-disc pl-4 space-y-1">
                                     {report.analysis.precautions.map((p: string, idx: number) => (
                                       <li key={idx}>{p}</li>
@@ -274,14 +276,14 @@ export default function Dashboard() {
                                 </div>
                               )}
                               <AlertDialogFooter className="mt-8 gap-4">
-                                <AlertDialogCancel className="rounded-none font-black text-[10px] uppercase tracking-widest h-12 px-8 border-none bg-muted hover:bg-muted/80">Retain</AlertDialogCancel>
+                                <AlertDialogCancel className="rounded-none font-black text-[10px] uppercase tracking-widest h-12 px-8 border-none bg-muted hover:bg-muted/80">{t('dashboard.retain')}</AlertDialogCancel>
                                 <AlertDialogAction 
                                   onClick={() => {
                                     deleteMutation.mutate(report.id);
                                   }} 
                                   className="rounded-none font-black text-[10px] uppercase tracking-widest h-12 px-8 bg-primary text-primary-foreground hover:bg-primary/90"
                                 >
-                                  Purge Record
+                                  {t('dashboard.purgeRecord')}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -294,10 +296,10 @@ export default function Dashboard() {
               </AnimatePresence>
             </div>
           </CardContent>
-          <div className="p-8 bg-muted/5 border-t border-border/30">
+          <div className="p-6 md:p-8 bg-muted/5 border-t border-border/30">
             <Link href="/analysis">
-              <Button className="w-full font-black text-[10px] uppercase tracking-[0.3em] h-14 rounded-none bg-primary text-primary-foreground hover:bg-primary/90 shadow-none transition-all">
-                Commence Scanning
+              <Button className="w-full font-black text-[10px] uppercase tracking-[0.3em] h-12 md:h-14 rounded-none bg-primary text-primary-foreground hover:bg-primary/90 shadow-none transition-all">
+                {t('dashboard.commenceScanning')}
               </Button>
             </Link>
           </div>
@@ -334,15 +336,15 @@ function StatsCard({ title, value, description, icon: Icon, trend, color, isAler
 
   return (
     <Card className={`group relative border-none shadow-sm transition-all duration-700 hover:shadow-xl overflow-hidden rounded-none border-l-4 ${colorMap[color] || 'bg-card border-primary'} ${borderColors[color] || ''}`}>
-      <CardHeader className="pb-4 pt-6 px-6">
+      <CardHeader className="pb-4 pt-6 px-4 md:px-6">
         <div className="flex items-center justify-between mb-4">
           <CardTitle className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">{title}</CardTitle>
           <Icon className={`w-5 h-5 ${iconColors[color] || 'text-primary'}`} />
         </div>
-        <div className="text-5xl font-black tracking-tighter text-foreground mb-1 group-hover:translate-x-1 transition-transform duration-500">{value}</div>
+        <div className="text-3xl md:text-5xl font-black tracking-tighter text-foreground mb-1 group-hover:translate-x-1 transition-transform duration-500">{value}</div>
         <p className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest">{description}</p>
       </CardHeader>
-      <CardContent className="px-6 pb-6">
+      <CardContent className="px-4 md:px-6 pb-6">
         <div className="mt-4 pt-4 border-t border-muted/50 flex items-center justify-between">
           <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">{trend}</span>
           <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${iconColors[color] || 'bg-primary'}`} />

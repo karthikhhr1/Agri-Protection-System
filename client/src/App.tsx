@@ -57,7 +57,7 @@ function App() {
       <TooltipProvider>
         <div className="flex min-h-screen bg-background selection:bg-primary/10 selection:text-primary">
           <Navigation />
-          <main className="flex-1 p-4 md:p-8 overflow-y-auto mb-16 md:mb-0">
+          <main className="flex-1 p-4 md:p-8 overflow-y-auto pt-16 md:pt-4 mb-16 md:mb-0">
             <div className="max-w-7xl mx-auto">
               <Router />
             </div>

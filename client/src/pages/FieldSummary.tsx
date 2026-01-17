@@ -42,12 +42,13 @@ interface PolygonPoint {
 }
 
 function FieldPolygonMap({ polygon }: { polygon: PolygonPoint[] | unknown }) {
+  const { t } = useLanguage();
   const points = Array.isArray(polygon) ? polygon as PolygonPoint[] : [];
   
   if (points.length < 3) {
     return (
-      <div className="w-full h-64 bg-muted/30 rounded-md flex items-center justify-center border border-dashed border-muted-foreground/30">
-        <p className="text-muted-foreground text-sm">No polygon data available</p>
+      <div className="w-full h-40 sm:h-48 md:h-64 bg-muted/30 rounded-md flex items-center justify-center border border-dashed border-muted-foreground/30">
+        <p className="text-muted-foreground text-xs sm:text-sm">{t('fieldSummary.noPolygonData')}</p>
       </div>
     );
   }
@@ -77,7 +78,7 @@ function FieldPolygonMap({ polygon }: { polygon: PolygonPoint[] | unknown }) {
 
   return (
     <div className="w-full overflow-hidden rounded-md border border-border bg-gradient-to-br from-green-900/20 via-green-800/10 to-amber-900/10">
-      <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-64">
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-40 sm:h-48 md:h-64">
         <defs>
           <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
             <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeOpacity="0.05" strokeWidth="0.5"/>
@@ -189,13 +190,13 @@ export default function FieldSummary() {
   const irrigationTypes = ['drip', 'sprinkler', 'flood', 'rainfed'];
 
   return (
-    <div className="p-6 space-y-8 bg-background/50 min-h-screen">
-      <header className="flex items-center justify-between flex-wrap gap-4">
+    <div className="p-4 md:p-6 space-y-6 md:space-y-8 bg-background/50 min-h-screen">
+      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight text-primary" data-testid="text-page-title">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-primary" data-testid="text-page-title">
             {t('fieldSummary.title')}
           </h1>
-          <p className="text-muted-foreground text-lg mt-1">{t('fieldSummary.subtitle')}</p>
+          <p className="text-muted-foreground text-sm sm:text-base md:text-lg mt-1">{t('fieldSummary.subtitle')}</p>
         </div>
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
           <DialogTrigger asChild>
@@ -204,7 +205,7 @@ export default function FieldSummary() {
               {t('fieldSummary.addField')}
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-sm sm:max-w-lg md:max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-primary" />
@@ -218,7 +219,7 @@ export default function FieldSummary() {
                   <Input
                     value={newField.name}
                     onChange={(e) => setNewField({ ...newField, name: e.target.value })}
-                    placeholder="Enter field name..."
+                    placeholder={t('fieldSummary.fieldNamePlaceholder')}
                     data-testid="input-field-name"
                   />
                 </div>
@@ -227,7 +228,7 @@ export default function FieldSummary() {
                   <Input
                     value={newField.cropType}
                     onChange={(e) => setNewField({ ...newField, cropType: e.target.value })}
-                    placeholder="e.g., Rice, Wheat, Cotton..."
+                    placeholder={t('fieldSummary.cropTypePlaceholder')}
                     data-testid="input-crop-type"
                   />
                 </div>
@@ -247,7 +248,7 @@ export default function FieldSummary() {
                   <Input
                     value={newField.soilType}
                     onChange={(e) => setNewField({ ...newField, soilType: e.target.value })}
-                    placeholder="e.g., Loamy, Clay, Sandy..."
+                    placeholder={t('fieldSummary.soilTypePlaceholder')}
                     data-testid="input-soil-type"
                   />
                 </div>
@@ -315,7 +316,7 @@ export default function FieldSummary() {
                 <Textarea
                   value={newField.notes}
                   onChange={(e) => setNewField({ ...newField, notes: e.target.value })}
-                  placeholder="Additional notes about this field..."
+                  placeholder={t('fieldSummary.fieldNotesPlaceholder')}
                   rows={3}
                   data-testid="input-notes"
                 />
@@ -381,7 +382,7 @@ export default function FieldSummary() {
       </ScrollArea>
 
       {selectedField ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -402,14 +403,14 @@ export default function FieldSummary() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-center justify-between pb-4 border-b border-border">
-                <h3 className="text-2xl font-bold" data-testid="text-selected-field-name">{selectedField.name}</h3>
-                <Badge variant="outline" className="text-lg px-3 py-1">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-border">
+                <h3 className="text-xl sm:text-2xl font-bold" data-testid="text-selected-field-name">{selectedField.name}</h3>
+                <Badge variant="outline" className="text-sm sm:text-lg px-3 py-1 whitespace-nowrap">
                   {selectedField.areaAcres || 0} {t('fieldSummary.acres')}
                 </Badge>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground flex items-center gap-1">
                     <Leaf className="w-4 h-4" />
@@ -432,21 +433,21 @@ export default function FieldSummary() {
                 </div>
               </div>
 
-              <div className="p-4 rounded-md bg-muted/30 border border-border">
+              <div className="p-3 sm:p-4 rounded-md bg-muted/30 border border-border">
                 <div className="flex items-center gap-2 mb-3">
                   <TrendingUp className="w-5 h-5 text-primary" />
-                  <span className="font-semibold">{t('fieldSummary.yieldComparison')}</span>
+                  <span className="font-semibold text-sm sm:text-base">{t('fieldSummary.yieldComparison')}</span>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">{t('fieldSummary.projectedYield')}</p>
-                    <p className="text-xl font-bold text-primary" data-testid="text-projected-yield">
+                    <p className="text-xs sm:text-sm text-muted-foreground">{t('fieldSummary.projectedYield')}</p>
+                    <p className="text-lg sm:text-xl font-bold text-primary" data-testid="text-projected-yield">
                       {selectedField.projectedYield || 0} kg
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">{t('fieldSummary.historicalYield')}</p>
-                    <p className="text-xl font-bold text-muted-foreground" data-testid="text-historical-yield">
+                    <p className="text-xs sm:text-sm text-muted-foreground">{t('fieldSummary.historicalYield')}</p>
+                    <p className="text-lg sm:text-xl font-bold text-muted-foreground" data-testid="text-historical-yield">
                       {selectedField.historicalYield || 0} kg
                     </p>
                   </div>
@@ -465,22 +466,22 @@ export default function FieldSummary() {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
                     {t('fieldSummary.plantingDate')}
                   </p>
-                  <p className="font-medium" data-testid="text-planting-date">
+                  <p className="font-medium text-sm sm:text-base" data-testid="text-planting-date">
                     {formatDate(selectedField.plantingDate)}
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
                     {t('fieldSummary.harvestDate')}
                   </p>
-                  <p className="font-medium" data-testid="text-harvest-date">
+                  <p className="font-medium text-sm sm:text-base" data-testid="text-harvest-date">
                     {formatDate(selectedField.expectedHarvestDate)}
                   </p>
                 </div>

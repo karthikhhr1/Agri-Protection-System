@@ -59,8 +59,8 @@ export default function Analysis() {
       }
     } catch (err) {
       toast({
-        title: "Camera Error",
-        description: "Could not access camera. Please check permissions.",
+        title: t('analysis.cameraError'),
+        description: t('analysis.cameraPermission'),
         variant: "destructive",
       });
       setShowCamera(false);
@@ -138,25 +138,25 @@ export default function Analysis() {
   const activeReport = reports?.find(r => r.id === activeReportId) || reports?.find(r => r.status === 'pending');
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-8 bg-background/50 min-h-screen">
+    <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6 md:space-y-8 bg-background/50 min-h-screen">
       <header className="space-y-1">
-        <h1 className="text-4xl font-black tracking-tighter text-foreground flex items-center gap-3">
-          <Scan className="w-10 h-10 text-primary" />
-          Uplink Center
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter text-foreground flex items-center gap-3">
+          <Scan className="w-8 sm:w-10 h-8 sm:h-10 text-primary" />
+          {t('analysis.uplinkCenter')}
         </h1>
-        <p className="text-muted-foreground text-lg font-medium">Pathology analysis & diagnostic intelligence</p>
+        <p className="text-muted-foreground text-sm md:text-base font-medium">{t('analysis.pathologyAnalysis')}</p>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
         <Card className="border-none shadow-2xl bg-card overflow-hidden rounded-3xl">
-          <CardHeader className="bg-muted/30 border-b pb-6">
-            <CardTitle className="text-xl font-black flex items-center gap-2">
+          <CardHeader className="bg-muted/30 border-b pb-4 md:pb-6">
+            <CardTitle className="text-lg md:text-xl font-black flex items-center gap-2">
               <Camera className="w-5 h-5 text-primary" />
-              Capture Intelligence
+              {t('analysis.captureIntelligence')}
             </CardTitle>
-            <CardDescription>Direct uplink from field cameras or local storage</CardDescription>
+            <CardDescription className="text-xs md:text-sm">{t('analysis.directUplink')}</CardDescription>
           </CardHeader>
-          <CardContent className="p-8">
+          <CardContent className="p-4 md:p-8">
             <div className="space-y-6">
               <div className="relative aspect-video rounded-2xl bg-muted/50 border-2 border-dashed border-muted flex items-center justify-center overflow-hidden group">
                 <AnimatePresence mode="wait">
@@ -221,15 +221,15 @@ export default function Analysis() {
                 <canvas ref={canvasRef} className="hidden" />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-2 md:gap-4">
                 <Button 
                   onClick={startCamera} 
                   disabled={showCamera}
                   variant="outline" 
-                  className="h-14 rounded-2xl font-black uppercase tracking-widest hover-elevate border-2"
+                  className="h-12 md:h-14 rounded-2xl font-black uppercase tracking-widest hover-elevate border-2 text-xs md:text-sm"
                 >
-                  <Camera className="w-5 h-5 mr-2" />
-                  Live Camera
+                  <Camera className="w-4 md:w-5 h-4 md:h-5 mr-1 md:mr-2" />
+                  {t('analysis.liveCamera')}
                 </Button>
                 <div className="relative">
                   <input
@@ -245,8 +245,8 @@ export default function Analysis() {
                     }}
                     className="absolute inset-0 opacity-0 cursor-pointer z-10"
                   />
-                  <Button variant="outline" className="w-full h-14 rounded-2xl font-black uppercase tracking-widest border-2">
-                    <Upload className="w-5 h-5 mr-2" />
+                  <Button variant="outline" className="w-full h-12 md:h-14 rounded-2xl font-black uppercase tracking-widest border-2 text-xs md:text-sm">
+                    <Upload className="w-4 md:w-5 h-4 md:h-5 mr-1 md:mr-2" />
                     {t('analysis.uploadFile')}
                   </Button>
                 </div>
@@ -261,8 +261,8 @@ export default function Analysis() {
                   variant="ghost" 
                   className="p-0 h-auto text-xs font-black uppercase tracking-widest text-primary hover:text-primary/80"
                   onClick={() => {
-                    const ip = prompt("Enter Camera IP / Stream URL:");
-                    if (ip) toast({ title: "Connecting Stream", description: `Attempting uplink to ${ip}...` });
+                    const ip = prompt(t('analysis.promptMessage'));
+                    if (ip) toast({ title: t('analysis.connectingStream'), description: `${t('analysis.attemptingUplink')} ${ip}...` });
                   }}
                 >
                   {t('analysis.configureLink')} <ArrowRight className="w-3 h-3 ml-1" />
@@ -272,7 +272,7 @@ export default function Analysis() {
               <Button 
                 onClick={handleCapture}
                 disabled={!selectedImage || captureMutation.isPending}
-                className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover-elevate transition-all disabled:opacity-50"
+                className="w-full h-12 md:h-16 rounded-2xl text-xs md:text-lg font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover-elevate transition-all disabled:opacity-50"
               >
                 {captureMutation.isPending ? (
                   <RefreshCw className="w-6 h-6 animate-spin" />
@@ -288,27 +288,27 @@ export default function Analysis() {
         </Card>
 
         <Card className="border-none shadow-2xl bg-card rounded-3xl overflow-hidden">
-          <CardHeader className="bg-muted/30 border-b pb-6">
-            <CardTitle className="text-xl font-black flex items-center gap-2">
+          <CardHeader className="bg-muted/30 border-b pb-4 md:pb-6">
+            <CardTitle className="text-lg md:text-xl font-black flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-green-500" />
-              Production Safeguards
+              {t('analysis.productionSafeguards')}
             </CardTitle>
-            <CardDescription>Diagnostic integrity & encrypted transmission</CardDescription>
+            <CardDescription className="text-xs md:text-sm">{t('analysis.diagnosticIntegrity')}</CardDescription>
           </CardHeader>
-          <CardContent className="p-8 space-y-6">
+          <CardContent className="p-4 md:p-8 space-y-6">
             <div className="space-y-4">
               <div className="p-4 rounded-2xl bg-green-500/5 border border-green-500/20 flex gap-4">
                 <ShieldCheck className="w-6 h-6 text-green-500 shrink-0" />
                 <div>
-                  <p className="font-black text-sm uppercase tracking-tight text-green-600">Encrypted Uplink</p>
-                  <p className="text-xs text-muted-foreground font-medium mt-1">End-to-end security for all camera data transfers.</p>
+                  <p className="font-black text-xs md:text-sm uppercase tracking-tight text-green-600">{t('analysis.encryptedUplink')}</p>
+                  <p className="text-xs text-muted-foreground font-medium mt-1">{t('analysis.encryptedDescription')}</p>
                 </div>
               </div>
               <div className="p-4 rounded-2xl bg-orange-500/5 border border-orange-500/20 flex gap-4">
                 <AlertTriangle className="w-6 h-6 text-orange-500 shrink-0" />
                 <div>
-                  <p className="font-black text-sm uppercase tracking-tight text-orange-600">Smart Alerting</p>
-                  <p className="text-xs text-muted-foreground font-medium mt-1">Critical pathologies trigger immediate field protocols.</p>
+                  <p className="font-black text-xs md:text-sm uppercase tracking-tight text-orange-600">{t('analysis.smartAlerting')}</p>
+                  <p className="text-xs text-muted-foreground font-medium mt-1">{t('analysis.smartAlertingDescription')}</p>
                 </div>
               </div>
             </div>
@@ -349,8 +349,8 @@ export default function Analysis() {
       </div>
 
       <div className="space-y-4">
-        <h2 className="text-2xl font-black flex items-center gap-2 uppercase tracking-tighter">
-          <FileText className="w-6 h-6 text-primary" />
+        <h2 className="text-xl md:text-2xl font-black flex items-center gap-2 uppercase tracking-tighter">
+          <FileText className="w-5 md:w-6 h-5 md:h-6 text-primary" />
           {t('analysis.intelligenceArchive')}
         </h2>
         {isLoadingHistory ? (
@@ -365,15 +365,15 @@ export default function Analysis() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   onClick={() => setViewingReport(report)}
-                  className="bg-card border-none shadow-lg rounded-3xl p-6 flex gap-6 hover:shadow-2xl transition-all cursor-pointer"
+                  className="bg-card border-none shadow-lg rounded-3xl p-4 md:p-6 flex flex-col md:flex-row gap-4 md:gap-6 hover:shadow-2xl transition-all cursor-pointer"
                   data-testid={`card-report-${report.id}`}
                 >
-                  <div className="w-24 h-24 rounded-2xl overflow-hidden shrink-0 border">
+                  <div className="w-20 md:w-24 h-20 md:h-24 rounded-2xl overflow-hidden shrink-0 border">
                     <img src={report.imageUrl} alt="Report" className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-black text-lg tracking-tighter uppercase">Entry #{report.id}</h3>
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="font-black text-base md:text-lg tracking-tighter uppercase">Entry #{report.id}</h3>
                       <Badge className={report.status === 'complete' ? 'bg-green-500' : 'bg-red-500'}>
                         {report.status}
                       </Badge>
@@ -413,7 +413,7 @@ export default function Analysis() {
       </div>
 
       <Dialog open={!!viewingReport} onOpenChange={() => setViewingReport(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] md:w-full">
           {viewingReport && (() => {
             const data = viewingReport.analysis as any;
             const severityColors: Record<string, string> = {
@@ -432,12 +432,12 @@ export default function Analysis() {
                   </DialogTitle>
                 </DialogHeader>
                 
-                <div className="space-y-6">
-                  <div className="flex gap-4">
+                <div className="space-y-4 md:space-y-6">
+                  <div className="flex flex-col md:flex-row gap-4">
                     <img 
                       src={viewingReport.imageUrl} 
                       alt="Crop" 
-                      className="w-32 h-32 rounded-xl object-cover border"
+                      className="w-full md:w-32 h-32 rounded-xl object-cover border"
                     />
                     <div className="flex-1 space-y-2">
                       <div className="flex items-center gap-2">
@@ -461,7 +461,7 @@ export default function Analysis() {
                   {data?.diseases?.length > 0 && (
                     <Card className="border-red-200 bg-red-50/50 dark:bg-red-950/20">
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-lg flex items-center gap-2 text-red-600">
+                        <CardTitle className="text-base md:text-lg flex items-center gap-2 text-red-600">
                           <AlertTriangle className="w-5 h-5" />
                           {t('analysis.diseaseFound')}
                         </CardTitle>
@@ -489,7 +489,7 @@ export default function Analysis() {
                   {data?.whatToDoNow?.length > 0 && (
                     <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-lg flex items-center gap-2 text-blue-600">
+                        <CardTitle className="text-base md:text-lg flex items-center gap-2 text-blue-600">
                           <CheckCircle2 className="w-5 h-5" />
                           {t('analysis.whatToDo')}
                         </CardTitle>
@@ -517,11 +517,11 @@ export default function Analysis() {
                     </Card>
                   )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                     {data?.organicOptions?.length > 0 && (
                       <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20">
                         <CardHeader className="pb-2">
-                          <CardTitle className="text-sm flex items-center gap-2 text-green-600">
+                          <CardTitle className="text-xs md:text-sm flex items-center gap-2 text-green-600">
                             <Sprout className="w-4 h-4" />
                             {t('analysis.organicOptions')}
                           </CardTitle>
@@ -541,7 +541,7 @@ export default function Analysis() {
                     {data?.chemicalOptions?.length > 0 && (
                       <Card className="border-purple-200 bg-purple-50/50 dark:bg-purple-950/20">
                         <CardHeader className="pb-2">
-                          <CardTitle className="text-sm flex items-center gap-2 text-purple-600">
+                          <CardTitle className="text-xs md:text-sm flex items-center gap-2 text-purple-600">
                             <Beaker className="w-4 h-4" />
                             {t('analysis.chemicalOptions')}
                           </CardTitle>
@@ -562,7 +562,7 @@ export default function Analysis() {
                   {data?.prevention?.length > 0 && (
                     <Card className="border-primary/20 bg-primary/5">
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-lg flex items-center gap-2 text-primary">
+                        <CardTitle className="text-base md:text-lg flex items-center gap-2 text-primary">
                           <Shield className="w-5 h-5" />
                           {t('analysis.prevention')}
                         </CardTitle>
@@ -584,7 +584,7 @@ export default function Analysis() {
                   {data?.warningSigns?.length > 0 && (
                     <Card className="border-orange-200 bg-orange-50/50 dark:bg-orange-950/20">
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm flex items-center gap-2 text-orange-600">
+                        <CardTitle className="text-xs md:text-sm flex items-center gap-2 text-orange-600">
                           <Eye className="w-4 h-4" />
                           {t('analysis.warningSigns')}
                         </CardTitle>
@@ -606,12 +606,12 @@ export default function Analysis() {
                       <CardContent className="pt-4">
                         <div className="flex items-center gap-3">
                           {data.canHarvest ? (
-                            <CheckCircle2 className="w-6 h-6 text-green-600" />
+                            <CheckCircle2 className="w-5 md:w-6 h-5 md:h-6 text-green-600" />
                           ) : (
-                            <AlertTriangle className="w-6 h-6 text-red-600" />
+                            <AlertTriangle className="w-5 md:w-6 h-5 md:h-6 text-red-600" />
                           )}
                           <div>
-                            <p className="font-bold">{data.canHarvest ? t('analysis.canHarvest') : t('analysis.waitToHarvest')}</p>
+                            <p className="font-bold text-sm md:text-base">{data.canHarvest ? t('analysis.canHarvest') : t('analysis.waitToHarvest')}</p>
                             {data.harvestAdvice && (
                               <p className="text-sm text-muted-foreground">{data.harvestAdvice}</p>
                             )}

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { irrigationRequestSchema } from "@shared/routes";
 import { useCalculateIrrigation, useIrrigationHistory } from "@/hooks/use-agri";
+import { useLanguage } from "@/lib/i18n";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import { motion } from "framer-motion";
 type FormValues = z.infer<typeof irrigationRequestSchema>;
 
 export default function Irrigation() {
+  const { t } = useLanguage();
   const { mutate: calculate, isPending } = useCalculateIrrigation();
   const { data: history } = useIrrigationHistory();
   const [lastAdvice, setLastAdvice] = useState<string | null>(null);
@@ -43,22 +45,22 @@ export default function Irrigation() {
   })).slice(-10).reverse() || [];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8 p-4 md:p-6 lg:p-8">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Irrigation Advisor</h1>
-        <p className="text-muted-foreground mt-2">
-          Smart water management based on soil and atmospheric conditions.
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">{t('irrigation.title')}</h1>
+        <p className="text-muted-foreground mt-2 text-sm md:text-base">
+          {t('irrigation.subtitle')}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 lg:gap-8">
         {/* Left Column: Calculator */}
-        <div className="lg:col-span-5 space-y-6">
+        <div className="lg:col-span-5 space-y-4 md:space-y-6">
           <Card className="border-border shadow-md">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
                 <Leaf className="w-5 h-5 text-primary" />
-                Condition Input
+                {t('irrigation.title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -69,7 +71,7 @@ export default function Irrigation() {
                     name="soilMoisture"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Soil Moisture (%)</FormLabel>
+                        <FormLabel>{t('irrigation.soilMoisture')} (%)</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Droplets className="absolute left-3 top-3 h-4 w-4 text-blue-500" />
@@ -86,7 +88,7 @@ export default function Irrigation() {
                     name="humidity"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Air Humidity (%)</FormLabel>
+                        <FormLabel>{t('irrigation.humidity')} (%)</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <ThermometerSun className="absolute left-3 top-3 h-4 w-4 text-orange-500" />
@@ -99,7 +101,7 @@ export default function Irrigation() {
                   />
 
                   <Button type="submit" className="w-full btn-primary" disabled={isPending}>
-                    {isPending ? "Calculating..." : "Get Advice"}
+                    {isPending ? t('irrigation.calculating') : t('irrigation.getAdvice')}
                   </Button>
                 </form>
               </Form>
@@ -110,25 +112,25 @@ export default function Irrigation() {
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-primary/5 border border-primary/20 rounded-2xl p-6 text-center"
+              className="bg-primary/5 border border-primary/20 rounded-2xl p-4 md:p-6 text-center"
             >
-              <h3 className="text-primary font-bold uppercase text-xs tracking-wider mb-2">Recommendation</h3>
-              <p className="text-2xl font-display font-bold text-foreground">{lastAdvice}</p>
+              <h3 className="text-primary font-bold uppercase text-xs tracking-wider mb-2">{t('irrigation.recommendation')}</h3>
+              <p className="text-xl md:text-2xl font-display font-bold text-foreground">{lastAdvice}</p>
             </motion.div>
           )}
         </div>
 
         {/* Right Column: Analytics */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="lg:col-span-7 space-y-4 md:space-y-6">
           <Card className="border-border h-full">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
                 <History className="w-5 h-5 text-muted-foreground" />
-                Reading History
+                {t('irrigation.history')}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px] w-full">
+              <div className="h-[250px] md:h-[300px] lg:h-[350px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -156,7 +158,7 @@ export default function Irrigation() {
                     <Line 
                       type="monotone" 
                       dataKey="moisture" 
-                      name="Soil Moisture" 
+                      name={t('irrigation.soilMoisture')} 
                       stroke="hsl(217, 91%, 60%)" 
                       strokeWidth={2}
                       dot={false}
@@ -164,7 +166,7 @@ export default function Irrigation() {
                     <Line 
                       type="monotone" 
                       dataKey="humidity" 
-                      name="Humidity" 
+                      name={t('irrigation.humidity')} 
                       stroke="hsl(35, 90%, 55%)" 
                       strokeWidth={2}
                       dot={false}

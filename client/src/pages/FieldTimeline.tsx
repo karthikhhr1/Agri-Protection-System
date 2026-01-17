@@ -42,12 +42,13 @@ interface HealthDiagnostic {
 }
 
 function FieldPolygonMap({ polygon }: { polygon: PolygonPoint[] | unknown }) {
+  const { t } = useLanguage();
   const points = Array.isArray(polygon) ? polygon as PolygonPoint[] : [];
   
   if (points.length < 3) {
     return (
-      <div className="w-full h-48 bg-muted/30 rounded-md flex items-center justify-center border border-dashed border-muted-foreground/30">
-        <p className="text-muted-foreground text-sm">No polygon data available</p>
+      <div className="w-full h-40 sm:h-48 bg-muted/30 rounded-md flex items-center justify-center border border-dashed border-muted-foreground/30">
+        <p className="text-muted-foreground text-xs sm:text-sm">{t('fieldTimeline.noPolygonData')}</p>
       </div>
     );
   }
@@ -77,7 +78,7 @@ function FieldPolygonMap({ polygon }: { polygon: PolygonPoint[] | unknown }) {
 
   return (
     <div className="w-full overflow-hidden rounded-md border border-border bg-gradient-to-br from-green-900/20 via-green-800/10 to-amber-900/10">
-      <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-48">
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-40 sm:h-48">
         <defs>
           <pattern id="timeline-grid" width="20" height="20" patternUnits="userSpaceOnUse">
             <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeOpacity="0.05" strokeWidth="0.5"/>
@@ -120,6 +121,7 @@ function CaptureTimeline({
   selectedCaptureId: number | null;
   onSelectCapture: (id: number) => void;
 }) {
+  const { t } = useLanguage();
   const sortedCaptures = [...captures].sort((a, b) => 
     new Date(a.captureDate).getTime() - new Date(b.captureDate).getTime()
   );
@@ -128,7 +130,7 @@ function CaptureTimeline({
     return (
       <div className="flex items-center justify-center py-8 text-muted-foreground">
         <Clock className="w-5 h-5 mr-2" />
-        <span>No captures yet</span>
+        <span>{t('fieldTimeline.noCapturesYet')}</span>
       </div>
     );
   }
@@ -198,15 +200,15 @@ function CaptureGallery({ capture }: { capture: FieldCapture }) {
   const diagnostic = capture.healthDiagnostic as HealthDiagnostic | null;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-primary" />
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2 flex-shrink-0">
+          <Calendar className="w-5 h-5 text-primary flex-shrink-0" />
           {new Date(capture.captureDate).toLocaleDateString()}
         </h3>
         {diagnostic?.score !== undefined && (
           <Badge 
-            className={`text-sm px-3 py-1 ${
+            className={`text-xs sm:text-sm px-2 sm:px-3 py-1 whitespace-nowrap ${
               diagnostic.score >= 70 ? 'bg-green-500/10 text-green-600 border-green-500/20' :
               diagnostic.score >= 40 ? 'bg-orange-500/10 text-orange-600 border-orange-500/20' :
               'bg-red-500/10 text-red-600 border-red-500/20'
@@ -218,13 +220,13 @@ function CaptureGallery({ capture }: { capture: FieldCapture }) {
       </div>
 
       {imageUrls.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
           {imageUrls.map((url, index) => (
             <div key={index} className="space-y-2">
               <div className="aspect-video rounded-md overflow-hidden border border-border bg-muted/30">
                 <img 
                   src={url} 
-                  alt={`Capture ${index + 1}`}
+                  alt={`${t('fieldTimeline.captureDetails')} ${index + 1}`}
                   className="w-full h-full object-cover"
                   data-testid={`image-capture-${capture.id}-${index}`}
                 />
@@ -234,26 +236,26 @@ function CaptureGallery({ capture }: { capture: FieldCapture }) {
         </div>
       ) : (
         <div className="flex items-center justify-center py-8 bg-muted/30 rounded-md border border-dashed border-muted-foreground/30">
-          <p className="text-muted-foreground">No images in this capture</p>
+          <p className="text-muted-foreground text-sm">{t('fieldTimeline.noImagesInCapture')}</p>
         </div>
       )}
 
       {diagnostic && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           {diagnostic.issues && diagnostic.issues.length > 0 && (
             <Card className="border-orange-500/20 bg-orange-500/5">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2 text-orange-600">
-                  <AlertTriangle className="w-4 h-4" />
-                  {t('fieldTimeline.issuesDetected')}
+                <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2 text-orange-600">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">{t('fieldTimeline.issuesDetected')}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-1">
                   {diagnostic.issues.map((issue, i) => (
-                    <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                      <span className="text-orange-500 mt-1">-</span>
-                      {issue}
+                    <li key={i} className="text-xs sm:text-sm text-muted-foreground flex items-start gap-2">
+                      <span className="text-orange-500 mt-1 flex-shrink-0">-</span>
+                      <span>{issue}</span>
                     </li>
                   ))}
                 </ul>
@@ -264,17 +266,17 @@ function CaptureGallery({ capture }: { capture: FieldCapture }) {
           {diagnostic.recommendations && diagnostic.recommendations.length > 0 && (
             <Card className="border-green-500/20 bg-green-500/5">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2 text-green-600">
-                  <CheckCircle2 className="w-4 h-4" />
-                  {t('fieldTimeline.recommendations')}
+                <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2 text-green-600">
+                  <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">{t('fieldTimeline.recommendations')}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-1">
                   {diagnostic.recommendations.map((rec, i) => (
-                    <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                      <span className="text-green-500 mt-1">-</span>
-                      {rec}
+                    <li key={i} className="text-xs sm:text-sm text-muted-foreground flex items-start gap-2">
+                      <span className="text-green-500 mt-1 flex-shrink-0">-</span>
+                      <span>{rec}</span>
                     </li>
                   ))}
                 </ul>
@@ -285,8 +287,8 @@ function CaptureGallery({ capture }: { capture: FieldCapture }) {
       )}
 
       {capture.notes && (
-        <div className="p-4 bg-muted/30 rounded-md border border-border">
-          <p className="text-sm text-muted-foreground">{capture.notes}</p>
+        <div className="p-3 sm:p-4 bg-muted/30 rounded-md border border-border">
+          <p className="text-xs sm:text-sm text-muted-foreground">{capture.notes}</p>
         </div>
       )}
     </div>
@@ -377,13 +379,13 @@ export default function FieldTimeline() {
   });
 
   return (
-    <div className="p-6 space-y-8 bg-background/50 min-h-screen">
-      <header className="flex items-center justify-between flex-wrap gap-4">
+    <div className="p-4 md:p-6 space-y-6 md:space-y-8 bg-background/50 min-h-screen">
+      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight text-primary" data-testid="text-page-title">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-primary" data-testid="text-page-title">
             {t('fieldTimeline.title')}
           </h1>
-          <p className="text-muted-foreground text-lg mt-1">{t('fieldTimeline.subtitle')}</p>
+          <p className="text-muted-foreground text-sm sm:text-base md:text-lg mt-1">{t('fieldTimeline.subtitle')}</p>
         </div>
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
           <DialogTrigger asChild>
@@ -396,7 +398,7 @@ export default function FieldTimeline() {
               {t('fieldTimeline.addCapture')}
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-sm sm:max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Camera className="w-5 h-5 text-primary" />
@@ -418,7 +420,7 @@ export default function FieldTimeline() {
                 <Textarea
                   value={newCapture.imageUrls}
                   onChange={(e) => setNewCapture({ ...newCapture, imageUrls: e.target.value })}
-                  placeholder="Enter image URLs (one per line)..."
+                  placeholder={t('fieldTimeline.imageUrlsPlaceholder')}
                   rows={3}
                   data-testid="input-image-urls"
                 />
@@ -439,7 +441,7 @@ export default function FieldTimeline() {
                 <Textarea
                   value={newCapture.issues}
                   onChange={(e) => setNewCapture({ ...newCapture, issues: e.target.value })}
-                  placeholder="Enter issues (one per line)..."
+                  placeholder={t('fieldTimeline.issuesPlaceholder')}
                   rows={2}
                   data-testid="input-issues"
                 />
@@ -449,7 +451,7 @@ export default function FieldTimeline() {
                 <Textarea
                   value={newCapture.recommendations}
                   onChange={(e) => setNewCapture({ ...newCapture, recommendations: e.target.value })}
-                  placeholder="Enter recommendations (one per line)..."
+                  placeholder={t('fieldTimeline.recommendationsPlaceholder')}
                   rows={2}
                   data-testid="input-recommendations"
                 />
@@ -459,7 +461,7 @@ export default function FieldTimeline() {
                 <Textarea
                   value={newCapture.notes}
                   onChange={(e) => setNewCapture({ ...newCapture, notes: e.target.value })}
-                  placeholder="Additional notes..."
+                  placeholder={t('fieldTimeline.notesPlaceholder')}
                   rows={2}
                   data-testid="input-notes"
                 />
@@ -525,13 +527,13 @@ export default function FieldTimeline() {
       </ScrollArea>
 
       {selectedField ? (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-1">
+        <div className="space-y-4 md:space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            <Card className="md:col-span-1">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-primary" />
-                  {selectedField.name}
+                <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2 truncate">
+                  <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
+                  <span className="truncate">{selectedField.name}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -539,11 +541,11 @@ export default function FieldTimeline() {
               </CardContent>
             </Card>
 
-            <Card className="lg:col-span-2">
+            <Card className="md:col-span-2">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-primary" />
-                  {t('fieldTimeline.captureTimeline')}
+                <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-primary flex-shrink-0" />
+                  <span className="truncate">{t('fieldTimeline.captureTimeline')}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -565,9 +567,9 @@ export default function FieldTimeline() {
           {selectedCapture && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Camera className="w-5 h-5 text-primary" />
-                  {t('fieldTimeline.captureDetails')}
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <Camera className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span className="truncate">{t('fieldTimeline.captureDetails')}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -578,10 +580,10 @@ export default function FieldTimeline() {
 
           {!selectedCapture && captures?.length === 0 && (
             <Card className="border-dashed">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Camera className="w-12 h-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground text-center mb-4">{t('fieldTimeline.noCaptures')}</p>
-                <Button onClick={() => setShowDialog(true)} className="gap-2" data-testid="button-add-first-capture">
+              <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12">
+                <Camera className="w-10 sm:w-12 h-10 sm:h-12 text-muted-foreground mb-3 sm:mb-4" />
+                <p className="text-muted-foreground text-center text-sm sm:text-base mb-4">{t('fieldTimeline.noCaptures')}</p>
+                <Button onClick={() => setShowDialog(true)} className="gap-2 text-xs sm:text-sm" data-testid="button-add-first-capture">
                   <Plus className="w-4 h-4" />
                   {t('fieldTimeline.addCapture')}
                 </Button>
@@ -591,9 +593,9 @@ export default function FieldTimeline() {
         </div>
       ) : !fieldsLoading && fields?.length === 0 && (
         <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <MapPin className="w-12 h-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground text-center">{t('fieldSummary.noFields')}</p>
+          <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12">
+            <MapPin className="w-10 sm:w-12 h-10 sm:h-12 text-muted-foreground mb-3 sm:mb-4" />
+            <p className="text-muted-foreground text-center text-sm sm:text-base">{t('fieldSummary.noFields')}</p>
           </CardContent>
         </Card>
       )}

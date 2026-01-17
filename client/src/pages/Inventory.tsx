@@ -89,13 +89,13 @@ export default function Inventory() {
   const getCategoryCount = (cat: string) => items?.filter(i => i.category === cat).length || 0;
 
   return (
-    <div className="p-6 space-y-8 bg-background/50 min-h-screen">
-      <header className="flex items-center justify-between">
+    <div className="p-4 md:p-6 space-y-6 md:space-y-8 bg-background/50 min-h-screen">
+      <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight text-primary">{t('inventory.title')}</h1>
-          <p className="text-muted-foreground text-lg mt-1">{t('inventory.subtitle')}</p>
+          <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-primary">{t('inventory.title')}</h1>
+          <p className="text-muted-foreground text-sm md:text-base mt-1">{t('inventory.subtitle')}</p>
         </div>
-        <Button onClick={() => setShowForm(true)} className="gap-2" data-testid="button-add-item">
+        <Button onClick={() => setShowForm(true)} className="gap-2 w-full md:w-auto" data-testid="button-add-item">
           <Plus className="w-4 h-4" />
           {t('inventory.addItem')}
         </Button>
@@ -112,7 +112,7 @@ export default function Inventory() {
         </Card>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
         {categories.map((cat) => {
           const Icon = categoryIcons[cat];
           const isSelected = selectedCategory === cat;
@@ -120,16 +120,16 @@ export default function Inventory() {
             <button
               key={cat}
               onClick={() => setSelectedCategory(isSelected ? null : cat)}
-              className={`p-4 rounded-xl border transition-all ${
+              className={`p-3 md:p-4 rounded-xl border transition-all ${
                 isSelected 
                   ? 'border-primary bg-primary/10' 
                   : 'border-border hover:border-primary/50 bg-card'
               }`}
               data-testid={`button-category-${cat}`}
             >
-              <Icon className={`w-8 h-8 mx-auto mb-2 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
-              <p className="font-medium text-sm">{t(`inventory.${cat}`)}</p>
-              <p className="text-2xl font-bold text-primary">{getCategoryCount(cat)}</p>
+              <Icon className={`w-6 md:w-8 h-6 md:h-8 mx-auto mb-2 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+              <p className="font-medium text-xs md:text-sm">{t(`inventory.${cat}`)}</p>
+              <p className="text-lg md:text-2xl font-bold text-primary">{getCategoryCount(cat)}</p>
             </button>
           );
         })}
@@ -143,20 +143,20 @@ export default function Inventory() {
             exit={ { opacity: 0, height: 0 } }
           >
             <Card className="border-primary/20">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+              <CardHeader className="p-4 md:p-6">
+                <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
                   <Package className="w-5 h-5 text-primary" />
                   {t('inventory.addItem')}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-4 md:p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>{t('inventory.itemName')}</Label>
                     <Input
                       value={newItem.name}
                       onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                      placeholder="Enter item name..."
+                      placeholder={t('inventory.itemNamePlaceholder')}
                       data-testid="input-item-name"
                     />
                   </div>
@@ -192,7 +192,7 @@ export default function Inventory() {
                     <Input
                       value={newItem.unit}
                       onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
-                      placeholder="kg, liters, pieces..."
+                      placeholder={t('inventory.unitExamples')}
                       data-testid="input-unit"
                     />
                   </div>
@@ -206,14 +206,15 @@ export default function Inventory() {
                     />
                   </div>
                 </div>
-                <div className="flex gap-2 justify-end">
-                  <Button variant="outline" onClick={() => setShowForm(false)}>
+                <div className="flex gap-2 justify-end flex-wrap">
+                  <Button variant="outline" onClick={() => setShowForm(false)} className="flex-1 md:flex-none">
                     {t('common.cancel')}
                   </Button>
                   <Button 
                     onClick={() => createItem.mutate(newItem)}
                     disabled={!newItem.name || createItem.isPending}
                     data-testid="button-save-item"
+                    className="flex-1 md:flex-none"
                   >
                     {t('common.save')}
                   </Button>
@@ -225,19 +226,19 @@ export default function Inventory() {
       </AnimatePresence>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
             <Package className="w-5 h-5 text-primary" />
             {selectedCategory ? t(`inventory.${selectedCategory}`) : t('inventory.allItems')}
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 md:p-6">
           {isLoading ? (
-            <p className="text-muted-foreground">{t('common.loading')}</p>
+            <p className="text-muted-foreground text-sm md:text-base">{t('common.loading')}</p>
           ) : filteredItems?.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">{t('inventory.noItems')}</p>
+            <p className="text-muted-foreground text-center py-8 text-sm md:text-base">{t('inventory.noItems')}</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
               {filteredItems?.map((item) => {
                 const Icon = categoryIcons[item.category] || Package;
                 const isLow = (item.quantity || 0) < (item.minStock || 0);
@@ -245,21 +246,21 @@ export default function Inventory() {
                   <motion.div
                     key={item.id}
                     layout
-                    className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border border-muted hover:bg-muted/50 transition-colors"
+                    className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4 p-3 md:p-4 rounded-xl bg-muted/30 border border-muted hover:bg-muted/50 transition-colors"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${categoryColors[item.category]}`}>
-                        <Icon className="w-5 h-5" />
+                    <div className="flex items-center gap-3 md:gap-4">
+                      <div className={`w-8 md:w-10 h-8 md:h-10 rounded-lg flex items-center justify-center ${categoryColors[item.category]}`}>
+                        <Icon className="w-4 md:w-5 h-4 md:h-5" />
                       </div>
-                      <div>
-                        <p className="font-medium flex items-center gap-2">
-                          {item.name}
-                          {isLow && <AlertCircle className="w-4 h-4 text-red-500" />}
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm md:text-base flex items-center gap-2">
+                          <span className="truncate">{item.name}</span>
+                          {isLow && <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />}
                         </p>
                         <p className="text-xs text-muted-foreground">{t(`inventory.${item.category}`)}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 md:gap-4 justify-between md:justify-start">
                       <div className="flex items-center gap-2">
                         <Button
                           variant="outline"
