@@ -78,10 +78,11 @@ Design philosophy: Soul Forest aesthetic - minimalist, earthy tones, sharp corne
 - **Activity Logging**: All CRUD operations log to `activityLogs` table for auditability
 
 ### Internationalization (i18n)
-- Languages: English (en), Hindi (hi), Telugu (te), Kannada (kn), Tamil (ta)
+- Languages: English (en), Hindi (hi), Telugu (te), Kannada (kn), Tamil (ta), Marathi (mr), Bengali (bn), Gujarati (gu), Punjabi (pa), Malayalam (ml), Odia (or) - 11 total
 - Implementation: Custom Zustand store with `persist` middleware
 - Usage: `const { t, setLanguage, language } = useLanguage()`
 - Storage key: `agriguard-language` in localStorage
+- All UI content fully translates when language is changed
 
 ## External Dependencies
 
