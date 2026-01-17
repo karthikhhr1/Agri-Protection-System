@@ -16,21 +16,33 @@ import {
   Scan,
   ShieldCheck,
   RefreshCw,
-  Upload
+  Upload,
+  Leaf,
+  Clock,
+  Shield,
+  Eye,
+  Sprout,
+  Beaker,
+  Timer,
+  ChevronRight
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { type Report } from "@shared/schema";
+import { useLanguage } from "@/lib/i18n";
 
 export default function Analysis() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [activeReportId, setActiveReportId] = useState<number | null>(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [viewingReport, setViewingReport] = useState<Report | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const { data: reports, isLoading: isLoadingHistory } = useQuery<Report[]>({
     queryKey: ["/api/reports"],
@@ -89,8 +101,8 @@ export default function Analysis() {
       setSelectedImage(null);
       queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
       toast({
-        title: "Image Captured",
-        description: "Data captured successfully. Ready for scoring analysis.",
+        title: t('analysis.imageCaptured'),
+        description: t('analysis.captureSuccess'),
       });
     },
   });
@@ -104,8 +116,8 @@ export default function Analysis() {
       setActiveReportId(null);
       queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
       toast({
-        title: "Analysis Complete",
-        description: "Disease detection report generated successfully.",
+        title: t('analysis.analysisComplete'),
+        description: t('analysis.reportGenerated'),
       });
     },
   });
@@ -235,25 +247,25 @@ export default function Analysis() {
                   />
                   <Button variant="outline" className="w-full h-14 rounded-2xl font-black uppercase tracking-widest border-2">
                     <Upload className="w-5 h-5 mr-2" />
-                    Upload File
+                    {t('analysis.uploadFile')}
                   </Button>
                 </div>
               </div>
 
               <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20">
-                <p className="text-xs font-bold text-primary uppercase tracking-widest mb-2">Remote Camera Integration</p>
+                <p className="text-xs font-bold text-primary uppercase tracking-widest mb-2">{t('analysis.remoteCamera')}</p>
                 <p className="text-[10px] text-muted-foreground leading-relaxed mb-3">
-                  Connect third-party hardware via real-time RTSP/WebRTC streams or direct IP uplink.
+                  {t('analysis.remoteDescription')}
                 </p>
                 <Button 
-                  variant="link" 
+                  variant="ghost" 
                   className="p-0 h-auto text-xs font-black uppercase tracking-widest text-primary hover:text-primary/80"
                   onClick={() => {
                     const ip = prompt("Enter Camera IP / Stream URL:");
                     if (ip) toast({ title: "Connecting Stream", description: `Attempting uplink to ${ip}...` });
                   }}
                 >
-                  Configure Remote Link <ArrowRight className="w-3 h-3 ml-1" />
+                  {t('analysis.configureLink')} <ArrowRight className="w-3 h-3 ml-1" />
                 </Button>
               </div>
 
@@ -267,7 +279,7 @@ export default function Analysis() {
                 ) : (
                   <>
                     <Scan className="w-6 h-6 mr-2" />
-                    Capture & Analyze
+                    {t('analysis.captureAnalyze')}
                   </>
                 )}
               </Button>
@@ -314,7 +326,7 @@ export default function Analysis() {
                       <img src={activeReport.imageUrl} alt="Target" className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 space-y-2">
-                      <p className="text-sm font-black uppercase tracking-widest text-primary">Pending Analysis</p>
+                      <p className="text-sm font-black uppercase tracking-widest text-primary">{t('analysis.pendingAnalysis')}</p>
                       <Button 
                         size="sm" 
                         onClick={() => handleProcess(activeReport.id)}
@@ -324,7 +336,7 @@ export default function Analysis() {
                         {processMutation.isPending ? (
                           <RefreshCw className="w-4 h-4 animate-spin" />
                         ) : (
-                          "Run Full Report"
+                          t('analysis.runFullReport')
                         )}
                       </Button>
                     </div>
@@ -339,7 +351,7 @@ export default function Analysis() {
       <div className="space-y-4">
         <h2 className="text-2xl font-black flex items-center gap-2 uppercase tracking-tighter">
           <FileText className="w-6 h-6 text-primary" />
-          Intelligence Archive
+          {t('analysis.intelligenceArchive')}
         </h2>
         {isLoadingHistory ? (
           <div className="flex justify-center p-12"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>
@@ -352,7 +364,9 @@ export default function Analysis() {
                   key={report.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-card border-none shadow-lg rounded-3xl p-6 flex gap-6 hover:shadow-2xl transition-all"
+                  onClick={() => setViewingReport(report)}
+                  className="bg-card border-none shadow-lg rounded-3xl p-6 flex gap-6 hover:shadow-2xl transition-all cursor-pointer"
+                  data-testid={`card-report-${report.id}`}
                 >
                   <div className="w-24 h-24 rounded-2xl overflow-hidden shrink-0 border">
                     <img src={report.imageUrl} alt="Report" className="w-full h-full object-cover" />
@@ -365,6 +379,10 @@ export default function Analysis() {
                       </Badge>
                     </div>
 
+                    {data?.summary && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">{data.summary}</p>
+                    )}
+
                     {data?.diseases?.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {data.diseases.map((d: any, i: number) => (
@@ -375,12 +393,17 @@ export default function Analysis() {
                       </div>
                     ) : (
                       <Badge variant="outline" className="bg-green-500/10 text-green-600 border-none font-bold">
-                        Pathology Clear
+                        {t('analysis.healthyCrop')}
                       </Badge>
                     )}
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pt-2">
-                      Logged {new Date(report.createdAt!).toLocaleDateString()}
-                    </p>
+                    <div className="flex items-center justify-between pt-2">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                        {new Date(report.createdAt!).toLocaleDateString()}
+                      </p>
+                      <span className="text-xs text-primary flex items-center gap-1">
+                        {t('analysis.viewDetails')} <ChevronRight className="w-3 h-3" />
+                      </span>
+                    </div>
                   </div>
                 </motion.div>
               );
@@ -388,6 +411,221 @@ export default function Analysis() {
           </div>
         )}
       </div>
+
+      <Dialog open={!!viewingReport} onOpenChange={() => setViewingReport(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          {viewingReport && (() => {
+            const data = viewingReport.analysis as any;
+            const severityColors: Record<string, string> = {
+              none: 'bg-green-500',
+              low: 'bg-yellow-500',
+              medium: 'bg-orange-500',
+              high: 'bg-red-500',
+              critical: 'bg-red-700'
+            };
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-3">
+                    <Leaf className="w-6 h-6 text-primary" />
+                    {t('analysis.cropReport')} #{viewingReport.id}
+                  </DialogTitle>
+                </DialogHeader>
+                
+                <div className="space-y-6">
+                  <div className="flex gap-4">
+                    <img 
+                      src={viewingReport.imageUrl} 
+                      alt="Crop" 
+                      className="w-32 h-32 rounded-xl object-cover border"
+                    />
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Badge className={severityColors[data?.severity || 'none']}>
+                          {data?.severity?.toUpperCase() || 'NONE'}
+                        </Badge>
+                        <span className="font-bold text-lg">{data?.cropType || t('common.unknown')}</span>
+                      </div>
+                      {data?.summary && (
+                        <p className="text-muted-foreground">{data.summary}</p>
+                      )}
+                      {data?.estimatedRecoveryTime && (
+                        <p className="text-sm flex items-center gap-2">
+                          <Timer className="w-4 h-4 text-primary" />
+                          {t('analysis.recovery')}: {data.estimatedRecoveryTime}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {data?.diseases?.length > 0 && (
+                    <Card className="border-red-200 bg-red-50/50 dark:bg-red-950/20">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center gap-2 text-red-600">
+                          <AlertTriangle className="w-5 h-5" />
+                          {t('analysis.diseaseFound')}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {data.diseases.map((d: any, i: number) => (
+                          <div key={i} className="p-3 bg-background rounded-lg">
+                            <p className="font-bold text-red-600">{d.name}</p>
+                            {d.localName && <p className="text-sm text-muted-foreground">({d.localName})</p>}
+                            {d.symptoms?.length > 0 && (
+                              <ul className="mt-2 text-sm space-y-1">
+                                {d.symptoms.map((s: string, j: number) => (
+                                  <li key={j} className="flex items-start gap-2">
+                                    <span className="text-red-500">•</span> {s}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {data?.whatToDoNow?.length > 0 && (
+                    <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center gap-2 text-blue-600">
+                          <CheckCircle2 className="w-5 h-5" />
+                          {t('analysis.whatToDo')}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {data.whatToDoNow.map((step: any, i: number) => (
+                          <div key={i} className="flex gap-3 p-3 bg-background rounded-lg">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold shrink-0 ${
+                              step.urgency === 'immediate' ? 'bg-red-500' :
+                              step.urgency === 'within3days' ? 'bg-orange-500' : 'bg-blue-500'
+                            }`}>
+                              {step.step}
+                            </div>
+                            <div>
+                              <p className="font-bold">{step.action}</p>
+                              <p className="text-sm text-muted-foreground">{step.details}</p>
+                              <Badge variant="outline" className="mt-1 text-xs">
+                                {step.urgency === 'immediate' ? t('analysis.doNow') :
+                                 step.urgency === 'within3days' ? t('analysis.within3Days') : t('analysis.thisWeek')}
+                              </Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {data?.organicOptions?.length > 0 && (
+                      <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20">
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm flex items-center gap-2 text-green-600">
+                            <Sprout className="w-4 h-4" />
+                            {t('analysis.organicOptions')}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <ul className="text-sm space-y-1">
+                            {data.organicOptions.map((opt: string, i: number) => (
+                              <li key={i} className="flex items-start gap-2">
+                                <span className="text-green-500">•</span> {opt}
+                              </li>
+                            ))}
+                          </ul>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {data?.chemicalOptions?.length > 0 && (
+                      <Card className="border-purple-200 bg-purple-50/50 dark:bg-purple-950/20">
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm flex items-center gap-2 text-purple-600">
+                            <Beaker className="w-4 h-4" />
+                            {t('analysis.chemicalOptions')}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <ul className="text-sm space-y-1">
+                            {data.chemicalOptions.map((opt: string, i: number) => (
+                              <li key={i} className="flex items-start gap-2">
+                                <span className="text-purple-500">•</span> {opt}
+                              </li>
+                            ))}
+                          </ul>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+
+                  {data?.prevention?.length > 0 && (
+                    <Card className="border-primary/20 bg-primary/5">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center gap-2 text-primary">
+                          <Shield className="w-5 h-5" />
+                          {t('analysis.prevention')}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        {data.prevention.map((p: any, i: number) => (
+                          <div key={i} className="flex gap-3 p-2 bg-background rounded-lg">
+                            <Shield className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                            <div>
+                              <p className="font-medium">{p.tip}</p>
+                              <p className="text-xs text-muted-foreground">{p.when}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {data?.warningSigns?.length > 0 && (
+                    <Card className="border-orange-200 bg-orange-50/50 dark:bg-orange-950/20">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2 text-orange-600">
+                          <Eye className="w-4 h-4" />
+                          {t('analysis.warningSigns')}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="text-sm space-y-1">
+                          {data.warningSigns.map((sign: string, i: number) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="text-orange-500">•</span> {sign}
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {data?.canHarvest !== undefined && (
+                    <Card className={data.canHarvest ? 'border-green-200 bg-green-50/50 dark:bg-green-950/20' : 'border-red-200 bg-red-50/50 dark:bg-red-950/20'}>
+                      <CardContent className="pt-4">
+                        <div className="flex items-center gap-3">
+                          {data.canHarvest ? (
+                            <CheckCircle2 className="w-6 h-6 text-green-600" />
+                          ) : (
+                            <AlertTriangle className="w-6 h-6 text-red-600" />
+                          )}
+                          <div>
+                            <p className="font-bold">{data.canHarvest ? t('analysis.canHarvest') : t('analysis.waitToHarvest')}</p>
+                            {data.harvestAdvice && (
+                              <p className="text-sm text-muted-foreground">{data.harvestAdvice}</p>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

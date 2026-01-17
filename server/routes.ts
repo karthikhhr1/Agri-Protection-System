@@ -54,30 +54,51 @@ export async function registerRoutes(
       if (!report) return res.status(404).json({ message: "Report not found" });
 
       const prompt = `
-        You are a world-class plant pathologist and agricultural data scientist. 
-        Analyze this agricultural image for ANY plant disease known to science. 
+        You are a friendly agricultural advisor helping farmers understand their crop health.
+        Analyze this crop image and provide a report that is EASY FOR FARMERS TO UNDERSTAND.
+        Use simple, everyday language - avoid technical jargon.
         
-        Focus on "Beyond Good Intentions" principles: ecological durability, semi-arid land design, and restorative agriculture.
-
-        Identify:
-        1. Specific Disease (if present)
-        2. Symptoms observed
-        3. SEVERITY LEVEL: (none, low, medium, high, critical)
-        4. CROP TYPE: Identify the crop in the image.
-        5. IPM measures and risks.
-        6. PRECAUTIONS: Provide detailed, actionable ecological precautions.
-        7. RESTORATIVE ACTIONS: Suggest soil-building or biodiversity-enhancing measures.
+        Your report should answer these key questions:
+        1. WHAT IS IT? - Identify the crop and any disease/problem in simple terms
+        2. HOW SERIOUS? - Rate severity: none, low, medium, high, or critical
+        3. WHAT TO DO NOW? - Give clear, step-by-step treatment actions the farmer can take TODAY
+        4. HOW TO PREVENT? - Explain how to stop this from happening again
+        5. WARNING SIGNS - What to watch for in the future
+        
+        Be specific with treatment advice:
+        - Name actual products/remedies farmers can buy locally
+        - Give exact quantities and timing (e.g., "Apply 2 tablespoons per liter of water, spray every 7 days")
+        - Suggest both organic and chemical options when available
         
         Return a JSON object with this exact structure:
         {
           "diseaseDetected": boolean,
-          "severity": "string",
-          "cropType": "string",
-          "diseases": [{ "name": "string", "confidence": number, "symptoms": ["string"] }],
+          "severity": "none" | "low" | "medium" | "high" | "critical",
+          "cropType": "string (crop name in simple terms)",
+          "summary": "string (1-2 sentence plain language summary of findings)",
+          "diseases": [{ 
+            "name": "string (disease name)", 
+            "localName": "string (common/local name if different)",
+            "confidence": number (0-100),
+            "symptoms": ["string (visible symptoms described simply)"]
+          }],
+          "whatToDoNow": [{
+            "step": number,
+            "action": "string (clear action)",
+            "details": "string (specific instructions with quantities/timing)",
+            "urgency": "immediate" | "within3days" | "thisWeek"
+          }],
+          "prevention": [{
+            "tip": "string (prevention method)",
+            "when": "string (when to do this)"
+          }],
+          "warningSigns": ["string (signs to watch for)"],
           "risks": [{ "risk": "string", "reason": "string" }],
-          "ipmMeasures": ["string"],
-          "precautions": ["string"],
-          "restorativeActions": ["string"],
+          "organicOptions": ["string (natural/organic treatment options)"],
+          "chemicalOptions": ["string (chemical treatment options with product names)"],
+          "estimatedRecoveryTime": "string (how long until crop recovers)",
+          "canHarvest": boolean,
+          "harvestAdvice": "string (if can harvest, any precautions)",
           "confirmed": boolean
         }
       `;
@@ -98,7 +119,25 @@ export async function registerRoutes(
       });
 
       const analysisContent = response.choices[0].message.content || "{}";
-      const analysis = JSON.parse(analysisContent);
+      let analysis;
+      try {
+        analysis = JSON.parse(analysisContent);
+      } catch (parseError) {
+        console.error("Failed to parse AI response:", parseError);
+        analysis = {
+          diseaseDetected: false,
+          severity: "none",
+          cropType: "unknown",
+          summary: "Unable to analyze image. Please try again with a clearer photo.",
+          diseases: [],
+          whatToDoNow: [],
+          prevention: [],
+          warningSigns: [],
+          organicOptions: [],
+          chemicalOptions: [],
+          confirmed: false
+        };
+      }
 
       const updatedReport = await storage.updateReport(id, {
         analysis,
