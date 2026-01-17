@@ -11,6 +11,10 @@ import Analysis from "@/pages/Analysis";
 import Irrigation from "@/pages/Irrigation";
 import Deterrent from "@/pages/Deterrent";
 import Assistant from "@/pages/Assistant";
+import Schedule from "@/pages/Schedule";
+import Inventory from "@/pages/Inventory";
+import Finances from "@/pages/Finances";
+import Logs from "@/pages/Logs";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -32,6 +36,10 @@ function Router() {
           <Route path="/irrigation" component={Irrigation} />
           <Route path="/deterrent" component={Deterrent} />
           <Route path="/assistant" component={Assistant} />
+          <Route path="/schedule" component={Schedule} />
+          <Route path="/inventory" component={Inventory} />
+          <Route path="/finances" component={Finances} />
+          <Route path="/logs" component={Logs} />
           <Route component={NotFound} />
         </Switch>
       </motion.div>

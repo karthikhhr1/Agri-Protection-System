@@ -4,6 +4,13 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import OpenAI from "openai";
+import { 
+  farmTaskRequestSchema, 
+  inventoryItemRequestSchema, 
+  transactionRequestSchema,
+  deterrentSettingsRequestSchema,
+  irrigationSettingsRequestSchema
+} from "@shared/schema";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -29,6 +36,11 @@ export async function registerRoutes(
         status: "pending",
         analysis: {},
       });
+      await storage.createActivityLog({
+        action: "detection",
+        details: "New image captured for analysis",
+        metadata: { reportId: report.id }
+      });
       res.status(201).json(report);
     } catch (err) {
       res.status(400).json({ message: "Failed to capture image" });
@@ -41,7 +53,6 @@ export async function registerRoutes(
       const report = await storage.getReport(id);
       if (!report) return res.status(404).json({ message: "Report not found" });
 
-      // Call OpenAI to analyze the image for diseases with absolute precision
       const prompt = `
         You are a world-class plant pathologist and agricultural data scientist. 
         Analyze this agricultural image for ANY plant disease known to science. 
@@ -96,6 +107,12 @@ export async function registerRoutes(
         cropType: analysis.cropType || "unknown",
       });
 
+      await storage.createActivityLog({
+        action: "detection",
+        details: `Analysis complete: ${analysis.diseaseDetected ? 'Disease detected' : 'No disease'} - ${analysis.cropType}`,
+        metadata: { reportId: id, severity: analysis.severity }
+      });
+
       res.json(updatedReport);
     } catch (err) {
       console.error("Report processing error:", err);
@@ -132,21 +149,24 @@ export async function registerRoutes(
   app.post(api.irrigation.calculate.path, async (req, res) => {
     const { soilMoisture, humidity } = api.irrigation.calculate.input.parse(req.body);
 
-    // Simulated real-time environmental data
-    const temperature = Math.floor(Math.random() * 15) + 20; // 20-35 C
-    const ambientHumidity = Math.floor(Math.random() * 40) + 40; // 40-80 %
+    const temperature = Math.floor(Math.random() * 15) + 20;
+    const ambientHumidity = Math.floor(Math.random() * 40) + 40;
+
+    // Get irrigation settings
+    const settings = await storage.getIrrigationSettings();
+    const threshold = settings?.moistureThreshold || 30;
 
     let advice = "";
-    if (soilMoisture < 30) {
-      advice = "CRITICAL: Irrigate immediately. Soil moisture is dangerously low.";
+    if (soilMoisture < threshold) {
+      advice = "CRITICAL: Irrigate immediately. Soil moisture is below threshold.";
     } else if (soilMoisture < 50) {
       advice = humidity > 80 
-        ? "Monitor closely. Soil is drying, but high humidity will slow water loss. Irrigate within 24 hours." 
+        ? "Monitor closely. Soil is drying, but high humidity will slow water loss." 
         : "Irrigate soon. Soil moisture is getting low.";
     } else if (soilMoisture > 80) {
-      advice = "Do not irrigate. Soil is saturated. Check for drainage issues if this persists.";
+      advice = "Do not irrigate. Soil is saturated.";
     } else {
-      advice = "Conditions optimal. No irrigation needed at this time.";
+      advice = "Conditions optimal. No irrigation needed.";
     }
 
     const reading = await storage.createSensorReading({
@@ -158,6 +178,12 @@ export async function registerRoutes(
       healthScore: Math.round((soilMoisture + humidity + (100 - (temperature - 20) * 4)) / 3),
     });
 
+    await storage.createActivityLog({
+      action: "irrigation",
+      details: advice,
+      metadata: { soilMoisture, humidity, temperature }
+    });
+
     res.status(201).json(reading);
   });
 
@@ -166,11 +192,37 @@ export async function registerRoutes(
     res.json(readings);
   });
 
+  // === Irrigation Settings ===
+  app.get("/api/irrigation/settings", async (req, res) => {
+    const settings = await storage.getIrrigationSettings();
+    res.json(settings || { isActive: false, moistureThreshold: 30, manualOverride: false });
+  });
+
+  app.patch("/api/irrigation/settings", async (req, res) => {
+    try {
+      const updates = irrigationSettingsRequestSchema.parse(req.body);
+      const settings = await storage.updateIrrigationSettings(updates);
+      
+      await storage.createActivityLog({
+        action: "irrigation",
+        details: `Irrigation settings updated: ${JSON.stringify(updates)}`,
+        metadata: updates
+      });
+      
+      res.json(settings);
+    } catch (err) {
+      res.status(400).json({ message: "Invalid settings" });
+    }
+  });
+
   // === Audio ===
   app.post(api.audio.calculate.path, async (req, res) => {
     const { distance, coordinates } = api.audio.calculate.input.parse(req.body);
-    const TARGET_DB = 85;
-    const volume = Math.round(TARGET_DB + 20 * Math.log10(Number(distance)));
+    
+    // Get deterrent settings for volume calculation
+    const settings = await storage.getDeterrentSettings();
+    const baseVolume = settings?.volume || 70;
+    const volume = Math.round(baseVolume + 20 * Math.log10(Number(distance)));
 
     const log = await storage.createAudioLog({
       distance: String(distance),
@@ -178,11 +230,219 @@ export async function registerRoutes(
       coordinates,
     });
 
+    await storage.createActivityLog({
+      action: "deterrent",
+      details: `Acoustic barrier deployed at ${distance}m with ${volume}dB`,
+      metadata: { distance, volume, coordinates }
+    });
+
     res.status(201).json(log);
   });
 
   app.get(api.audio.list.path, async (req, res) => {
     const logs = await storage.getAudioLogs();
+    res.json(logs);
+  });
+
+  // === Deterrent Settings ===
+  app.get("/api/deterrent/settings", async (req, res) => {
+    const settings = await storage.getDeterrentSettings();
+    res.json(settings || { isEnabled: false, volume: 70, soundType: 'alarm', activationDistance: 50, autoActivate: true });
+  });
+
+  app.patch("/api/deterrent/settings", async (req, res) => {
+    try {
+      const updates = deterrentSettingsRequestSchema.parse(req.body);
+      const settings = await storage.updateDeterrentSettings(updates);
+      
+      await storage.createActivityLog({
+        action: "deterrent",
+        details: `Deterrent settings updated: ${updates.isEnabled !== undefined ? (updates.isEnabled ? 'Enabled' : 'Disabled') : 'Modified'}`,
+        metadata: updates
+      });
+      
+      res.json(settings);
+    } catch (err) {
+      res.status(400).json({ message: "Invalid settings" });
+    }
+  });
+
+  // === Animal Detections ===
+  app.get("/api/detections", async (req, res) => {
+    const detections = await storage.getAnimalDetections();
+    res.json(detections);
+  });
+
+  app.post("/api/detections", async (req, res) => {
+    try {
+      const schema = z.object({
+        animalType: z.string(),
+        distance: z.number(),
+        coordinates: z.object({ x: z.number(), y: z.number() }).optional(),
+        imageUrl: z.string().optional(),
+      });
+      const data = schema.parse(req.body);
+      
+      const detection = await storage.createAnimalDetection({
+        ...data,
+        status: "detected",
+        confidence: 0.85,
+        deterrentActivated: false,
+      });
+
+      // Check if we should activate deterrent
+      const settings = await storage.getDeterrentSettings();
+      if (settings?.isEnabled && settings?.autoActivate && data.distance <= (settings?.activationDistance || 50)) {
+        await storage.updateAnimalDetection(detection.id, { deterrentActivated: true });
+        
+        await storage.createActivityLog({
+          action: "deterrent",
+          details: `Deterrent auto-activated for ${data.animalType} at ${data.distance}m`,
+          metadata: { detectionId: detection.id, animalType: data.animalType, distance: data.distance }
+        });
+      }
+
+      await storage.createActivityLog({
+        action: "detection",
+        details: `Animal detected: ${data.animalType} at ${data.distance}m`,
+        metadata: { detectionId: detection.id, animalType: data.animalType, distance: data.distance }
+      });
+
+      res.status(201).json(detection);
+    } catch (err) {
+      res.status(400).json({ message: "Failed to create detection" });
+    }
+  });
+
+  // === Farm Tasks ===
+  app.get("/api/tasks", async (req, res) => {
+    const tasks = await storage.getFarmTasks();
+    res.json(tasks);
+  });
+
+  app.post("/api/tasks", async (req, res) => {
+    try {
+      const data = farmTaskRequestSchema.parse(req.body);
+      const task = await storage.createFarmTask({
+        ...data,
+        dueDate: data.dueDate ? new Date(data.dueDate) : null,
+      });
+      
+      await storage.createActivityLog({
+        action: "system",
+        details: `Task created: ${data.title}`,
+        metadata: { taskId: task.id }
+      });
+      
+      res.status(201).json(task);
+    } catch (err) {
+      res.status(400).json({ message: "Failed to create task" });
+    }
+  });
+
+  app.patch("/api/tasks/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const updates = req.body;
+      if (updates.dueDate) {
+        updates.dueDate = new Date(updates.dueDate);
+      }
+      const task = await storage.updateFarmTask(id, updates);
+      res.json(task);
+    } catch (err) {
+      res.status(400).json({ message: "Failed to update task" });
+    }
+  });
+
+  app.delete("/api/tasks/:id", async (req, res) => {
+    try {
+      await storage.deleteFarmTask(Number(req.params.id));
+      res.sendStatus(204);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete task" });
+    }
+  });
+
+  // === Inventory ===
+  app.get("/api/inventory", async (req, res) => {
+    const items = await storage.getInventoryItems();
+    res.json(items);
+  });
+
+  app.post("/api/inventory", async (req, res) => {
+    try {
+      const data = inventoryItemRequestSchema.parse(req.body);
+      const item = await storage.createInventoryItem(data);
+      
+      await storage.createActivityLog({
+        action: "system",
+        details: `Inventory item added: ${data.name} (${data.category})`,
+        metadata: { itemId: item.id }
+      });
+      
+      res.status(201).json(item);
+    } catch (err) {
+      res.status(400).json({ message: "Failed to create inventory item" });
+    }
+  });
+
+  app.patch("/api/inventory/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const item = await storage.updateInventoryItem(id, req.body);
+      res.json(item);
+    } catch (err) {
+      res.status(400).json({ message: "Failed to update inventory item" });
+    }
+  });
+
+  app.delete("/api/inventory/:id", async (req, res) => {
+    try {
+      await storage.deleteInventoryItem(Number(req.params.id));
+      res.sendStatus(204);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete inventory item" });
+    }
+  });
+
+  // === Transactions ===
+  app.get("/api/transactions", async (req, res) => {
+    const transactions = await storage.getTransactions();
+    res.json(transactions);
+  });
+
+  app.post("/api/transactions", async (req, res) => {
+    try {
+      const data = transactionRequestSchema.parse(req.body);
+      const trans = await storage.createTransaction({
+        ...data,
+        date: data.date ? new Date(data.date) : new Date(),
+      });
+      
+      await storage.createActivityLog({
+        action: "system",
+        details: `Transaction recorded: ${data.type} - ₹${data.amount} (${data.category})`,
+        metadata: { transactionId: trans.id }
+      });
+      
+      res.status(201).json(trans);
+    } catch (err) {
+      res.status(400).json({ message: "Failed to create transaction" });
+    }
+  });
+
+  app.delete("/api/transactions/:id", async (req, res) => {
+    try {
+      await storage.deleteTransaction(Number(req.params.id));
+      res.sendStatus(204);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete transaction" });
+    }
+  });
+
+  // === Activity Logs ===
+  app.get("/api/logs", async (req, res) => {
+    const logs = await storage.getActivityLogs();
     res.json(logs);
   });
 

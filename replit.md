@@ -2,13 +2,21 @@
 
 ## Overview
 
-AgriGuard is a full-stack agricultural management platform that combines drone imagery analysis, smart irrigation monitoring, and audio-based wildlife deterrent systems. The application uses AI-powered disease detection to analyze crop images, provides real-time sensor data visualization for irrigation management, and calculates optimal acoustic volumes for pest deterrence.
+AgriGuard is a comprehensive agricultural management platform featuring:
+- **Drone-based crop analysis** with AI-powered disease detection
+- **Smart irrigation monitoring** with threshold-based controls
+- **Wildlife deterrent systems** with distance-based auto-activation
+- **Farm scheduling** for task management
+- **Inventory tracking** for seeds, fertilizers, pesticides, and equipment
+- **Financial management** for income and expense tracking
+- **Activity logging** for system transparency
 
-The system follows a monorepo architecture with a React frontend, Express backend, and PostgreSQL database, all configured for deployment on Replit.
+The system follows a monorepo architecture with a React frontend, Express backend, and PostgreSQL database. It supports 5 Indian languages (English, Hindi, Telugu, Kannada, Tamil) through a custom i18n system.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Design philosophy: Soul Forest aesthetic - minimalist, earthy tones, sharp corners, high-contrast typography.
 
 ## System Architecture
 
@@ -32,10 +40,16 @@ Preferred communication style: Simple, everyday language.
 ### Data Storage
 - **Database**: PostgreSQL with Drizzle ORM
 - **Schema Tables**:
-  - `reports`: Stores drone images and AI-generated disease analysis (JSON)
+  - `reports`: Drone images and AI-generated disease analysis (JSON)
   - `sensorReadings`: Irrigation sensor data (soil moisture, humidity, advice)
   - `audioLogs`: Wildlife deterrent calculations (distance, volume)
-  - `conversations`/`messages`: Chat integration support
+  - `farmTasks`: Farm scheduling with priority and status tracking
+  - `inventoryItems`: Resource tracking (seeds, fertilizers, pesticides, equipment)
+  - `transactions`: Financial records (income/expense)
+  - `activityLogs`: System action logging for transparency
+  - `animalDetections`: Wildlife detection records with auto-deterrent trigger
+  - `deterrentSettings`: Audio deterrent configuration (volume, sound type, activation distance)
+  - `irrigationSettings`: Irrigation controls (threshold, manual override)
 
 ### Code Organization
 ```
@@ -60,6 +74,14 @@ Preferred communication style: Simple, everyday language.
 - **Type-safe API**: Zod schemas validate request/response data on both ends
 - **Storage Abstraction**: `IStorage` interface allows swapping database implementations
 - **Modular Integrations**: AI features organized in `replit_integrations/` for batch processing, chat, and image generation
+- **Custom i18n**: Zustand-based language store with persistent storage (`client/src/lib/i18n.ts`)
+- **Activity Logging**: All CRUD operations log to `activityLogs` table for auditability
+
+### Internationalization (i18n)
+- Languages: English (en), Hindi (hi), Telugu (te), Kannada (kn), Tamil (ta)
+- Implementation: Custom Zustand store with `persist` middleware
+- Usage: `const { t, setLanguage, language } = useLanguage()`
+- Storage key: `agriguard-language` in localStorage
 
 ## External Dependencies
 
