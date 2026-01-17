@@ -11,7 +11,7 @@ AgriGuard is a comprehensive agricultural management platform featuring:
 - **Financial management** for income and expense tracking
 - **Activity logging** for system transparency
 
-The system follows a monorepo architecture with a React frontend, Express backend, and PostgreSQL database. It supports 5 Indian languages (English, Hindi, Telugu, Kannada, Tamil) through a custom i18n system.
+The system follows a monorepo architecture with a React frontend, Express backend, and PostgreSQL database. It supports 11 Indian languages (English, Hindi, Telugu, Kannada, Tamil, Marathi, Bengali, Gujarati, Punjabi, Malayalam, Odia) through a custom i18n system. The app is fully mobile responsive with QR code functionality for easy mobile access.
 
 ## User Preferences
 
