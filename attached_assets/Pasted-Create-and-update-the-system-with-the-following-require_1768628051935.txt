@@ -1,0 +1,65 @@
+Create and update the system with the following requirements and fixes applied:
+
+Language Switching
+
+Fix the language-changing functionality so it works reliably across the entire system.
+
+The selected language must persist across all screens, notifications, audio outputs, and settings.
+
+Ensure there are no partial translations or fallback language issues.
+
+Animal Detection and Distance Calculation
+
+When a photo or camera feed is received, the system must:
+
+Detect one or multiple animals in the image.
+
+Calculate the distance of each detected animal from the camera using image analysis and calibration data.
+
+Continuously update distance calculations in real time if the animal is moving.
+
+Audio Deterrent Control
+
+The audio deterrent must be fully user-controlled (on/off, volume, sound type).
+
+Loud music or deterrent sounds should only activate when:
+
+An animal is detected within a predefined distance threshold.
+
+The user’s control settings allow activation.
+
+Support different audio profiles based on animal type and proximity.
+
+Irrigation System Control
+
+Fix the irrigation logic so it is not automatically triggered by animal detection.
+
+Irrigation must be controlled based solely on soil moisture sensor data.
+
+Allow manual override by the user.
+
+Ensure accurate moisture threshold calibration and real-time sensor feedback.
+
+System Logic Integration
+
+Detection, distance calculation, audio deterrent, irrigation, and language settings must operate independently but communicate through a central control system.
+
+Prevent unintended triggers (e.g., irrigation activating due to animal detection).
+
+Optimize performance to handle multiple animals simultaneously.
+
+User Control and Transparency
+
+Provide clear controls and status indicators for:
+
+Language selection
+
+Audio deterrent activation
+
+Irrigation status
+
+Sensor readings and detection results
+
+Log all actions and triggers for review and debugging.
+
+The final system should be reliable, user-controlled, multilingual, and capable of accurately detecting animals, calculating distance, triggering deterrents appropriately, and managing irrigation strictly based on soil moisture data.
