@@ -111,6 +111,35 @@ export const activityLogs = pgTable("activity_logs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// === FARM FIELDS ===
+export const farmFields = pgTable("farm_fields", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  // Polygon coordinates as array of {lat, lng} points
+  polygon: jsonb("polygon").notNull(), // [{ lat: number, lng: number }, ...]
+  areaAcres: real("area_acres").default(0),
+  cropType: text("crop_type"), // current crop being grown
+  plantingDate: timestamp("planting_date"),
+  expectedHarvestDate: timestamp("expected_harvest_date"),
+  projectedYield: real("projected_yield"), // in kg or quintals
+  historicalYield: real("historical_yield"), // average from past seasons
+  soilType: text("soil_type"),
+  irrigationType: text("irrigation_type"), // drip, sprinkler, flood, rainfed
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// === FIELD CAPTURES (Drone Timeline) ===
+export const fieldCaptures = pgTable("field_captures", {
+  id: serial("id").primaryKey(),
+  fieldId: integer("field_id").notNull(),
+  captureDate: timestamp("capture_date").notNull(),
+  imageUrls: jsonb("image_urls").notNull(), // array of image URLs
+  healthDiagnostic: jsonb("health_diagnostic"), // { score: number, issues: string[], recommendations: string[] }
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // === SCHEMAS ===
 export const insertReportSchema = createInsertSchema(reports).omit({ id: true, createdAt: true });
 export const insertSensorReadingSchema = createInsertSchema(sensorReadings).omit({ id: true, createdAt: true });
@@ -122,6 +151,8 @@ export const insertFarmTaskSchema = createInsertSchema(farmTasks).omit({ id: tru
 export const insertInventoryItemSchema = createInsertSchema(inventoryItems).omit({ id: true, lastUpdated: true });
 export const insertTransactionSchema = createInsertSchema(transactions).omit({ id: true, createdAt: true });
 export const insertActivityLogSchema = createInsertSchema(activityLogs).omit({ id: true, createdAt: true });
+export const insertFarmFieldSchema = createInsertSchema(farmFields).omit({ id: true, createdAt: true });
+export const insertFieldCaptureSchema = createInsertSchema(fieldCaptures).omit({ id: true, createdAt: true });
 
 // === TYPES ===
 export type Report = typeof reports.$inferSelect;
@@ -153,6 +184,12 @@ export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 
 export type ActivityLog = typeof activityLogs.$inferSelect;
 export type InsertActivityLog = z.infer<typeof insertActivityLogSchema>;
+
+export type FarmField = typeof farmFields.$inferSelect;
+export type InsertFarmField = z.infer<typeof insertFarmFieldSchema>;
+
+export type FieldCapture = typeof fieldCaptures.$inferSelect;
+export type InsertFieldCapture = z.infer<typeof insertFieldCaptureSchema>;
 
 // API Request Types
 export const analyzeImageSchema = z.object({
@@ -213,4 +250,30 @@ export const transactionRequestSchema = z.object({
   description: z.string().optional(),
   amount: z.number(),
   date: z.string().optional(),
+});
+
+export const farmFieldRequestSchema = z.object({
+  name: z.string().min(1),
+  polygon: z.array(z.object({ lat: z.number(), lng: z.number() })),
+  areaAcres: z.number().optional(),
+  cropType: z.string().optional(),
+  plantingDate: z.string().optional(),
+  expectedHarvestDate: z.string().optional(),
+  projectedYield: z.number().optional(),
+  historicalYield: z.number().optional(),
+  soilType: z.string().optional(),
+  irrigationType: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export const fieldCaptureRequestSchema = z.object({
+  fieldId: z.number(),
+  captureDate: z.string(),
+  imageUrls: z.array(z.string()),
+  healthDiagnostic: z.object({
+    score: z.number(),
+    issues: z.array(z.string()),
+    recommendations: z.array(z.string()),
+  }).optional(),
+  notes: z.string().optional(),
 });

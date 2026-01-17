@@ -1,7 +1,7 @@
 import { db } from "./db";
 import { 
   reports, sensorReadings, audioLogs, farmTasks, inventoryItems, transactions, activityLogs,
-  deterrentSettings, irrigationSettings, animalDetections,
+  deterrentSettings, irrigationSettings, animalDetections, farmFields, fieldCaptures,
   type InsertReport, type Report,
   type InsertSensorReading, type SensorReading,
   type InsertAudioLog, type AudioLog,
@@ -11,7 +11,9 @@ import {
   type InsertActivityLog, type ActivityLog,
   type InsertDeterrentSetting, type DeterrentSetting,
   type InsertIrrigationSetting, type IrrigationSetting,
-  type InsertAnimalDetection, type AnimalDetection
+  type InsertAnimalDetection, type AnimalDetection,
+  type FarmField, type InsertFarmField,
+  type FieldCapture, type InsertFieldCapture
 } from "@shared/schema";
 import { eq, desc, inArray } from "drizzle-orm";
 
@@ -65,6 +67,19 @@ export interface IStorage {
   createAnimalDetection(detection: InsertAnimalDetection): Promise<AnimalDetection>;
   getAnimalDetections(): Promise<AnimalDetection[]>;
   updateAnimalDetection(id: number, updates: Partial<AnimalDetection>): Promise<AnimalDetection>;
+
+  // Farm Fields
+  getFields(): Promise<FarmField[]>;
+  getField(id: number): Promise<FarmField | undefined>;
+  createField(field: InsertFarmField): Promise<FarmField>;
+  updateField(id: number, field: Partial<InsertFarmField>): Promise<FarmField | undefined>;
+  deleteField(id: number): Promise<boolean>;
+
+  // Field Captures
+  getFieldCaptures(fieldId: number): Promise<FieldCapture[]>;
+  getFieldCapture(id: number): Promise<FieldCapture | undefined>;
+  createFieldCapture(capture: InsertFieldCapture): Promise<FieldCapture>;
+  deleteFieldCapture(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -247,6 +262,56 @@ export class DatabaseStorage implements IStorage {
       .where(eq(animalDetections.id, id))
       .returning();
     return updated;
+  }
+
+  // Farm Fields
+  async getFields(): Promise<FarmField[]> {
+    return await db.select().from(farmFields).orderBy(desc(farmFields.createdAt));
+  }
+
+  async getField(id: number): Promise<FarmField | undefined> {
+    const [field] = await db.select().from(farmFields).where(eq(farmFields.id, id));
+    return field;
+  }
+
+  async createField(field: InsertFarmField): Promise<FarmField> {
+    const [newField] = await db.insert(farmFields).values(field).returning();
+    return newField;
+  }
+
+  async updateField(id: number, field: Partial<InsertFarmField>): Promise<FarmField | undefined> {
+    const [updated] = await db.update(farmFields)
+      .set(field)
+      .where(eq(farmFields.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteField(id: number): Promise<boolean> {
+    const result = await db.delete(farmFields).where(eq(farmFields.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Field Captures
+  async getFieldCaptures(fieldId: number): Promise<FieldCapture[]> {
+    return await db.select().from(fieldCaptures)
+      .where(eq(fieldCaptures.fieldId, fieldId))
+      .orderBy(desc(fieldCaptures.createdAt));
+  }
+
+  async getFieldCapture(id: number): Promise<FieldCapture | undefined> {
+    const [capture] = await db.select().from(fieldCaptures).where(eq(fieldCaptures.id, id));
+    return capture;
+  }
+
+  async createFieldCapture(capture: InsertFieldCapture): Promise<FieldCapture> {
+    const [newCapture] = await db.insert(fieldCaptures).values(capture).returning();
+    return newCapture;
+  }
+
+  async deleteFieldCapture(id: number): Promise<boolean> {
+    const result = await db.delete(fieldCaptures).where(eq(fieldCaptures.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 }
 

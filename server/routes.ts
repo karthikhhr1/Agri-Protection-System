@@ -9,7 +9,9 @@ import {
   inventoryItemRequestSchema, 
   transactionRequestSchema,
   deterrentSettingsRequestSchema,
-  irrigationSettingsRequestSchema
+  irrigationSettingsRequestSchema,
+  farmFieldRequestSchema,
+  fieldCaptureRequestSchema
 } from "@shared/schema";
 
 const openai = new OpenAI({
@@ -483,6 +485,134 @@ export async function registerRoutes(
   app.get("/api/logs", async (req, res) => {
     const logs = await storage.getActivityLogs();
     res.json(logs);
+  });
+
+  // === Farm Fields ===
+  app.get("/api/fields", async (req, res) => {
+    const fields = await storage.getFields();
+    res.json(fields);
+  });
+
+  app.get("/api/fields/:id", async (req, res) => {
+    const field = await storage.getField(Number(req.params.id));
+    if (!field) return res.status(404).json({ message: "Field not found" });
+    res.json(field);
+  });
+
+  app.post("/api/fields", async (req, res) => {
+    try {
+      const data = farmFieldRequestSchema.parse(req.body);
+      const field = await storage.createField({
+        ...data,
+        plantingDate: data.plantingDate ? new Date(data.plantingDate) : undefined,
+        expectedHarvestDate: data.expectedHarvestDate ? new Date(data.expectedHarvestDate) : undefined,
+      });
+      
+      await storage.createActivityLog({
+        action: "system",
+        details: `Field created: ${data.name}`,
+        metadata: { fieldId: field.id }
+      });
+      
+      res.status(201).json(field);
+    } catch (err) {
+      res.status(400).json({ message: "Failed to create field" });
+    }
+  });
+
+  app.patch("/api/fields/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const updates = req.body;
+      if (updates.plantingDate) {
+        updates.plantingDate = new Date(updates.plantingDate);
+      }
+      if (updates.expectedHarvestDate) {
+        updates.expectedHarvestDate = new Date(updates.expectedHarvestDate);
+      }
+      const field = await storage.updateField(id, updates);
+      if (!field) return res.status(404).json({ message: "Field not found" });
+      
+      await storage.createActivityLog({
+        action: "system",
+        details: `Field updated: ${field.name}`,
+        metadata: { fieldId: id }
+      });
+      
+      res.json(field);
+    } catch (err) {
+      res.status(400).json({ message: "Failed to update field" });
+    }
+  });
+
+  app.delete("/api/fields/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deleteField(id);
+      if (!success) return res.status(404).json({ message: "Field not found" });
+      
+      await storage.createActivityLog({
+        action: "system",
+        details: `Field deleted`,
+        metadata: { fieldId: id }
+      });
+      
+      res.sendStatus(204);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete field" });
+    }
+  });
+
+  // === Field Captures ===
+  app.get("/api/fields/:fieldId/captures", async (req, res) => {
+    const captures = await storage.getFieldCaptures(Number(req.params.fieldId));
+    res.json(captures);
+  });
+
+  app.post("/api/fields/:fieldId/captures", async (req, res) => {
+    try {
+      const fieldId = Number(req.params.fieldId);
+      const field = await storage.getField(fieldId);
+      if (!field) return res.status(404).json({ message: "Field not found" });
+      
+      const data = fieldCaptureRequestSchema.parse({
+        ...req.body,
+        fieldId
+      });
+      
+      const capture = await storage.createFieldCapture({
+        ...data,
+        captureDate: new Date(data.captureDate),
+      });
+      
+      await storage.createActivityLog({
+        action: "detection",
+        details: `Field capture created for field: ${field.name}`,
+        metadata: { fieldId, captureId: capture.id }
+      });
+      
+      res.status(201).json(capture);
+    } catch (err) {
+      res.status(400).json({ message: "Failed to create field capture" });
+    }
+  });
+
+  app.delete("/api/captures/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deleteFieldCapture(id);
+      if (!success) return res.status(404).json({ message: "Capture not found" });
+      
+      await storage.createActivityLog({
+        action: "detection",
+        details: `Field capture deleted`,
+        metadata: { captureId: id }
+      });
+      
+      res.sendStatus(204);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete field capture" });
+    }
   });
 
   // === AI Assistant ===

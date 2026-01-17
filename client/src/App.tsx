@@ -15,6 +15,8 @@ import Schedule from "@/pages/Schedule";
 import Inventory from "@/pages/Inventory";
 import Finances from "@/pages/Finances";
 import Logs from "@/pages/Logs";
+import FieldSummary from "@/pages/FieldSummary";
+import FieldTimeline from "@/pages/FieldTimeline";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -40,6 +42,8 @@ function Router() {
           <Route path="/inventory" component={Inventory} />
           <Route path="/finances" component={Finances} />
           <Route path="/logs" component={Logs} />
+          <Route path="/field-summary" component={FieldSummary} />
+          <Route path="/field-timeline" component={FieldTimeline} />
           <Route component={NotFound} />
         </Switch>
       </motion.div>

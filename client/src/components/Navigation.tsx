@@ -1,18 +1,20 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Droplets, Volume2, ScanEye, Sprout, Bot, Globe, Calendar, Package, DollarSign, FileText, ChevronDown } from "lucide-react";
+import { LayoutDashboard, Droplets, Volume2, ScanEye, Sprout, Bot, Globe, Calendar, Package, DollarSign, FileText, ChevronDown, MapPin, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage, languageNames, type Language } from "@/lib/i18n";
 import { useState } from "react";
 
 const navItems = [
   { href: "/", labelKey: "nav.dashboard", icon: LayoutDashboard },
+  { href: "/field-summary", labelKey: "nav.fieldSummary", icon: MapPin },
+  { href: "/field-timeline", labelKey: "nav.fieldTimeline", icon: Clock },
   { href: "/analysis", labelKey: "nav.analysis", icon: ScanEye },
   { href: "/irrigation", labelKey: "nav.irrigation", icon: Droplets },
   { href: "/deterrent", labelKey: "nav.deterrent", icon: Volume2 },
   { href: "/assistant", labelKey: "nav.assistant", icon: Bot },
   { href: "/schedule", labelKey: "nav.schedule", icon: Calendar },
   { href: "/inventory", labelKey: "nav.inventory", icon: Package },
-  { href: "/finances", labelKey: "nav.finances", icon: DollarSign },
+  // { href: "/finances", labelKey: "nav.finances", icon: DollarSign },
   { href: "/logs", labelKey: "nav.logs", icon: FileText },
 ];
 

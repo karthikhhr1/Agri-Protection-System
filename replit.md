@@ -50,6 +50,8 @@ Design philosophy: Soul Forest aesthetic - minimalist, earthy tones, sharp corne
   - `animalDetections`: Wildlife detection records with auto-deterrent trigger
   - `deterrentSettings`: Audio deterrent configuration (volume, sound type, activation distance)
   - `irrigationSettings`: Irrigation controls (threshold, manual override)
+  - `farmFields`: Farm field boundaries (polygon coordinates), crop info, yield data
+  - `fieldCaptures`: Drone timeline captures with images and health diagnostics per field
 
 ### Code Organization
 ```
