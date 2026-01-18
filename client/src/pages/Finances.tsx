@@ -23,7 +23,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import type { Transaction } from "@shared/schema";
 
 export default function Finances() {
-  const { t } = useLanguage();
+  const { t, formatDate, formatCurrency, getLocale } = useLanguage();
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [newTransaction, setNewTransaction] = useState({ 
@@ -65,8 +65,9 @@ export default function Finances() {
   const totalExpenses = transactions?.filter(t => t.type === 'expense').reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
   const balance = totalIncome - totalExpenses;
 
+  const locale = getLocale();
   const chartData = transactions?.slice(0, 10).reverse().map(t => ({
-    date: new Date(t.date || t.createdAt!).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+    date: new Date(t.date || t.createdAt!).toLocaleDateString(locale, { month: 'short', day: 'numeric' }),
     amount: t.type === 'income' ? t.amount : -(t.amount || 0),
     type: t.type
   })) || [];
@@ -287,7 +288,7 @@ export default function Finances() {
                     <div>
                       <p className="font-medium">{t(`finances.${trans.category}`) || trans.category}</p>
                       <p className="text-xs text-muted-foreground">
-                        {trans.description || new Date(trans.date || trans.createdAt!).toLocaleDateString()}
+                        {trans.description || formatDate(trans.date || trans.createdAt)}
                       </p>
                     </div>
                   </div>

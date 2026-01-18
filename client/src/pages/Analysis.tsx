@@ -42,7 +42,7 @@ export default function Analysis() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, formatDate, formatTime } = useLanguage();
 
   const { data: reports, isLoading: isLoadingHistory } = useQuery<Report[]>({
     queryKey: ["/api/reports"],
@@ -373,9 +373,9 @@ export default function Analysis() {
                   </div>
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center justify-between gap-2">
-                      <h3 className="font-black text-base md:text-lg tracking-tighter uppercase">Entry #{report.id}</h3>
+                      <h3 className="font-black text-base md:text-lg tracking-tighter uppercase">{t('common.entry')} #{report.id}</h3>
                       <Badge className={report.status === 'complete' ? 'bg-green-500' : 'bg-red-500'}>
-                        {report.status}
+                        {t(`status.${report.status}`)}
                       </Badge>
                     </div>
 
@@ -398,7 +398,7 @@ export default function Analysis() {
                     )}
                     <div className="flex items-center justify-between pt-2">
                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                        {new Date(report.createdAt!).toLocaleDateString()}
+                        {formatDate(report.createdAt, { year: 'numeric', month: 'short', day: 'numeric' })}
                       </p>
                       <span className="text-xs text-primary flex items-center gap-1">
                         {t('analysis.viewDetails')} <ChevronRight className="w-3 h-3" />
@@ -431,6 +431,8 @@ export default function Analysis() {
                     {t('analysis.cropReport')} #{viewingReport.id}
                   </DialogTitle>
                 </DialogHeader>
+                
+                {/* Severity badge with translation */}
                 
                 <div className="space-y-4 md:space-y-6">
                   <div className="flex flex-col md:flex-row gap-4">

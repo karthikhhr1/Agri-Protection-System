@@ -121,7 +121,7 @@ function CaptureTimeline({
   selectedCaptureId: number | null;
   onSelectCapture: (id: number) => void;
 }) {
-  const { t } = useLanguage();
+  const { t, formatDate } = useLanguage();
   const sortedCaptures = [...captures].sort((a, b) => 
     new Date(a.captureDate).getTime() - new Date(b.captureDate).getTime()
   );
@@ -170,7 +170,7 @@ function CaptureTimeline({
                   <Camera className="w-4 h-4" />
                 </div>
                 <span className={`text-xs mt-2 whitespace-nowrap ${isSelected ? 'font-bold text-primary' : 'text-muted-foreground'}`}>
-                  {new Date(capture.captureDate).toLocaleDateString()}
+                  {formatDate(capture.captureDate, { month: 'short', day: 'numeric' })}
                 </span>
                 {score !== undefined && (
                   <Badge 
@@ -195,7 +195,7 @@ function CaptureTimeline({
 }
 
 function CaptureGallery({ capture }: { capture: FieldCapture }) {
-  const { t } = useLanguage();
+  const { t, formatDate } = useLanguage();
   const imageUrls = Array.isArray(capture.imageUrls) ? capture.imageUrls as string[] : [];
   const diagnostic = capture.healthDiagnostic as HealthDiagnostic | null;
 
@@ -204,7 +204,7 @@ function CaptureGallery({ capture }: { capture: FieldCapture }) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2 flex-shrink-0">
           <Calendar className="w-5 h-5 text-primary flex-shrink-0" />
-          {new Date(capture.captureDate).toLocaleDateString()}
+          {formatDate(capture.captureDate)}
         </h3>
         {diagnostic?.score !== undefined && (
           <Badge 

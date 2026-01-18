@@ -17,6 +17,20 @@ export const languageNames: Record<Language, string> = {
   or: 'ଓଡ଼ିଆ',
 };
 
+export const languageLocales: Record<Language, string> = {
+  en: 'en-IN',
+  hi: 'hi-IN',
+  te: 'te-IN',
+  kn: 'kn-IN',
+  ta: 'ta-IN',
+  mr: 'mr-IN',
+  bn: 'bn-IN',
+  gu: 'gu-IN',
+  pa: 'pa-IN',
+  ml: 'ml-IN',
+  or: 'or-IN',
+};
+
 const translations: Record<Language, Record<string, string>> = {
   en: {
     'nav.dashboard': 'Dashboard',
@@ -262,6 +276,17 @@ const translations: Record<Language, Record<string, string>> = {
     'common.success': 'Success',
     'common.refresh': 'Refresh',
     'common.noData': 'No data yet',
+    'common.entry': 'Entry',
+    'severity.safe': 'Safe',
+    'severity.none': 'None',
+    'severity.low': 'Low',
+    'severity.medium': 'Medium',
+    'severity.high': 'High',
+    'severity.critical': 'Critical',
+    'status.pending': 'Pending',
+    'status.complete': 'Complete',
+    'status.failed': 'Failed',
+    'status.processing': 'Processing',
     'schedule.noTasks': 'No tasks yet. Add your first task!',
     'schedule.taskCreated': 'Task created successfully',
     'schedule.taskDeleted': 'Task deleted',
@@ -583,6 +608,17 @@ const translations: Record<Language, Record<string, string>> = {
     'common.success': 'सफलता',
     'common.refresh': 'रीफ्रेश',
     'common.noData': 'अभी तक कोई डेटा नहीं',
+    'common.entry': 'प्रविष्टि',
+    'severity.safe': 'सुरक्षित',
+    'severity.none': 'कोई नहीं',
+    'severity.low': 'कम',
+    'severity.medium': 'मध्यम',
+    'severity.high': 'उच्च',
+    'severity.critical': 'गंभीर',
+    'status.pending': 'लंबित',
+    'status.complete': 'पूर्ण',
+    'status.failed': 'विफल',
+    'status.processing': 'प्रसंस्करण',
     'schedule.noTasks': 'अभी तक कोई कार्य नहीं। अपना पहला कार्य जोड़ें!',
     'schedule.taskCreated': 'कार्य सफलतापूर्वक बनाया गया',
     'schedule.taskDeleted': 'कार्य हटा दिया गया',
@@ -843,6 +879,17 @@ const translations: Record<Language, Record<string, string>> = {
     'common.success': 'విజయం',
     'common.refresh': 'రిఫ్రెష్',
     'common.noData': 'ఇంకా డేటా లేదు',
+    'common.entry': 'నమోదు',
+    'severity.safe': 'సురక్షితం',
+    'severity.none': 'ఏమీ లేదు',
+    'severity.low': 'తక్కువ',
+    'severity.medium': 'మధ్యస్థం',
+    'severity.high': 'ఎక్కువ',
+    'severity.critical': 'క్లిష్టమైన',
+    'status.pending': 'పెండింగ్',
+    'status.complete': 'పూర్తయింది',
+    'status.failed': 'విఫలమైంది',
+    'status.processing': 'ప్రాసెసింగ్',
     'schedule.noTasks': 'ఇంకా టాస్క్‌లు లేవు. మీ మొదటి టాస్క్ జోడించండి!',
     'schedule.taskCreated': 'టాస్క్ విజయవంతంగా సృష్టించబడింది',
     'schedule.taskDeleted': 'టాస్క్ తొలగించబడింది',
@@ -1101,6 +1148,17 @@ const translations: Record<Language, Record<string, string>> = {
     'common.success': 'ಯಶಸ್ಸು',
     'common.refresh': 'ರಿಫ್ರೆಶ್',
     'common.noData': 'ಇನ್ನೂ ಡೇಟಾ ಇಲ್ಲ',
+    'common.entry': 'ನಮೂದು',
+    'severity.safe': 'ಸುರಕ್ಷಿತ',
+    'severity.none': 'ಯಾವುದೂ ಇಲ್ಲ',
+    'severity.low': 'ಕಡಿಮೆ',
+    'severity.medium': 'ಮಧ್ಯಮ',
+    'severity.high': 'ಹೆಚ್ಚು',
+    'severity.critical': 'ಗಂಭೀರ',
+    'status.pending': 'ಬಾಕಿ',
+    'status.complete': 'ಪೂರ್ಣ',
+    'status.failed': 'ವಿಫಲ',
+    'status.processing': 'ಸಂಸ್ಕರಿಸಲಾಗುತ್ತಿದೆ',
     'schedule.noTasks': 'ಇನ್ನೂ ಕಾರ್ಯಗಳಿಲ್ಲ. ನಿಮ್ಮ ಮೊದಲ ಕಾರ್ಯವನ್ನು ಸೇರಿಸಿ!',
     'schedule.taskCreated': 'ಕಾರ್ಯ ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ',
     'schedule.taskDeleted': 'ಕಾರ್ಯ ಅಳಿಸಲಾಗಿದೆ',
@@ -1359,6 +1417,17 @@ const translations: Record<Language, Record<string, string>> = {
     'common.success': 'வெற்றி',
     'common.refresh': 'புதுப்பிக்கவும்',
     'common.noData': 'இன்னும் தரவு இல்லை',
+    'common.entry': 'பதிவு',
+    'severity.safe': 'பாதுகாப்பானது',
+    'severity.none': 'எதுவும் இல்லை',
+    'severity.low': 'குறைவு',
+    'severity.medium': 'நடுத்தரம்',
+    'severity.high': 'அதிகம்',
+    'severity.critical': 'ஆபத்தான',
+    'status.pending': 'நிலுவையில்',
+    'status.complete': 'முடிந்தது',
+    'status.failed': 'தோல்வி',
+    'status.processing': 'செயலாக்கம்',
     'schedule.noTasks': 'இன்னும் பணிகள் இல்லை. உங்கள் முதல் பணியை சேர்க்கவும்!',
     'schedule.taskCreated': 'பணி வெற்றிகரமாக உருவாக்கப்பட்டது',
     'schedule.taskDeleted': 'பணி நீக்கப்பட்டது',
@@ -1617,6 +1686,17 @@ const translations: Record<Language, Record<string, string>> = {
     'common.success': 'यशस्वी',
     'common.refresh': 'रिफ्रेश',
     'common.noData': 'अद्याप डेटा नाही',
+    'common.entry': 'नोंद',
+    'severity.safe': 'सुरक्षित',
+    'severity.none': 'नाही',
+    'severity.low': 'कमी',
+    'severity.medium': 'मध्यम',
+    'severity.high': 'जास्त',
+    'severity.critical': 'गंभीर',
+    'status.pending': 'प्रलंबित',
+    'status.complete': 'पूर्ण',
+    'status.failed': 'अयशस्वी',
+    'status.processing': 'प्रक्रिया सुरू',
     'schedule.noTasks': 'अद्याप कार्ये नाहीत. तुमचे पहिले कार्य जोडा!',
     'schedule.taskCreated': 'कार्य यशस्वीरित्या तयार झाले',
     'schedule.taskDeleted': 'कार्य हटवले',
@@ -1875,6 +1955,17 @@ const translations: Record<Language, Record<string, string>> = {
     'common.success': 'সফল',
     'common.refresh': 'রিফ্রেশ',
     'common.noData': 'এখনও ডেটা নেই',
+    'common.entry': 'এন্ট্রি',
+    'severity.safe': 'নিরাপদ',
+    'severity.none': 'কিছু নেই',
+    'severity.low': 'কম',
+    'severity.medium': 'মাঝারি',
+    'severity.high': 'উচ্চ',
+    'severity.critical': 'গুরুতর',
+    'status.pending': 'অপেক্ষমাণ',
+    'status.complete': 'সম্পূর্ণ',
+    'status.failed': 'ব্যর্থ',
+    'status.processing': 'প্রক্রিয়াকরণ',
     'schedule.noTasks': 'এখনও কোন কাজ নেই। আপনার প্রথম কাজ যোগ করুন!',
     'schedule.taskCreated': 'কাজ সফলভাবে তৈরি হয়েছে',
     'schedule.taskDeleted': 'কাজ মুছে ফেলা হয়েছে',
@@ -2133,6 +2224,17 @@ const translations: Record<Language, Record<string, string>> = {
     'common.success': 'સફળતા',
     'common.refresh': 'રિફ્રેશ',
     'common.noData': 'હજુ સુધી ડેટા નથી',
+    'common.entry': 'નોંધ',
+    'severity.safe': 'સુરક્ષિત',
+    'severity.none': 'કંઈ નથી',
+    'severity.low': 'ઓછું',
+    'severity.medium': 'મધ્યમ',
+    'severity.high': 'વધુ',
+    'severity.critical': 'ગંભીર',
+    'status.pending': 'બાકી',
+    'status.complete': 'પૂર્ણ',
+    'status.failed': 'નિષ્ફળ',
+    'status.processing': 'પ્રક્રિયા',
     'schedule.noTasks': 'હજુ સુધી કોઈ કાર્ય નથી. તમારું પહેલું કાર્ય ઉમેરો!',
     'schedule.taskCreated': 'કાર્ય સફળતાપૂર્વક બનાવવામાં આવ્યું',
     'schedule.taskDeleted': 'કાર્ય કાઢી નાખ્યું',
@@ -2391,6 +2493,17 @@ const translations: Record<Language, Record<string, string>> = {
     'common.success': 'ਸਫਲ',
     'common.refresh': 'ਰਿਫ੍ਰੈਸ਼',
     'common.noData': 'ਅਜੇ ਕੋਈ ਡਾਟਾ ਨਹੀਂ',
+    'common.entry': 'ਐਂਟਰੀ',
+    'severity.safe': 'ਸੁਰੱਖਿਅਤ',
+    'severity.none': 'ਕੋਈ ਨਹੀਂ',
+    'severity.low': 'ਘੱਟ',
+    'severity.medium': 'ਮੱਧਮ',
+    'severity.high': 'ਉੱਚ',
+    'severity.critical': 'ਗੰਭੀਰ',
+    'status.pending': 'ਬਾਕੀ',
+    'status.complete': 'ਪੂਰਾ',
+    'status.failed': 'ਅਸਫ਼ਲ',
+    'status.processing': 'ਪ੍ਰੋਸੈਸਿੰਗ',
     'schedule.noTasks': 'ਅਜੇ ਕੋਈ ਕੰਮ ਨਹੀਂ। ਆਪਣਾ ਪਹਿਲਾ ਕੰਮ ਜੋੜੋ!',
     'schedule.taskCreated': 'ਕੰਮ ਸਫਲਤਾਪੂਰਵਕ ਬਣਾਇਆ ਗਿਆ',
     'schedule.taskDeleted': 'ਕੰਮ ਮਿਟਾਇਆ ਗਿਆ',
@@ -2649,6 +2762,17 @@ const translations: Record<Language, Record<string, string>> = {
     'common.success': 'വിജയം',
     'common.refresh': 'പുതുക്കുക',
     'common.noData': 'ഇതുവരെ ഡാറ്റയില്ല',
+    'common.entry': 'എൻട്രി',
+    'severity.safe': 'സുരക്ഷിതം',
+    'severity.none': 'ഒന്നുമില്ല',
+    'severity.low': 'കുറവ്',
+    'severity.medium': 'മധ്യമം',
+    'severity.high': 'ഉയർന്നത്',
+    'severity.critical': 'ഗുരുതരം',
+    'status.pending': 'തീർപ്പാക്കാത്തത്',
+    'status.complete': 'പൂർത്തിയായി',
+    'status.failed': 'പരാജയപ്പെട്ടു',
+    'status.processing': 'പ്രോസസ്സിംഗ്',
     'schedule.noTasks': 'ഇതുവരെ ടാസ്കുകളില്ല. നിങ്ങളുടെ ആദ്യ ടാസ്ക് ചേർക്കൂ!',
     'schedule.taskCreated': 'ടാസ്ക് വിജയകരമായി സൃഷ്ടിച്ചു',
     'schedule.taskDeleted': 'ടാസ്ക് ഇല്ലാതാക്കി',
@@ -2907,6 +3031,17 @@ const translations: Record<Language, Record<string, string>> = {
     'common.success': 'ସଫଳ',
     'common.refresh': 'ରିଫ୍ରେସ',
     'common.noData': 'ଏଯାବତ୍ ଡାଟା ନାହିଁ',
+    'common.entry': 'ଏଣ୍ଟ୍ରି',
+    'severity.safe': 'ସୁରକ୍ଷିତ',
+    'severity.none': 'କିଛି ନାହିଁ',
+    'severity.low': 'କମ୍',
+    'severity.medium': 'ମଧ୍ୟମ',
+    'severity.high': 'ଅଧିକ',
+    'severity.critical': 'ଗମ୍ଭୀର',
+    'status.pending': 'ବାକି',
+    'status.complete': 'ସମ୍ପୂର୍ଣ୍ଣ',
+    'status.failed': 'ବିଫଳ',
+    'status.processing': 'ପ୍ରକ୍ରିୟାକରଣ',
     'schedule.noTasks': 'ଏଯାବତ୍ କୌଣସି କାର୍ଯ୍ୟ ନାହିଁ। ଆପଣଙ୍କ ପ୍ରଥମ କାର୍ଯ୍ୟ ଯୋଗ କରନ୍ତୁ!',
     'schedule.taskCreated': 'କାର୍ଯ୍ୟ ସଫଳତାର ସହ ତିଆରି ହୋଇଛି',
     'schedule.taskDeleted': 'କାର୍ଯ୍ୟ ବିଲୋପ ହୋଇଛି',
@@ -2958,6 +3093,11 @@ interface LanguageStore {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: (key: string) => string;
+  formatDate: (date: Date | string | null | undefined, options?: Intl.DateTimeFormatOptions) => string;
+  formatTime: (date: Date | string | null | undefined, options?: Intl.DateTimeFormatOptions) => string;
+  formatNumber: (num: number | null | undefined) => string;
+  formatCurrency: (num: number | null | undefined) => string;
+  getLocale: () => string;
 }
 
 export const useLanguage = create<LanguageStore>()(
@@ -2968,6 +3108,46 @@ export const useLanguage = create<LanguageStore>()(
       t: (key: string) => {
         const lang = get().language;
         return translations[lang]?.[key] || translations.en[key] || key;
+      },
+      getLocale: () => {
+        const lang = get().language;
+        return languageLocales[lang] || 'en-IN';
+      },
+      formatDate: (date: Date | string | null | undefined, options?: Intl.DateTimeFormatOptions) => {
+        if (!date) return '';
+        const d = typeof date === 'string' ? new Date(date) : date;
+        const locale = languageLocales[get().language] || 'en-IN';
+        const defaultOptions: Intl.DateTimeFormatOptions = { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        };
+        return d.toLocaleDateString(locale, options || defaultOptions);
+      },
+      formatTime: (date: Date | string | null | undefined, options?: Intl.DateTimeFormatOptions) => {
+        if (!date) return '';
+        const d = typeof date === 'string' ? new Date(date) : date;
+        const locale = languageLocales[get().language] || 'en-IN';
+        const defaultOptions: Intl.DateTimeFormatOptions = { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        };
+        return d.toLocaleTimeString(locale, options || defaultOptions);
+      },
+      formatNumber: (num: number | null | undefined) => {
+        if (num === null || num === undefined) return '0';
+        const locale = languageLocales[get().language] || 'en-IN';
+        return num.toLocaleString(locale);
+      },
+      formatCurrency: (num: number | null | undefined) => {
+        if (num === null || num === undefined) return '₹0';
+        const locale = languageLocales[get().language] || 'en-IN';
+        return new Intl.NumberFormat(locale, {
+          style: 'currency',
+          currency: 'INR',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
+        }).format(num);
       },
     }),
     {

@@ -82,9 +82,19 @@ Design philosophy: Soul Forest aesthetic - minimalist, earthy tones, sharp corne
 ### Internationalization (i18n)
 - Languages: English (en), Hindi (hi), Telugu (te), Kannada (kn), Tamil (ta), Marathi (mr), Bengali (bn), Gujarati (gu), Punjabi (pa), Malayalam (ml), Odia (or) - 11 total
 - Implementation: Custom Zustand store with `persist` middleware
-- Usage: `const { t, setLanguage, language } = useLanguage()`
+- Usage: `const { t, setLanguage, language, formatDate, formatTime, formatNumber, formatCurrency, getLocale } = useLanguage()`
 - Storage key: `agriguard-language` in localStorage
 - All UI content fully translates when language is changed
+- Locale-aware formatting:
+  - `formatDate(date, options?)`: Formats dates using the selected language's locale (e.g., "18 जनवरी 2026" in Hindi)
+  - `formatTime(date, options?)`: Formats times using the selected language's locale
+  - `formatNumber(num)`: Formats numbers with locale-specific separators
+  - `formatCurrency(num)`: Formats currency in INR with locale-specific formatting
+  - `getLocale()`: Returns the BCP 47 locale code for the current language (e.g., 'hi-IN' for Hindi)
+- Translation keys include:
+  - Severity levels: `severity.safe`, `severity.none`, `severity.low`, `severity.medium`, `severity.high`, `severity.critical`
+  - Status values: `status.pending`, `status.complete`, `status.failed`, `status.processing`
+  - Common terms: `common.entry`, `common.success`, `common.error`, etc.
 
 ## External Dependencies
 

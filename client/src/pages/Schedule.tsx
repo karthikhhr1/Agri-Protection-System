@@ -20,7 +20,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { FarmTask } from "@shared/schema";
 
 export default function Schedule() {
-  const { t } = useLanguage();
+  const { t, formatDate, formatNumber } = useLanguage();
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'medium', dueDate: '' });
@@ -242,7 +242,7 @@ export default function Schedule() {
                       </p>
                       {task.dueDate && (
                         <p className="text-xs text-muted-foreground">
-                          {new Date(task.dueDate).toLocaleDateString()}
+                          {formatDate(task.dueDate, { month: 'short', day: 'numeric', year: 'numeric' })}
                         </p>
                       )}
                     </div>

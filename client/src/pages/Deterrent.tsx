@@ -21,7 +21,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 
 export default function Deterrent() {
-  const { t } = useLanguage();
+  const { t, formatTime, formatNumber } = useLanguage();
   const [distance, setDistance] = useState("100");
   const [isCalculating, setIsCalculating] = useState(false);
   const [selectedCoord, setSelectedCoord] = useState<{ x: number, y: number } | null>(null);
@@ -179,11 +179,11 @@ export default function Deterrent() {
                 {audioLogs?.slice(0, 10).map((log: any) => (
                   <div key={log.id} className="flex items-center justify-between p-2 md:p-3 rounded-lg bg-muted/30 border border-muted transition-all hover:bg-muted/50">
                     <div>
-                      <p className="text-xs md:text-sm font-bold">{log.calculatedVolume} dB</p>
-                      <p className="text-[10px] md:text-xs text-muted-foreground">{t('deterrent.distance')}: {log.distance}m</p>
+                      <p className="text-xs md:text-sm font-bold">{formatNumber(log.calculatedVolume)} dB</p>
+                      <p className="text-[10px] md:text-xs text-muted-foreground">{t('deterrent.distance')}: {formatNumber(log.distance)}m</p>
                     </div>
                     <Badge variant="secondary" className="text-[10px] md:text-xs font-mono whitespace-nowrap">
-                      {new Date(log.createdAt!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {formatTime(log.createdAt)}
                     </Badge>
                   </div>
                 ))}

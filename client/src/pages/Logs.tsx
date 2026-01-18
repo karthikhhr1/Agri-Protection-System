@@ -32,7 +32,7 @@ const actionColors: Record<string, string> = {
 };
 
 export default function Logs() {
-  const { t } = useLanguage();
+  const { t, formatDate, formatTime } = useLanguage();
   const [filter, setFilter] = useState<string | null>(null);
 
   const { data: logs, isLoading, refetch } = useQuery<ActivityLog[]>({
@@ -121,7 +121,7 @@ export default function Logs() {
                           {t(`logs.${log.action}`)}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
-                          {new Date(log.createdAt!).toLocaleString()}
+                          {formatDate(log.createdAt, { month: 'short', day: 'numeric' })} {formatTime(log.createdAt)}
                         </span>
                       </div>
                       <p className="text-xs md:text-sm text-foreground">{log.details}</p>

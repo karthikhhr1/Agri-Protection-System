@@ -36,7 +36,7 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function Inventory() {
-  const { t } = useLanguage();
+  const { t, formatNumber } = useLanguage();
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);

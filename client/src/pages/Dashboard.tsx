@@ -42,7 +42,7 @@ import { useState } from "react";
 import { useLanguage } from "@/lib/i18n";
 
 export default function Dashboard() {
-  const { t } = useLanguage();
+  const { t, formatTime, formatNumber } = useLanguage();
   const { data: reports } = useReports();
   const { data: readings } = useIrrigationHistory();
   const deleteMutation = useDeleteReport();
@@ -249,7 +249,7 @@ export default function Dashboard() {
                       </div>
                       <div className="flex items-center justify-between">
                         <p className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-[0.2em] flex items-center gap-2">
-                          <Clock className="w-3 h-3 opacity-50" /> {new Date(report.createdAt!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          <Clock className="w-3 h-3 opacity-50" /> {formatTime(report.createdAt)}
                         </p>
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                           <AlertDialog>
@@ -355,6 +355,7 @@ function StatsCard({ title, value, description, icon: Icon, trend, color, isAler
 }
 
 function SeverityBadge({ severity }: { severity?: string | null }) {
+  const { t } = useLanguage();
   const config: any = {
     critical: "bg-red-500 text-white shadow-lg shadow-red-500/20",
     high: "bg-orange-500 text-white shadow-lg shadow-orange-500/20",
@@ -363,9 +364,12 @@ function SeverityBadge({ severity }: { severity?: string | null }) {
     none: "bg-green-500 text-white shadow-lg shadow-green-500/20",
   };
   
+  const severityKey = severity || 'safe';
+  const translatedSeverity = t(`severity.${severityKey}`);
+  
   return (
     <Badge className={`text-[10px] font-black uppercase tracking-tighter px-2.5 py-0.5 border-none rounded-lg ${config[severity || 'none']}`}>
-      {severity || 'safe'}
+      {translatedSeverity}
     </Badge>
   );
 }

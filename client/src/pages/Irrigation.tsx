@@ -16,7 +16,7 @@ import { motion } from "framer-motion";
 type FormValues = z.infer<typeof irrigationRequestSchema>;
 
 export default function Irrigation() {
-  const { t } = useLanguage();
+  const { t, formatDate, formatNumber, getLocale } = useLanguage();
   const { mutate: calculate, isPending } = useCalculateIrrigation();
   const { data: history } = useIrrigationHistory();
   const [lastAdvice, setLastAdvice] = useState<string | null>(null);
@@ -37,9 +37,10 @@ export default function Irrigation() {
     });
   };
 
-  // Format data for chart
+  // Format data for chart with localized dates
+  const locale = getLocale();
   const chartData = history?.map(h => ({
-    date: new Date(h.createdAt!).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+    date: new Date(h.createdAt!).toLocaleDateString(locale, { month: 'short', day: 'numeric' }),
     moisture: h.soilMoisture,
     humidity: h.humidity,
   })).slice(-10).reverse() || [];

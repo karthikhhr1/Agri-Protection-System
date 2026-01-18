@@ -182,9 +182,10 @@ export default function FieldSummary() {
     }
   });
 
+  const { formatDate: i18nFormatDate } = useLanguage();
   const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return '-';
-    return new Date(date).toLocaleDateString();
+    return i18nFormatDate(date);
   };
 
   const irrigationTypes = ['drip', 'sprinkler', 'flood', 'rainfed'];
