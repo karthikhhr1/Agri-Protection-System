@@ -179,3 +179,55 @@ export function useCalculateAudio() {
     }
   });
 }
+
+// === ANIMAL DETECTIONS ===
+
+export function useAnimalDetections() {
+  return useQuery({
+    queryKey: ["/api/animals"],
+    queryFn: async () => {
+      const res = await fetch("/api/animals");
+      if (!res.ok) throw new Error("Failed to fetch animal detections");
+      return res.json();
+    },
+    refetchInterval: 5000, // Poll every 5 seconds for real-time detection
+  });
+}
+
+// === DETERRENT SETTINGS ===
+
+export function useDeterrentSettings() {
+  return useQuery({
+    queryKey: ["/api/deterrent/settings"],
+    queryFn: async () => {
+      const res = await fetch("/api/deterrent/settings");
+      if (!res.ok) throw new Error("Failed to fetch deterrent settings");
+      return res.json();
+    },
+  });
+}
+
+export function useUpdateDeterrentSettings() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: {
+      isEnabled?: boolean;
+      volume?: number;
+      soundType?: string;
+      activationDistance?: number;
+      autoActivate?: boolean;
+    }) => {
+      const res = await fetch("/api/deterrent/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to update deterrent settings");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/deterrent/settings"] });
+    },
+  });
+}
