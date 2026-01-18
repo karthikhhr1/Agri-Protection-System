@@ -618,14 +618,22 @@ export async function registerRoutes(
   // === AI Assistant ===
   app.post("/api/chat", async (req, res) => {
     try {
-      const { message } = z.object({ message: z.string() }).parse(req.body);
+      const { message, language, languageName } = z.object({ 
+        message: z.string(),
+        language: z.string().optional().default("en"),
+        languageName: z.string().optional().default("English")
+      }).parse(req.body);
+      
+      const systemPrompt = language === "en" 
+        ? "You are an AI agricultural assistant for AgriGuard. You help farmers with crop diseases, irrigation, and land management. Use the 'Beyond Good Intentions' principles: ecological durability, semi-arid land design, and restorative agriculture. Answer concisely and practically."
+        : `You are an AI agricultural assistant for AgriGuard. You help farmers with crop diseases, irrigation, and land management. Use the 'Beyond Good Intentions' principles: ecological durability, semi-arid land design, and restorative agriculture. Answer concisely and practically.
+
+IMPORTANT: The farmer has selected ${languageName} as their preferred language. You MUST respond ENTIRELY in ${languageName}. Use the native script for that language (e.g., Devanagari for Hindi, Telugu script for Telugu, etc.). Do not mix English unless absolutely necessary for technical terms that have no local equivalent. Make your response natural and easy for local farmers to understand.`;
+
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [
-          { 
-            role: "system", 
-            content: "You are an AI agricultural assistant for AgriGuard. You help farmers with crop diseases, irrigation, and land management. Use the 'Beyond Good Intentions' principles: ecological durability, semi-arid land design, and restorative agriculture. Answer concisely and practically." 
-          },
+          { role: "system", content: systemPrompt },
           { role: "user", content: message },
         ],
       });

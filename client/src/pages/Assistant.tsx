@@ -13,8 +13,22 @@ type Message = {
   content: string;
 };
 
+const languageFullNames: Record<string, string> = {
+  en: "English",
+  hi: "Hindi (हिंदी)",
+  te: "Telugu (తెలుగు)",
+  kn: "Kannada (ಕನ್ನಡ)",
+  ta: "Tamil (தமிழ்)",
+  mr: "Marathi (मराठी)",
+  bn: "Bengali (বাংলা)",
+  gu: "Gujarati (ગુજરાતી)",
+  pa: "Punjabi (ਪੰਜਾਬੀ)",
+  ml: "Malayalam (മലയാളം)",
+  or: "Odia (ଓଡ଼ିଆ)"
+};
+
 export default function Assistant() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: t('assistant.greeting') }
   ]);
@@ -31,7 +45,11 @@ export default function Assistant() {
     setIsLoading(true);
 
     try {
-      const res = await apiRequest("POST", "/api/chat", { message: userMessage });
+      const res = await apiRequest("POST", "/api/chat", { 
+        message: userMessage,
+        language: language,
+        languageName: languageFullNames[language] || "English"
+      });
       const data = await res.json();
       setMessages(prev => [...prev, { role: "assistant", content: data.message }]);
     } catch (err) {
