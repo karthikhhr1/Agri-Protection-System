@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { LayoutDashboard, Droplets, Volume2, ScanEye, Sprout, Bot, Globe, Calendar, Package, FileText, ChevronDown, MapPin, Clock, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useLanguage, languageNames, type Language } from "@/lib/i18n";
+import { useLanguage, languageNames, languageNamesEnglish, type Language } from "@/lib/i18n";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { QRCodeModal } from "./QRCodeModal";
@@ -79,7 +79,10 @@ export function Navigation() {
                   )}
                   data-testid={`button-language-${lang}`}
                 >
-                  <span>{languageNames[lang]}</span>
+                  <span>
+                    {languageNames[lang]}
+                    {lang !== 'en' && <span className="text-muted-foreground ml-1.5">({languageNamesEnglish[lang]})</span>}
+                  </span>
                   {language === lang && (
                     <div className="w-2 h-2 rounded-full bg-primary" />
                   )}
@@ -202,6 +205,7 @@ export function MobileNav() {
                         data-testid={`button-mobile-lang-${lang}`}
                       >
                         {languageNames[lang]}
+                        {lang !== 'en' && <span className="text-muted-foreground ml-1.5">({languageNamesEnglish[lang]})</span>}
                       </Button>
                     ))}
                   </div>

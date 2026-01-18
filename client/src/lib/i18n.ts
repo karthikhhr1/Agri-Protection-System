@@ -17,6 +17,20 @@ export const languageNames: Record<Language, string> = {
   or: 'ଓଡ଼ିଆ',
 };
 
+export const languageNamesEnglish: Record<Language, string> = {
+  en: 'English',
+  hi: 'Hindi',
+  te: 'Telugu',
+  kn: 'Kannada',
+  ta: 'Tamil',
+  mr: 'Marathi',
+  bn: 'Bengali',
+  gu: 'Gujarati',
+  pa: 'Punjabi',
+  ml: 'Malayalam',
+  or: 'Odia',
+};
+
 export const languageLocales: Record<Language, string> = {
   en: 'en-IN',
   hi: 'hi-IN',
