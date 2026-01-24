@@ -200,7 +200,7 @@ export default function Hardware() {
                     <SelectTrigger data-testid="select-device-type">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent position="popper" className="z-[9999]">
+                    <SelectContent position="popper" className="z-[9999] bg-background border shadow-lg">
                       <SelectItem value="soil_sensor">{t('hardware.soilSensor')}</SelectItem>
                       <SelectItem value="camera">{t('hardware.camera')}</SelectItem>
                       <SelectItem value="weather_station">{t('hardware.weatherStation')}</SelectItem>
