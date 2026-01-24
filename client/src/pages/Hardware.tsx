@@ -55,7 +55,7 @@ export default function Hardware() {
     type: "soil_sensor" as "soil_sensor" | "camera" | "weather_station" | "water_meter",
     connectionType: "wifi" as "wifi" | "lora" | "zigbee" | "wired" | "bluetooth",
     connectionUrl: "",
-    model: "",
+    model: "Auto-detected",
   });
 
   const { data: devices = [], isLoading } = useQuery<HardwareDevice[]>({
@@ -69,7 +69,7 @@ export default function Hardware() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/devices"] });
       setIsAddOpen(false);
-      setNewDevice({ name: "", type: "soil_sensor", connectionType: "wifi", connectionUrl: "", model: "" });
+      setNewDevice({ name: "", type: "soil_sensor", connectionType: "wifi", connectionUrl: "", model: "Auto-detected" });
       toast({ title: t('hardware.deviceAdded'), description: t('hardware.deviceAddedDesc') });
     },
     onError: () => {
@@ -175,55 +175,39 @@ export default function Hardware() {
               {t('hardware.addDevice')}
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md overflow-visible">
             <DialogHeader>
               <DialogTitle>{t('hardware.addNewDevice')}</DialogTitle>
               <DialogDescription>{t('hardware.addDeviceDesc')}</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>{t('hardware.deviceName')}</Label>
-                <Input
-                  value={newDevice.name}
-                  onChange={(e) => setNewDevice({ ...newDevice, name: e.target.value })}
-                  placeholder={t('hardware.deviceNamePlaceholder')}
-                  data-testid="input-device-name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('hardware.deviceType')}</Label>
-                <Select
-                  value={newDevice.type}
-                  onValueChange={(v: any) => setNewDevice({ ...newDevice, type: v })}
-                >
-                  <SelectTrigger data-testid="select-device-type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="soil_sensor">{t('hardware.soilSensor')}</SelectItem>
-                    <SelectItem value="camera">{t('hardware.camera')}</SelectItem>
-                    <SelectItem value="weather_station">{t('hardware.weatherStation')}</SelectItem>
-                    <SelectItem value="water_meter">{t('hardware.waterMeter')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>{t('hardware.connectionType')}</Label>
-                <Select
-                  value={newDevice.connectionType}
-                  onValueChange={(v: any) => setNewDevice({ ...newDevice, connectionType: v })}
-                >
-                  <SelectTrigger data-testid="select-connection-type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="wifi">WiFi</SelectItem>
-                    <SelectItem value="lora">LoRa</SelectItem>
-                    <SelectItem value="zigbee">ZigBee</SelectItem>
-                    <SelectItem value="wired">{t('hardware.wired')}</SelectItem>
-                    <SelectItem value="bluetooth">Bluetooth</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>{t('hardware.deviceName')}</Label>
+                  <Input
+                    value={newDevice.name}
+                    onChange={(e) => setNewDevice({ ...newDevice, name: e.target.value })}
+                    placeholder={t('hardware.deviceNamePlaceholder')}
+                    data-testid="input-device-name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('hardware.deviceType')}</Label>
+                  <Select
+                    value={newDevice.type}
+                    onValueChange={(v: any) => setNewDevice({ ...newDevice, type: v })}
+                  >
+                    <SelectTrigger data-testid="select-device-type">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent position="popper" className="z-[9999]">
+                      <SelectItem value="soil_sensor">{t('hardware.soilSensor')}</SelectItem>
+                      <SelectItem value="camera">{t('hardware.camera')}</SelectItem>
+                      <SelectItem value="weather_station">{t('hardware.weatherStation')}</SelectItem>
+                      <SelectItem value="water_meter">{t('hardware.waterMeter')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>{t('hardware.connectionUrl')}</Label>
@@ -232,18 +216,6 @@ export default function Hardware() {
                   onChange={(e) => setNewDevice({ ...newDevice, connectionUrl: e.target.value })}
                   placeholder={newDevice.type === 'camera' ? "rtsp://192.168.1.100:554/stream" : "http://192.168.1.100/api"}
                   data-testid="input-connection-url"
-                />
-                <p className="text-xs text-muted-foreground">
-                  {newDevice.type === 'camera' ? t('hardware.cameraUrlHelp') : t('hardware.sensorUrlHelp')}
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label>{t('hardware.model')}</Label>
-                <Input
-                  value={newDevice.model}
-                  onChange={(e) => setNewDevice({ ...newDevice, model: e.target.value })}
-                  placeholder={t('hardware.modelPlaceholder')}
-                  data-testid="input-device-model"
                 />
               </div>
             </div>
