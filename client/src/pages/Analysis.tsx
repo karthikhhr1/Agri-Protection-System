@@ -24,8 +24,12 @@ import {
   Sprout,
   Beaker,
   Timer,
-  ChevronRight
+  ChevronRight,
+  Volume2,
+  Target,
+  Zap
 } from "lucide-react";
+import { indianWildlifeFrequencies, getRecommendedFrequency } from "@shared/animalFrequencies";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +37,30 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { type Report } from "@shared/schema";
 import { useLanguage } from "@/lib/i18n";
+
+const getAnimalEmoji = (type: string) => {
+  const icons: Record<string, string> = {
+    'wild_boar': '🐗',
+    'deer': '🦌',
+    'monkey': '🐒',
+    'langur': '🐒',
+    'elephant': '🐘',
+    'peacock': '🦚',
+    'snake': '🐍',
+    'cobra': '🐍',
+    'nilgai': '🦬',
+    'jackal': '🦊',
+    'porcupine': '🦔',
+    'hare': '🐰',
+    'rat': '🐀',
+    'parrot': '🦜',
+    'crow': '🐦‍⬛',
+    'pigeon': '🕊️',
+    'sparrow': '🐦',
+    'monitor_lizard': '🦎',
+  };
+  return icons[type] || '🐾';
+};
 
 export default function Analysis() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -460,6 +488,64 @@ export default function Analysis() {
                       )}
                     </div>
                   </div>
+
+                  {data?.animals?.length > 0 && (
+                    <Card className="border-orange-200 bg-orange-50/50 dark:bg-orange-950/20">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base md:text-lg flex items-center gap-2 text-orange-600">
+                          <Zap className="w-5 h-5" />
+                          {t('analysis.animalsDetected')}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {data.animals.map((animal: any, i: number) => {
+                          const frequency = getRecommendedFrequency([animal.type || 'unknown']);
+                          const animalData = indianWildlifeFrequencies.find(a => a.id === animal.type);
+                          return (
+                            <div key={i} className="p-4 bg-background rounded-xl border border-orange-200">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-3xl">{getAnimalEmoji(animal.type)}</span>
+                                  <div>
+                                    <p className="font-bold text-orange-600">{animal.name || animal.type}</p>
+                                    {animal.localName && <p className="text-sm text-muted-foreground">{animal.localName}</p>}
+                                  </div>
+                                </div>
+                                <Badge className="bg-green-500 text-white">
+                                  <Volume2 className="w-3 h-3 mr-1" />
+                                  {t('analysis.deterrentTriggered')}
+                                </Badge>
+                              </div>
+                              
+                              <div className="grid grid-cols-3 gap-3 text-center">
+                                <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                                  <Target className="w-5 h-5 mx-auto text-orange-600 mb-1" />
+                                  <p className="text-xs text-muted-foreground">{t('analysis.distance')}</p>
+                                  <p className="text-lg font-bold text-orange-600">{animal.estimatedDistance || '?'}m</p>
+                                </div>
+                                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                                  <Volume2 className="w-5 h-5 mx-auto text-blue-600 mb-1" />
+                                  <p className="text-xs text-muted-foreground">{t('analysis.frequency')}</p>
+                                  <p className="text-lg font-bold text-blue-600">{frequency} kHz</p>
+                                </div>
+                                <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                                  <ShieldCheck className="w-5 h-5 mx-auto text-green-600 mb-1" />
+                                  <p className="text-xs text-muted-foreground">{t('analysis.result')}</p>
+                                  <p className="text-sm font-bold text-green-600">{t('analysis.scaredAway')}</p>
+                                </div>
+                              </div>
+                              
+                              {animalData && (
+                                <p className="text-xs text-muted-foreground mt-3">
+                                  {t('analysis.optimalRange')}: {animalData.frequencyRange.min}-{animalData.frequencyRange.max} kHz
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </CardContent>
+                    </Card>
+                  )}
 
                   {data?.diseases?.length > 0 && (
                     <Card className="border-red-200 bg-red-50/50 dark:bg-red-950/20">
