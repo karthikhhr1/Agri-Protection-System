@@ -56,28 +56,50 @@ export async function registerRoutes(
       if (!report) return res.status(404).json({ message: "Report not found" });
 
       const prompt = `
-        You are a friendly agricultural advisor helping farmers understand their crop health.
-        Analyze this crop image and provide a report that is EASY FOR FARMERS TO UNDERSTAND.
+        You are an expert agricultural advisor specializing in Indian farming.
+        Analyze this crop image and provide a COMPREHENSIVE report that is EASY FOR FARMERS TO UNDERSTAND.
         Use simple, everyday language - avoid technical jargon.
         
-        Your report should answer these key questions:
-        1. WHAT IS IT? - Identify the crop and any disease/problem in simple terms
-        2. INSECTS/PESTS? - Look carefully for ANY insects, bugs, caterpillars, beetles, aphids, mites, worms, or other pests on leaves, stems, or soil
-        3. HOW SERIOUS? - Rate severity: none, low, medium, high, or critical
-        4. WHAT TO DO NOW? - Give clear, step-by-step treatment actions the farmer can take TODAY
-        5. HOW TO PREVENT? - Explain how to stop this from happening again
-        6. WARNING SIGNS - What to watch for in the future
+        SCAN FOR EVERYTHING - Check for ALL of the following:
         
-        IMPORTANT: Look very carefully for:
-        - Live insects (aphids, whiteflies, mealybugs, caterpillars, beetles, grasshoppers, moths, thrips, mites)
-        - Insect eggs or larvae on leaves (look for clusters, patterns)
-        - Insect damage patterns (holes, tunnels, bite marks, trails)
-        - Beneficial insects vs harmful pests
+        === DISEASES (Check ALL categories) ===
+        FUNGAL: Powdery mildew, Downy mildew, Rust, Blight (Early/Late), Anthracnose, Fusarium wilt, Verticillium wilt, Damping off, Root rot, Leaf spot, Cercospora, Alternaria, Botrytis, Black spot, White mold, Smut, Ergot
+        BACTERIAL: Bacterial wilt, Bacterial leaf blight, Bacterial soft rot, Fire blight, Black rot, Canker, Crown gall, Citrus canker, Angular leaf spot
+        VIRAL: Mosaic virus, Leaf curl, Yellow vein mosaic, Bunchy top, Ring spot, Streak virus, Spotted wilt, Tungro, Grassy stunt
+        NUTRIENT DEFICIENCY: Nitrogen (yellowing), Phosphorus (purple leaves), Potassium (brown edges), Iron chlorosis, Magnesium, Calcium, Zinc, Boron, Manganese deficiency
+        ENVIRONMENTAL: Sunburn, Frost damage, Water stress, Salt injury, Herbicide damage, Ozone damage
         
-        Be specific with treatment advice:
-        - Name actual products/remedies farmers can buy locally
-        - Give exact quantities and timing (e.g., "Apply 2 tablespoons per liter of water, spray every 7 days")
-        - Suggest both organic and chemical options when available
+        === INSECTS & PESTS (Check ALL categories) ===
+        SUCKING PESTS: Aphids (green, black, brown, cotton), Whiteflies, Mealybugs, Scale insects, Leafhoppers, Jassids, Thrips, Psyllids, Plant bugs, Spider mites, Red mites, Two-spotted mites
+        CHEWING PESTS: Caterpillars (armyworm, cutworm, bollworm, stem borer, fruit borer, leaf roller, tent caterpillar, diamondback moth larvae, tobacco caterpillar, gram pod borer), Beetles (flea beetle, leaf beetle, Colorado potato beetle, ladybird beetle, weevils, grubs), Grasshoppers, Locusts, Crickets, Earwigs
+        BORING PESTS: Stem borers, Fruit borers, Shoot borers, Root borers, Wood borers, Bark beetles, Gall makers
+        ROOT PESTS: Root-knot nematodes, Cyst nematodes, Root aphids, Wireworms, White grubs, Chafer grubs, Root maggots, Termites
+        OTHERS: Slugs, Snails, Ants, Fruit flies, Leaf miners, Sawflies, Bagworms, Tussock moths
+        
+        === EGGS & LARVAE (Look carefully) ===
+        - Egg masses on leaves (butterfly, moth, beetle eggs)
+        - Single eggs in clusters or scattered
+        - Larvae/grubs in soil, stems, fruits, leaves
+        - Pupae or cocoons
+        - Webbing, silk trails, frass (insect droppings)
+        
+        === DAMAGE PATTERNS ===
+        - Holes in leaves (irregular, round, shot-hole)
+        - Tunnels/mines in leaves
+        - Rolled or webbed leaves
+        - Skeletonized leaves
+        - Wilting tips or shoots
+        - Galls or swellings
+        - Honeydew or sooty mold
+        - Discoloration patterns
+        
+        Rate severity: none, low, medium, high, or critical
+        
+        Be SPECIFIC with treatment advice:
+        - Name actual products farmers can buy locally in India
+        - Give exact quantities (e.g., "2 tablespoons per liter of water")
+        - Give timing (e.g., "spray every 7 days for 3 weeks")
+        - Include both organic (neem oil, panchagavya, jeevamrutha) and chemical options
         
         Return a JSON object with this exact structure:
         {
@@ -85,19 +107,22 @@ export async function registerRoutes(
           "pestsDetected": boolean,
           "severity": "none" | "low" | "medium" | "high" | "critical",
           "cropType": "string (crop name in simple terms)",
-          "summary": "string (1-2 sentence plain language summary of findings)",
+          "summary": "string (1-2 sentence plain language summary of ALL findings)",
           "diseases": [{ 
             "name": "string (disease name)", 
-            "localName": "string (common/local name if different)",
+            "localName": "string (Hindi/regional name if known)",
+            "category": "fungal" | "bacterial" | "viral" | "nutrient" | "environmental",
             "confidence": number (0-100),
             "symptoms": ["string (visible symptoms described simply)"]
           }],
           "pests": [{
             "name": "string (pest/insect name)",
-            "localName": "string (common/local name if different)",
-            "type": "insect" | "mite" | "worm" | "larvae" | "eggs" | "other",
+            "localName": "string (Hindi/regional name if known)",
+            "category": "sucking" | "chewing" | "boring" | "root" | "mite" | "other",
+            "type": "insect" | "mite" | "worm" | "larvae" | "eggs" | "nematode" | "slug" | "other",
+            "lifestage": "egg" | "larvae" | "pupa" | "adult" | "unknown",
             "confidence": number (0-100),
-            "description": "string (what it looks like)",
+            "description": "string (what it looks like - color, size, shape)",
             "damageType": "string (what damage it causes)",
             "location": "string (where on the plant it was found)"
           }],
@@ -113,8 +138,8 @@ export async function registerRoutes(
           }],
           "warningSigns": ["string (signs to watch for)"],
           "risks": [{ "risk": "string", "reason": "string" }],
-          "organicOptions": ["string (natural/organic treatment options)"],
-          "chemicalOptions": ["string (chemical treatment options with product names)"],
+          "organicOptions": ["string (natural/organic treatment options with dosage)"],
+          "chemicalOptions": ["string (chemical treatment options with product names and dosage)"],
           "estimatedRecoveryTime": "string (how long until crop recovers)",
           "canHarvest": boolean,
           "harvestAdvice": "string (if can harvest, any precautions)",

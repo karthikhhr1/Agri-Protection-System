@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAnimalDetections, useDeterrentSettings, useUpdateDeterrentSettings } from "@/hooks/use-agri";
 import { useLanguage } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -16,7 +17,11 @@ import {
   Radio,
   Gauge,
   Clock,
-  Target
+  Target,
+  ChevronDown,
+  ChevronUp,
+  Info,
+  Zap
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -27,6 +32,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { indianWildlifeFrequencies, animalCategories, frequencyBands, type AnimalFrequencyData } from "@shared/animalFrequencies";
 
 export default function Deterrent() {
   const { t, formatTime, formatNumber } = useLanguage();
@@ -331,6 +343,126 @@ export default function Deterrent() {
           </div>
         </CardContent>
       </Card>
+
+      <Card className="shadow-lg">
+        <CardHeader className="border-b bg-muted/20">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Zap className="w-5 h-5 text-primary" />
+            {t('deterrent.frequencyGuide')}
+          </CardTitle>
+          <CardDescription>{t('deterrent.frequencyGuideDesc')}</CardDescription>
+        </CardHeader>
+        <CardContent className="p-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 mb-6">
+            {frequencyBands.map((band) => (
+              <div 
+                key={band.name}
+                className="p-3 rounded-lg border bg-muted/30 text-center"
+                data-testid={`frequency-band-${band.name.toLowerCase().replace(/\s+/g, '-')}`}
+              >
+                <p className="text-xs font-medium text-muted-foreground truncate">{band.name}</p>
+                <p className="text-sm font-bold text-primary mt-1">{band.range}</p>
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{band.targetAnimals.slice(0, 2).join(', ')}</p>
+              </div>
+            ))}
+          </div>
+
+          <Accordion type="multiple" className="w-full">
+            {(Object.keys(animalCategories) as Array<keyof typeof animalCategories>).map((categoryKey) => {
+              const category = animalCategories[categoryKey];
+              const animals = indianWildlifeFrequencies.filter(a => a.category === categoryKey);
+              
+              return (
+                <AccordionItem key={categoryKey} value={categoryKey} className="border rounded-lg mb-2 overflow-hidden">
+                  <AccordionTrigger 
+                    className="px-4 py-3 hover:no-underline hover:bg-muted/50"
+                    data-testid={`accordion-${categoryKey}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{category.icon}</span>
+                      <div className="text-left">
+                        <p className="font-semibold">{t(`deterrent.category.${categoryKey}`)}</p>
+                        <p className="text-xs text-muted-foreground">{animals.length} {t('deterrent.animals')}</p>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {animals.map((animal) => (
+                        <AnimalFrequencyCard 
+                          key={animal.id} 
+                          animal={animal} 
+                          t={t}
+                        />
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function AnimalFrequencyCard({ animal, t }: { animal: AnimalFrequencyData; t: (key: string) => string }) {
+  const effectivenessColors = {
+    high: 'bg-green-500/10 text-green-600 border-green-500/30',
+    medium: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/30',
+    low: 'bg-red-500/10 text-red-600 border-red-500/30',
+  };
+
+  return (
+    <div 
+      className="p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors"
+      data-testid={`animal-card-${animal.id}`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-sm truncate">{animal.name}</p>
+          <p className="text-xs text-muted-foreground truncate">{animal.hindiName}</p>
+        </div>
+        <Badge 
+          variant="outline" 
+          className={cn("text-xs shrink-0", effectivenessColors[animal.effectiveness])}
+        >
+          {t(`deterrent.effectiveness.${animal.effectiveness}`)}
+        </Badge>
+      </div>
+      
+      <div className="mt-2 space-y-1">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-muted-foreground">{t('deterrent.optimalFreq')}:</span>
+          <span className="font-bold text-primary">{animal.optimalFrequency} kHz</span>
+        </div>
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-muted-foreground">{t('deterrent.freqRange')}:</span>
+          <span className="font-medium">{animal.frequencyRange.min}-{animal.frequencyRange.max} kHz</span>
+        </div>
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-muted-foreground">{t('deterrent.activeTime')}:</span>
+          <span className="font-medium capitalize">{t(`deterrent.time.${animal.activeTime}`)}</span>
+        </div>
+      </div>
+      
+      <div className="mt-2 pt-2 border-t">
+        <p className="text-xs text-muted-foreground line-clamp-2">{animal.cropDamageType}</p>
+      </div>
+      
+      <div className="mt-2 flex flex-wrap gap-1">
+        {animal.seasonalPeak.slice(0, 3).map((month) => (
+          <Badge key={month} variant="secondary" className="text-xs px-1.5 py-0">
+            {month}
+          </Badge>
+        ))}
+        {animal.seasonalPeak.length > 3 && (
+          <Badge variant="secondary" className="text-xs px-1.5 py-0">
+            +{animal.seasonalPeak.length - 3}
+          </Badge>
+        )}
+      </div>
     </div>
   );
 }
