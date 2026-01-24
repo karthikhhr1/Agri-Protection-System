@@ -45,11 +45,21 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { HardwareDevice } from "@shared/schema";
 
+interface DiscoveredDevice {
+  ip: string;
+  type: "soil_sensor" | "camera" | "weather_station" | "water_meter";
+  name: string;
+  protocol: "wifi" | "lora" | "zigbee" | "wired" | "bluetooth";
+  status: string;
+}
+
 export default function Hardware() {
   const { t, formatTime } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const [discoveredDevices, setDiscoveredDevices] = useState<DiscoveredDevice[]>([]);
   const [newDevice, setNewDevice] = useState({
     name: "",
     type: "soil_sensor" as "soil_sensor" | "camera" | "weather_station" | "water_meter",
@@ -60,6 +70,44 @@ export default function Hardware() {
 
   const { data: devices = [], isLoading } = useQuery<HardwareDevice[]>({
     queryKey: ["/api/devices"],
+  });
+
+  const scanForDevices = async () => {
+    setIsScanning(true);
+    try {
+      const response = await fetch("/api/devices/discover");
+      const data = await response.json();
+      setDiscoveredDevices(data.discovered || []);
+      toast({ 
+        title: data.message,
+        description: data.alreadyConnected > 0 ? `${data.alreadyConnected} device(s) already connected` : undefined
+      });
+    } catch (error) {
+      toast({ title: t('hardware.scanFailed'), variant: "destructive" });
+    }
+    setIsScanning(false);
+  };
+
+  const quickConnect = useMutation({
+    mutationFn: async (device: DiscoveredDevice) => {
+      const response = await fetch("/api/devices/quick-connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(device),
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/devices"] });
+      setDiscoveredDevices(prev => prev.filter(d => d.ip !== data.connectionUrl?.split("//")[1]?.split(":")[0]?.split("/")[0]));
+      toast({ 
+        title: t('hardware.deviceConnected'),
+        description: `${data.name} is now online`
+      });
+    },
+    onError: () => {
+      toast({ title: t('hardware.connectionFailed'), variant: "destructive" });
+    }
   });
 
   const addDevice = useMutation({
@@ -168,13 +216,28 @@ export default function Hardware() {
           </h1>
           <p className="text-muted-foreground text-sm md:text-base">{t('hardware.pageSubtitle')}</p>
         </div>
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-add-device" className="gap-2">
-              <Plus className="w-4 h-4" />
-              {t('hardware.addDevice')}
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={scanForDevices}
+            disabled={isScanning}
+            data-testid="button-scan-devices"
+            className="gap-2"
+          >
+            {isScanning ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Radio className="w-4 h-4" />
+            )}
+            {isScanning ? t('hardware.scanning') : t('hardware.scanDevices')}
+          </Button>
+          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+            <DialogTrigger asChild>
+              <Button data-testid="button-add-device" className="gap-2">
+                <Plus className="w-4 h-4" />
+                {t('hardware.addDevice')}
+              </Button>
+            </DialogTrigger>
           <DialogContent className="sm:max-w-md overflow-visible">
             <DialogHeader>
               <DialogTitle>{t('hardware.addNewDevice')}</DialogTitle>
@@ -233,6 +296,7 @@ export default function Hardware() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </header>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
@@ -261,6 +325,56 @@ export default function Hardware() {
           color={devices.filter(d => d.status === 'online').length > 0 ? "green" : "gray"}
         />
       </div>
+
+      {discoveredDevices.length > 0 && (
+        <Card className="shadow-lg border-2 border-dashed border-primary/30 bg-primary/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Radio className="w-5 h-5 text-primary animate-pulse" />
+              {t('hardware.discoveredDevices')}
+            </CardTitle>
+            <CardDescription>{t('hardware.discoveredDevicesDesc')}</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {discoveredDevices.map((device) => {
+                const Icon = getDeviceIcon(device.type);
+                return (
+                  <motion.div
+                    key={device.ip}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex items-center justify-between p-3 rounded-lg bg-background border"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        <Icon className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">{device.name}</p>
+                        <p className="text-xs text-muted-foreground">{device.ip}</p>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => quickConnect.mutate(device)}
+                      disabled={quickConnect.isPending}
+                      data-testid={`button-connect-${device.ip}`}
+                    >
+                      {quickConnect.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Zap className="w-4 h-4" />
+                      )}
+                      {t('hardware.connect')}
+                    </Button>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         <Card className="shadow-lg">

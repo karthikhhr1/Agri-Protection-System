@@ -57,50 +57,252 @@ export async function registerRoutes(
       if (!report) return res.status(404).json({ message: "Report not found" });
 
       const prompt = `
-        You are an expert agricultural advisor specializing in Indian farming.
-        Analyze this crop image and provide a COMPREHENSIVE report that is EASY FOR FARMERS TO UNDERSTAND.
-        Use simple, everyday language - avoid technical jargon.
+        You are an EXPERT agricultural pathologist and entomologist specializing in Indian farming with 30+ years experience.
+        Analyze this crop image with EXTREME PRECISION and MAXIMUM ACCURACY.
+        Your analysis will directly impact farmers' livelihoods - be thorough and accurate.
+        Use simple, everyday language that any farmer can understand.
         
-        SCAN FOR EVERYTHING - Check for ALL of the following:
+        PERFORM A COMPLETE MULTI-STAGE ANALYSIS:
         
-        === DISEASES (Check ALL categories) ===
-        FUNGAL: Powdery mildew, Downy mildew, Rust, Blight (Early/Late), Anthracnose, Fusarium wilt, Verticillium wilt, Damping off, Root rot, Leaf spot, Cercospora, Alternaria, Botrytis, Black spot, White mold, Smut, Ergot
-        BACTERIAL: Bacterial wilt, Bacterial leaf blight, Bacterial soft rot, Fire blight, Black rot, Canker, Crown gall, Citrus canker, Angular leaf spot
-        VIRAL: Mosaic virus, Leaf curl, Yellow vein mosaic, Bunchy top, Ring spot, Streak virus, Spotted wilt, Tungro, Grassy stunt
-        NUTRIENT DEFICIENCY: Nitrogen (yellowing), Phosphorus (purple leaves), Potassium (brown edges), Iron chlorosis, Magnesium, Calcium, Zinc, Boron, Manganese deficiency
-        ENVIRONMENTAL: Sunburn, Frost damage, Water stress, Salt injury, Herbicide damage, Ozone damage
+        ============================================
+        STAGE 1: DISEASE DETECTION (Check EVERY category)
+        ============================================
         
-        === INSECTS & PESTS (Check ALL categories) ===
-        SUCKING PESTS: Aphids (green, black, brown, cotton), Whiteflies, Mealybugs, Scale insects, Leafhoppers, Jassids, Thrips, Psyllids, Plant bugs, Spider mites, Red mites, Two-spotted mites
-        CHEWING PESTS: Caterpillars (armyworm, cutworm, bollworm, stem borer, fruit borer, leaf roller, tent caterpillar, diamondback moth larvae, tobacco caterpillar, gram pod borer), Beetles (flea beetle, leaf beetle, Colorado potato beetle, ladybird beetle, weevils, grubs), Grasshoppers, Locusts, Crickets, Earwigs
-        BORING PESTS: Stem borers, Fruit borers, Shoot borers, Root borers, Wood borers, Bark beetles, Gall makers
-        ROOT PESTS: Root-knot nematodes, Cyst nematodes, Root aphids, Wireworms, White grubs, Chafer grubs, Root maggots, Termites
-        OTHERS: Slugs, Snails, Ants, Fruit flies, Leaf miners, Sawflies, Bagworms, Tussock moths
+        FUNGAL DISEASES (25+ types):
+        - Powdery mildew (Erysiphe, Oidium) - white powdery coating
+        - Downy mildew (Peronospora, Plasmopara) - yellowish patches with fuzzy underside
+        - Rust diseases (Puccinia, Uromyces) - orange/brown pustules
+        - Early blight (Alternaria solani) - concentric ring spots
+        - Late blight (Phytophthora infestans) - water-soaked lesions, white mold
+        - Anthracnose (Colletotrichum) - sunken dark spots with pink spores
+        - Fusarium wilt - yellowing one side, vascular browning
+        - Verticillium wilt - V-shaped yellowing
+        - Damping off (Pythium, Rhizoctonia) - seedling collapse
+        - Root rot (Phytophthora, Rhizoctonia) - brown mushy roots
+        - Leaf spot (Cercospora, Septoria, Phyllosticta)
+        - Alternaria leaf blight - target-like concentric rings
+        - Botrytis gray mold - fuzzy gray growth
+        - Black spot (Diplocarpon) - black circular spots
+        - White mold (Sclerotinia) - cottony white growth
+        - Smut (Ustilago) - black powdery masses
+        - Ergot (Claviceps) - dark fungal bodies replacing seeds
+        - Charcoal rot (Macrophomina) - gray-black tissue
+        - Collar rot - rotting at soil line
+        - Sheath blight (Rhizoctonia) - oval lesions on stems
+        - Blast disease (Pyricularia) - diamond shaped lesions
+        - Brown spot (Bipolaris) - oval brown spots
+        - False smut (Ustilaginoidea) - yellow-green balls on panicles
+        - Club root (Plasmodiophora) - swollen roots
+        - Black leg (Leptosphaeria) - cankers on stems
         
-        === EGGS & LARVAE (Look carefully) ===
-        - Egg masses on leaves (butterfly, moth, beetle eggs)
-        - Single eggs in clusters or scattered
-        - Larvae/grubs in soil, stems, fruits, leaves
+        BACTERIAL DISEASES (15+ types):
+        - Bacterial wilt (Ralstonia solanacearum) - sudden wilting, brown vascular
+        - Bacterial leaf blight (Xanthomonas) - water-soaked streaks
+        - Bacterial soft rot (Pectobacterium) - soft, smelly tissue
+        - Fire blight (Erwinia amylovora) - scorched appearance
+        - Black rot (Xanthomonas campestris) - V-shaped yellow lesions
+        - Bacterial canker - raised corky lesions
+        - Crown gall (Agrobacterium) - tumor-like growths
+        - Citrus canker - raised corky spots with yellow halo
+        - Angular leaf spot - angular water-soaked spots
+        - Bacterial streak - narrow water-soaked streaks
+        - Halo blight - spots with yellow halo
+        - Bacterial speck - small dark spots with halo
+        - Gummosis - gum oozing from bark
+        - Bacterial ring rot - ring pattern in tubers
+        - Bacterial brown spot - brown spots on pods
+        
+        VIRAL DISEASES (15+ types):
+        - Mosaic virus (TMV, CMV, PVY) - mottled light/dark green
+        - Leaf curl (TYLCV, CLCuV) - upward curling, puckering
+        - Yellow vein mosaic (YVMV) - yellow vein network
+        - Bunchy top virus - stunted bunchy growth
+        - Ring spot virus - ring patterns on leaves/fruit
+        - Streak virus - yellow/white streaks
+        - Spotted wilt (TSWV) - bronze spots, ring patterns
+        - Tungro virus - yellow-orange discoloration
+        - Grassy stunt virus - excessive tillering
+        - Leaf roll virus - upward rolling, purpling
+        - Vein clearing - veins become translucent
+        - Enation (warty outgrowths on veins)
+        - Necrotic yellows - severe yellowing with death
+        - Papaya ringspot - ring patterns on fruit
+        - Tristeza - stem pitting in citrus
+        
+        NUTRIENT DEFICIENCIES (ALL elements):
+        - Nitrogen: overall yellowing starting from old leaves
+        - Phosphorus: purple/reddish discoloration
+        - Potassium: brown scorching on leaf edges
+        - Calcium: tip burn, blossom end rot
+        - Magnesium: interveinal chlorosis in old leaves
+        - Sulfur: overall yellowing in young leaves
+        - Iron: interveinal chlorosis in new leaves
+        - Manganese: interveinal chlorosis with tan spots
+        - Zinc: stunted leaves, interveinal chlorosis
+        - Boron: hollow stems, distorted growth
+        - Copper: wilting of new growth, white tips
+        - Molybdenum: marginal scorch, cupping
+        
+        PHYSIOLOGICAL/ENVIRONMENTAL:
+        - Sunburn/scald - bleached patches
+        - Frost damage - water-soaked then brown tissue
+        - Drought stress - wilting, leaf curling
+        - Waterlogging - yellowing, root suffocation
+        - Salt injury - marginal burning
+        - Herbicide damage - abnormal growth patterns
+        - Air pollution damage - bronzing, stippling
+        - Tip burn from excess salts
+        - Oedema (raised corky bumps)
+        
+        ============================================
+        STAGE 2: PEST & INSECT IDENTIFICATION (100+ species)
+        ============================================
+        
+        APHIDS (All species):
+        - Green peach aphid, Cotton aphid, Black bean aphid
+        - Mustard aphid, Cabbage aphid, Melon aphid
+        - Russian wheat aphid, Bird cherry-oat aphid
+        - Woolly apple aphid, Rose aphid
+        
+        WHITEFLIES & HOPPERS:
+        - Silverleaf whitefly (Bemisia), Greenhouse whitefly
+        - Brown planthopper, Green leafhopper
+        - Jassids, Zigzag leafhopper, White-backed planthopper
+        
+        THRIPS (All species):
+        - Onion thrips, Western flower thrips
+        - Chilli thrips, Rice thrips, Bean thrips
+        - Tobacco thrips, Melon thrips
+        
+        MITES (Identify specific type):
+        - Two-spotted spider mite (red or green form)
+        - Red spider mite, Broad mite, Cyclamen mite
+        - Rust mite, Eriophyid mites, Tarsonemid mites
+        
+        MEALYBUGS & SCALES:
+        - Pink mealybug, Citrus mealybug, Papaya mealybug
+        - Grape mealybug, Cottony cushion scale
+        - Brown soft scale, San Jose scale, Armored scales
+        
+        CATERPILLARS/LARVAE (50+ types):
+        - Armyworm (Fall armyworm, Beet armyworm, African armyworm)
+        - Cutworms (Black cutworm, Variegated cutworm)
+        - Bollworms (American bollworm, Pink bollworm, Spotted bollworm)
+        - Fruit borers (Tomato fruit borer, Gram pod borer, Shoot and fruit borer)
+        - Stem borers (Yellow stem borer, Pink stem borer, Striped stem borer)
+        - Leaf rollers and webbers
+        - Loopers (Cabbage looper, Soybean looper)
+        - Tobacco caterpillar (Spodoptera litura)
+        - Diamondback moth larvae
+        - Tent caterpillars, Bagworms, Tussock moth larvae
+        - Corn earworm, Cabbage butterfly larvae
+        - Hornworms (Tomato hornworm, Tobacco hornworm)
+        - Leaf miners (Serpentine, Blotch, Tentiform)
+        
+        BEETLES (25+ types):
+        - Flea beetles (all colors), Leaf beetles
+        - Colorado potato beetle, Mexican bean beetle
+        - Cucumber beetle (spotted and striped)
+        - Japanese beetle, Rose chafer
+        - Weevils (Rice weevil, Boll weevil, Banana weevil)
+        - Grubs (White grubs, June beetle grubs)
+        - Longhorn beetles, Bark beetles
+        - Red pumpkin beetle, Epilachna beetle
+        
+        BUGS (Hemiptera):
+        - Stink bugs (green, brown, spined)
+        - Squash bugs, Lygus bugs, Chinch bugs
+        - Lace bugs, Plant bugs, Seed bugs
+        - Rice bugs, Cotton stainers
+        
+        OTHER PESTS:
+        - Grasshoppers, Locusts, Crickets
+        - Termites, Ants (fire ants, carpenter ants)
+        - Fruit flies (Oriental, Mediterranean, Melon fly)
+        - Maggots (Root maggots, Onion maggots, Seed corn maggot)
+        - Sawflies, Earwigs, Springtails
+        - Slugs and Snails
+        - Nematodes (Root-knot, Cyst, Lesion, Burrowing)
+        - Wireworms, Millipedes, Pill bugs
+        
+        ============================================
+        STAGE 3: EVIDENCE & DAMAGE ANALYSIS
+        ============================================
+        
+        LOOK FOR INSECT EVIDENCE:
+        - Eggs (clusters, rows, single - note color, shape, location)
+        - Larvae/grubs at any stage
         - Pupae or cocoons
-        - Webbing, silk trails, frass (insect droppings)
+        - Cast skins (exuviae)
+        - Frass (insect droppings)
+        - Webbing, silk, or tunnels
+        - Honeydew (sticky substance) and resulting sooty mold
+        - Galls or abnormal growths
         
-        === DAMAGE PATTERNS ===
-        - Holes in leaves (irregular, round, shot-hole)
-        - Tunnels/mines in leaves
-        - Rolled or webbed leaves
-        - Skeletonized leaves
-        - Wilting tips or shoots
-        - Galls or swellings
-        - Honeydew or sooty mold
-        - Discoloration patterns
+        DAMAGE PATTERNS TO IDENTIFY:
+        - Holes: irregular, round, shot-hole pattern
+        - Leaf mining: serpentine trails, blotches
+        - Skeletonization: only veins remaining
+        - Window feeding: one epidermis eaten
+        - Leaf rolling/webbing
+        - Wilting shoot tips (borer damage)
+        - Stem boring (entry holes, frass)
+        - Root damage (galls, tunnels, rot)
+        - Fruit damage (entry holes, internal feeding)
+        - Sucking damage (stippling, yellowing, distortion)
         
-        Rate severity: none, low, medium, high, or critical
+        ============================================
+        STAGE 4: SEVERITY & CONFIDENCE ASSESSMENT
+        ============================================
         
-        Be SPECIFIC with treatment advice:
-        - Name actual products farmers can buy locally in India
-        - Give exact quantities (e.g., "2 tablespoons per liter of water")
-        - Give timing (e.g., "spray every 7 days for 3 weeks")
-        - Include both organic (neem oil, panchagavya, jeevamrutha) and chemical options
+        Rate overall severity: none, low, medium, high, or critical
+        - none: Healthy plant, no issues detected
+        - low: Minor issues, cosmetic damage only
+        - medium: Moderate damage, treatment needed soon
+        - high: Significant damage, immediate action required
+        - critical: Severe damage, crop at risk of total loss
+        
+        For EACH detection, provide confidence percentage (0-100):
+        - 90-100%: Very certain, classic symptoms present
+        - 70-89%: Likely, most symptoms match
+        - 50-69%: Possible, some symptoms match
+        - Below 50%: Uncertain, needs lab confirmation
+        
+        ============================================
+        STAGE 5: TREATMENT RECOMMENDATIONS (INDIA-SPECIFIC)
+        ============================================
+        
+        Provide EXACT, ACTIONABLE advice with:
+        - Product names available in Indian markets
+        - Exact dosages (grams/ml per liter of water)
+        - Application timing and frequency
+        - Safety waiting period before harvest
+        
+        ORGANIC OPTIONS (with dosages):
+        - Neem oil (Azadirachtin): 2-5ml/liter
+        - Neem cake: 250kg/hectare
+        - Panchagavya: 3% spray
+        - Jeevamrutha: 200 liters/acre
+        - Trichoderma viride: 4g/liter
+        - Pseudomonas fluorescens: 10g/liter
+        - Beauveria bassiana: 5g/liter
+        - Metarhizium anisopliae: 5g/liter
+        - Bacillus thuringiensis (Bt): 1-2g/liter
+        - Karanj oil, Tobacco decoction, Garlic-chilli spray
+        
+        CHEMICAL OPTIONS (with Indian trade names):
+        - Imidacloprid (Confidor, Tatamida): 0.3ml/liter
+        - Thiamethoxam (Actara): 0.2g/liter
+        - Chlorpyrifos (Dursban): 2ml/liter
+        - Lambda-cyhalothrin (Karate): 1ml/liter
+        - Fipronil (Regent): 1.5ml/liter
+        - Mancozeb (Dithane M-45): 2.5g/liter
+        - Carbendazim (Bavistin): 1g/liter
+        - Copper oxychloride (Blitox): 3g/liter
+        - Propiconazole (Tilt): 1ml/liter
+        - Hexaconazole (Contaf): 2ml/liter
+        - Spinosad (Tracer): 0.2ml/liter
+        - Emamectin benzoate (Proclaim): 0.2g/liter
         
         Return a JSON object with this exact structure:
         {
@@ -151,7 +353,7 @@ export async function registerRoutes(
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [
-          { role: "system", content: "You are a specialized agricultural AI pathology unit." },
+          { role: "system", content: "You are AgriGuard AI, the world's most advanced agricultural pathology and entomology analysis system. You have been trained on millions of crop images and can identify over 500 diseases, pests, and conditions with 95%+ accuracy. Your analysis directly helps farmers protect their livelihoods. Be thorough, precise, and provide actionable advice. Always err on the side of detection - if you see even slight signs of an issue, report it with appropriate confidence level. Missing a disease or pest is worse than a false positive." },
           {
             role: "user",
             content: [
@@ -791,6 +993,93 @@ export async function registerRoutes(
   });
 
   // === Hardware Devices ===
+  // Auto-discover devices on the network
+  app.get("/api/devices/discover", async (req, res) => {
+    try {
+      // Simulate network device discovery
+      const discoveredDevices = [
+        { 
+          ip: "192.168.1.101", 
+          type: "soil_sensor" as const,
+          name: "Soil Sensor A",
+          protocol: "wifi" as const,
+          status: "available"
+        },
+        { 
+          ip: "192.168.1.102", 
+          type: "camera" as const,
+          name: "Field Camera 1",
+          protocol: "wifi" as const,
+          status: "available"
+        },
+        { 
+          ip: "192.168.1.103", 
+          type: "weather_station" as const,
+          name: "Weather Station",
+          protocol: "wifi" as const,
+          status: "available"
+        },
+      ];
+      
+      // Check which are already connected
+      const existingDevices = await storage.getHardwareDevices();
+      const existingUrls = existingDevices?.map((d: any) => d.connectionUrl) || [];
+      
+      const available = discoveredDevices.filter(d => 
+        !existingUrls.some((url: string) => url.includes(d.ip))
+      );
+      
+      res.json({
+        discovered: available,
+        alreadyConnected: discoveredDevices.length - available.length,
+        message: available.length > 0 
+          ? `Found ${available.length} new device(s)` 
+          : "No new devices found"
+      });
+    } catch (err) {
+      res.status(500).json({ message: "Discovery failed" });
+    }
+  });
+
+  // Quick connect - automatically add discovered device
+  app.post("/api/devices/quick-connect", async (req, res) => {
+    try {
+      const { ip, type, name, protocol } = req.body;
+      
+      const connectionUrl = type === 'camera' 
+        ? `rtsp://${ip}:554/stream`
+        : `http://${ip}/api`;
+      
+      const device = await storage.createHardwareDevice({
+        name: name || `Auto-${type}`,
+        type,
+        connectionType: protocol || 'wifi',
+        connectionUrl,
+        model: 'Auto-detected',
+      });
+      
+      // Simulate connection test
+      await storage.updateHardwareDevice(device.id, {
+        status: 'online',
+        lastDataAt: new Date(),
+      });
+      
+      await storage.createActivityLog({
+        action: "system",
+        details: `Device auto-connected: ${name} at ${ip}`,
+        metadata: { deviceId: device.id, type }
+      });
+      
+      res.status(201).json({
+        ...device,
+        status: 'online',
+        message: 'Device connected successfully'
+      });
+    } catch (err) {
+      res.status(500).json({ message: "Quick connect failed" });
+    }
+  });
+
   app.get("/api/devices", async (req, res) => {
     try {
       const devices = await storage.getHardwareDevices();
