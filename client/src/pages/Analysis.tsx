@@ -101,9 +101,10 @@ export default function Analysis() {
       setSelectedImage(null);
       queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
       toast({
-        title: t('analysis.imageCaptured'),
-        description: t('analysis.captureSuccess'),
+        title: t('analysis.analyzing'),
+        description: t('analysis.autoProcessing'),
       });
+      processMutation.mutate(data.id);
     },
   });
 
@@ -134,6 +135,12 @@ export default function Analysis() {
   useEffect(() => {
     return () => stopCamera();
   }, []);
+
+  useEffect(() => {
+    if (selectedImage && !captureMutation.isPending && !processMutation.isPending) {
+      captureMutation.mutate(selectedImage);
+    }
+  }, [selectedImage]);
 
   const activeReport = reports?.find(r => r.id === activeReportId) || reports?.find(r => r.status === 'pending');
 
@@ -269,20 +276,14 @@ export default function Analysis() {
                 </Button>
               </div>
 
-              <Button 
-                onClick={handleCapture}
-                disabled={!selectedImage || captureMutation.isPending}
-                className="w-full h-12 md:h-16 rounded-2xl text-xs md:text-lg font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover-elevate transition-all disabled:opacity-50"
-              >
-                {captureMutation.isPending ? (
-                  <RefreshCw className="w-6 h-6 animate-spin" />
-                ) : (
-                  <>
-                    <Scan className="w-6 h-6 mr-2" />
-                    {t('analysis.captureAnalyze')}
-                  </>
-                )}
-              </Button>
+              {(captureMutation.isPending || processMutation.isPending) && (
+                <div className="w-full h-12 md:h-16 rounded-2xl bg-primary/10 border-2 border-primary/30 flex items-center justify-center gap-3">
+                  <RefreshCw className="w-6 h-6 animate-spin text-primary" />
+                  <span className="text-sm md:text-lg font-black uppercase tracking-widest text-primary">
+                    {t('analysis.analyzing')}...
+                  </span>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
