@@ -14,6 +14,7 @@ import {
   fieldCaptureRequestSchema
 } from "@shared/schema";
 import { indianWildlifeFrequencies, getRecommendedFrequency } from "@shared/animalFrequencies";
+import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -24,6 +25,20 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  
+  // Setup authentication FIRST
+  await setupAuth(app);
+  registerAuthRoutes(app);
+  
+  // Protect all API routes with authentication (except auth routes which are already registered)
+  app.use('/api', (req, res, next) => {
+    // Allow auth routes to pass through (they handle their own auth)
+    if (req.path.startsWith('/auth') || req.path === '/login' || req.path === '/logout' || req.path === '/callback') {
+      return next();
+    }
+    // Apply isAuthenticated middleware to all other API routes
+    return isAuthenticated(req, res, next);
+  });
   
   // === Reports ===
   app.get(api.reports.list.path, async (req, res) => {

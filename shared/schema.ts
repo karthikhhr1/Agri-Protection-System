@@ -2,6 +2,9 @@ import { pgTable, text, serial, integer, boolean, timestamp, jsonb, real } from 
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Export auth models
+export * from "./models/auth";
+
 // === REPORTS (Drone Image Analysis) ===
 export const reports = pgTable("reports", {
   id: serial("id").primaryKey(),

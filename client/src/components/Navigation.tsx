@@ -1,10 +1,12 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Droplets, Volume2, ScanEye, Sprout, Bot, Globe, Calendar, Package, FileText, ChevronDown, MapPin, Clock, Menu, X, Cpu, DollarSign } from "lucide-react";
+import { LayoutDashboard, Droplets, Volume2, ScanEye, Sprout, Bot, Globe, Calendar, Package, FileText, ChevronDown, MapPin, Clock, Menu, X, Cpu, DollarSign, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage, languageNames, languageNamesEnglish, type Language } from "@/lib/i18n";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { QRCodeModal } from "./QRCodeModal";
+import { useAuth } from "@/hooks/use-auth";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Sheet,
   SheetContent,
@@ -32,6 +34,7 @@ export function Navigation() {
   const [location] = useLocation();
   const { language, setLanguage, t } = useLanguage();
   const [isLangOpen, setIsLangOpen] = useState(false);
+  const { user } = useAuth();
 
   const languages: Language[] = ['en', 'hi', 'te', 'kn', 'ta', 'mr', 'bn', 'gu', 'pa', 'ml', 'or'];
 
@@ -135,6 +138,31 @@ export function Navigation() {
           {t('system.drone')}
         </p>
       </div>
+
+      {user && (
+        <div className="p-3 mt-4 border-t border-border">
+          <div className="flex items-center gap-3 mb-3">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={user.profileImageUrl || undefined} alt={user.firstName || 'User'} />
+              <AvatarFallback className="bg-primary/10 text-primary">
+                <User className="w-5 h-5" />
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">
+                {user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'Farmer'}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" className="w-full gap-2" asChild data-testid="button-logout">
+            <a href="/api/logout">
+              <LogOut className="w-4 h-4" />
+              {t('auth.logout')}
+            </a>
+          </Button>
+        </div>
+      )}
     </aside>
   );
 }
@@ -144,6 +172,7 @@ export function MobileNav() {
   const { language, setLanguage, t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
+  const { user } = useAuth();
   
   const languages: Language[] = ['en', 'hi', 'te', 'kn', 'ta', 'mr', 'bn', 'gu', 'pa', 'ml', 'or'];
   const quickNavItems = navItems.slice(0, 4);
@@ -238,7 +267,28 @@ export function MobileNav() {
                 })}
               </nav>
 
-              <div className="absolute bottom-0 left-0 right-0 p-4 bg-card border-t">
+              <div className="absolute bottom-0 left-0 right-0 p-4 bg-card border-t space-y-3">
+                {user && (
+                  <div className="flex items-center gap-3 pb-3 border-b border-border">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.profileImageUrl || undefined} alt={user.firstName || 'User'} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                        <User className="w-4 h-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'Farmer'}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    </div>
+                    <Button variant="ghost" size="icon" asChild data-testid="button-logout-mobile">
+                      <a href="/api/logout">
+                        <LogOut className="w-4 h-4" />
+                      </a>
+                    </Button>
+                  </div>
+                )}
                 <div className="flex items-center gap-2 text-sm font-semibold text-primary">
                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                   {t('system.online')}

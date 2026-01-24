@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Navigation, MobileNav } from "@/components/Navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/hooks/use-auth";
+import { Loader2 } from "lucide-react";
 
 import Dashboard from "@/pages/Dashboard";
 import Analysis from "@/pages/Analysis";
@@ -18,6 +20,7 @@ import Logs from "@/pages/Logs";
 import FieldSummary from "@/pages/FieldSummary";
 import FieldTimeline from "@/pages/FieldTimeline";
 import Hardware from "@/pages/Hardware";
+import Landing from "@/pages/Landing";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -53,19 +56,50 @@ function Router() {
   );
 }
 
+function AuthenticatedApp() {
+  return (
+    <div className="flex min-h-screen bg-background selection:bg-primary/10 selection:text-primary">
+      <Navigation />
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto pt-16 md:pt-4 mb-16 md:mb-0">
+        <div className="max-w-7xl mx-auto">
+          <Router />
+        </div>
+      </main>
+      <MobileNav />
+    </div>
+  );
+}
+
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="flex flex-col items-center gap-4">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <p className="text-muted-foreground">Loading AgriGuard...</p>
+      </div>
+    </div>
+  );
+}
+
+function AppContent() {
+  const { isLoading, isAuthenticated } = useAuth();
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (!isAuthenticated) {
+    return <Landing />;
+  }
+
+  return <AuthenticatedApp />;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <div className="flex min-h-screen bg-background selection:bg-primary/10 selection:text-primary">
-          <Navigation />
-          <main className="flex-1 p-4 md:p-8 overflow-y-auto pt-16 md:pt-4 mb-16 md:mb-0">
-            <div className="max-w-7xl mx-auto">
-              <Router />
-            </div>
-          </main>
-          <MobileNav />
-        </div>
+        <AppContent />
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>

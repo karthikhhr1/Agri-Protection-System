@@ -33,9 +33,22 @@ Design philosophy: Soul Forest aesthetic - minimalist, earthy tones, sharp corne
 ### Backend Architecture
 - **Framework**: Express.js with TypeScript
 - **Database ORM**: Drizzle ORM with PostgreSQL
+- **Authentication**: Replit Auth (OIDC) with session management
 - **AI Integration**: OpenAI API (via Replit AI Integrations) for image analysis
 - **API Design**: RESTful endpoints with Zod schema validation
 - **Build System**: Vite for frontend, esbuild for backend bundling
+
+### Authentication System
+- **Provider**: Replit Auth (OIDC) supporting Google, GitHub, X, Apple, and email/password
+- **Session Storage**: PostgreSQL via connect-pg-simple
+- **Protected Routes**: All /api/* routes require authentication (except auth routes)
+- **User Profile**: Displayed in sidebar with avatar, name, email, and logout button
+- **Landing Page**: Professional landing page shown to unauthenticated users
+- **Key Endpoints**:
+  - `/api/login` - Initiates OIDC login flow
+  - `/api/logout` - Logs out user and redirects to landing
+  - `/api/auth/user` - Returns current authenticated user or null
+  - `/api/callback` - OIDC callback handler
 
 ### Data Storage
 - **Database**: PostgreSQL with Drizzle ORM
