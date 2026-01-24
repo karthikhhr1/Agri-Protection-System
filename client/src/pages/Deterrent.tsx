@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useAnimalDetections, useDeterrentSettings, useUpdateDeterrentSettings } from "@/hooks/use-agri";
+import { useState, useEffect } from "react";
+import { useAnimalDetections, useDeterrentSettings, useUpdateDeterrentSettings, useAutomationStatus, useSimulateCameraDetection } from "@/hooks/use-agri";
 import { useLanguage } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -44,11 +44,15 @@ export default function Deterrent() {
   const { t, formatTime, formatNumber } = useLanguage();
   const { data: detections, isLoading: detectionsLoading } = useAnimalDetections();
   const { data: settings, isLoading: settingsLoading } = useDeterrentSettings();
+  const { data: automationStatus } = useAutomationStatus();
   const updateSettings = useUpdateDeterrentSettings();
+  const simulateCamera = useSimulateCameraDetection();
 
   const recentDetections = detections?.slice(0, 10) || [];
   const activeAlerts = detections?.filter((d: any) => d.status === 'detected' && !d.deterrentActivated).length || 0;
   const deterredCount = detections?.filter((d: any) => d.deterrentActivated).length || 0;
+  
+  const isFullyAutomated = settings?.isEnabled && settings?.autoActivate;
 
   const handleToggleSystem = (enabled: boolean) => {
     updateSettings.mutate({ isEnabled: enabled });
@@ -105,6 +109,69 @@ export default function Deterrent() {
         </h1>
         <p className="text-muted-foreground text-sm md:text-base">{t('deterrent.pageSubtitle')}</p>
       </header>
+
+      {/* Automation Status Banner */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={cn(
+          "rounded-xl p-4 border-2 flex flex-col md:flex-row items-start md:items-center justify-between gap-4",
+          isFullyAutomated 
+            ? "bg-green-500/10 border-green-500/30" 
+            : "bg-amber-500/10 border-amber-500/30"
+        )}
+      >
+        <div className="flex items-center gap-3">
+          <div className={cn(
+            "w-12 h-12 rounded-full flex items-center justify-center",
+            isFullyAutomated ? "bg-green-500/20" : "bg-amber-500/20"
+          )}>
+            {isFullyAutomated ? (
+              <Zap className="w-6 h-6 text-green-600" />
+            ) : (
+              <AlertTriangle className="w-6 h-6 text-amber-600" />
+            )}
+          </div>
+          <div>
+            <h3 className={cn(
+              "font-semibold text-lg",
+              isFullyAutomated ? "text-green-700 dark:text-green-400" : "text-amber-700 dark:text-amber-400"
+            )}>
+              {isFullyAutomated ? t('deterrent.fullyAutomated') : t('deterrent.manualMode')}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {isFullyAutomated 
+                ? t('deterrent.automatedDesc')
+                : t('deterrent.manualModeDesc')}
+            </p>
+          </div>
+        </div>
+        {isFullyAutomated && automationStatus && (
+          <div className="flex items-center gap-4 text-sm">
+            <div className="text-center px-3 py-1 bg-background/50 rounded-lg">
+              <div className="font-bold text-lg text-primary">{automationStatus.detections24h || 0}</div>
+              <div className="text-xs text-muted-foreground">{t('deterrent.detections24h')}</div>
+            </div>
+            <div className="text-center px-3 py-1 bg-background/50 rounded-lg">
+              <div className="font-bold text-lg text-green-600">{automationStatus.deterrents24h || 0}</div>
+              <div className="text-xs text-muted-foreground">{t('deterrent.autoDeterrents')}</div>
+            </div>
+            <Badge className="bg-green-500 text-white animate-pulse">
+              <Radio className="w-3 h-3 mr-1" />
+              {t('deterrent.monitoring')}
+            </Badge>
+          </div>
+        )}
+        {!isFullyAutomated && (
+          <button
+            onClick={() => updateSettings.mutate({ isEnabled: true, autoActivate: true })}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover-elevate"
+            data-testid="button-enable-automation"
+          >
+            {t('deterrent.enableAutomation')}
+          </button>
+        )}
+      </motion.div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <StatusCard

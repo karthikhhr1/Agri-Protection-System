@@ -13,6 +13,7 @@ import {
   farmFieldRequestSchema,
   fieldCaptureRequestSchema
 } from "@shared/schema";
+import { indianWildlifeFrequencies, getRecommendedFrequency } from "@shared/animalFrequencies";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -366,6 +367,11 @@ export async function registerRoutes(
       });
       const data = schema.parse(req.body);
       
+      // Get optimal frequency for this animal type automatically
+      const animalData = indianWildlifeFrequencies.find(a => a.id === data.animalType);
+      const optimalFrequency = animalData?.optimalFrequency || getRecommendedFrequency([data.animalType]);
+      const effectiveness = animalData?.effectiveness || 'medium';
+      
       const detection = await storage.createAnimalDetection({
         ...data,
         status: "detected",
@@ -373,28 +379,155 @@ export async function registerRoutes(
         deterrentActivated: false,
       });
 
-      // Check if we should activate deterrent
+      // FULLY AUTOMATED: Check if we should activate deterrent
       const settings = await storage.getDeterrentSettings();
       if (settings?.isEnabled && settings?.autoActivate && data.distance <= (settings?.activationDistance || 50)) {
-        await storage.updateAnimalDetection(detection.id, { deterrentActivated: true });
+        await storage.updateAnimalDetection(detection.id, { 
+          deterrentActivated: true,
+          status: "deterred"
+        });
+        
+        // Calculate volume based on distance (louder for closer animals)
+        const baseVolume = settings?.volume || 70;
+        const distanceMultiplier = Math.max(1, 100 / data.distance);
+        const calculatedVolume = Math.min(100, Math.round(baseVolume * distanceMultiplier / 2));
+        
+        // Log the automated deterrent activation with frequency
+        await storage.createAudioLog({
+          distance: String(data.distance),
+          calculatedVolume,
+          coordinates: data.coordinates || { x: 0, y: 0 },
+        });
         
         await storage.createActivityLog({
           action: "deterrent",
-          details: `Deterrent auto-activated for ${data.animalType} at ${data.distance}m`,
-          metadata: { detectionId: detection.id, animalType: data.animalType, distance: data.distance }
+          details: `AUTO: Deterrent activated for ${data.animalType} at ${data.distance}m using ${optimalFrequency}kHz (${effectiveness} effectiveness)`,
+          metadata: { 
+            detectionId: detection.id, 
+            animalType: data.animalType, 
+            distance: data.distance,
+            frequency: optimalFrequency,
+            effectiveness,
+            volume: calculatedVolume,
+            automated: true
+          }
         });
       }
 
       await storage.createActivityLog({
         action: "detection",
         details: `Animal detected: ${data.animalType} at ${data.distance}m`,
-        metadata: { detectionId: detection.id, animalType: data.animalType, distance: data.distance }
+        metadata: { detectionId: detection.id, animalType: data.animalType, distance: data.distance, frequency: optimalFrequency }
       });
 
-      res.status(201).json(detection);
+      res.status(201).json({ ...detection, optimalFrequency, effectiveness });
     } catch (err) {
       res.status(400).json({ message: "Failed to create detection" });
     }
+  });
+
+  // === Automated Camera Monitoring ===
+  // This endpoint simulates what a real camera would do when connected
+  // In production, this would be triggered by actual camera feeds
+  app.post("/api/detections/simulate-camera", async (req, res) => {
+    try {
+      const settings = await storage.getDeterrentSettings();
+      if (!settings?.isEnabled) {
+        return res.json({ message: "Deterrent system is disabled", simulated: false });
+      }
+
+      // Simulate random animal detection (in real system, this comes from camera AI)
+      const animalTypes = ['elephant', 'nilgai', 'wild_boar', 'rhesus_macaque', 'peacock', 'rat', 'bandicoot'];
+      const randomAnimal = animalTypes[Math.floor(Math.random() * animalTypes.length)];
+      const randomDistance = Math.floor(Math.random() * 80) + 10; // 10-90 meters
+      
+      const animalData = indianWildlifeFrequencies.find(a => a.id === randomAnimal);
+      const optimalFrequency = animalData?.optimalFrequency || 20;
+      const effectiveness = animalData?.effectiveness || 'medium';
+      
+      const detection = await storage.createAnimalDetection({
+        animalType: randomAnimal,
+        distance: randomDistance,
+        status: "detected",
+        confidence: 0.75 + Math.random() * 0.2,
+        deterrentActivated: false,
+        coordinates: { x: Math.random() * 100, y: Math.random() * 100 },
+      });
+
+      let deterrentTriggered = false;
+      if (settings.autoActivate && randomDistance <= (settings.activationDistance || 50)) {
+        await storage.updateAnimalDetection(detection.id, { 
+          deterrentActivated: true,
+          status: "deterred"
+        });
+        
+        const baseVolume = settings.volume || 70;
+        const distanceMultiplier = Math.max(1, 100 / randomDistance);
+        const calculatedVolume = Math.min(100, Math.round(baseVolume * distanceMultiplier / 2));
+        
+        await storage.createAudioLog({
+          distance: String(randomDistance),
+          calculatedVolume,
+          coordinates: { x: 0, y: 0 },
+        });
+        
+        await storage.createActivityLog({
+          action: "deterrent",
+          details: `AUTO-CAMERA: ${animalData?.name || randomAnimal} detected at ${randomDistance}m - Sound played at ${optimalFrequency}kHz`,
+          metadata: { 
+            detectionId: detection.id, 
+            animalType: randomAnimal,
+            animalName: animalData?.name,
+            distance: randomDistance,
+            frequency: optimalFrequency,
+            effectiveness,
+            volume: calculatedVolume,
+            automated: true,
+            source: 'camera'
+          }
+        });
+        deterrentTriggered = true;
+      }
+
+      await storage.createActivityLog({
+        action: "detection",
+        details: `CAMERA: ${animalData?.name || randomAnimal} spotted at ${randomDistance}m`,
+        metadata: { detectionId: detection.id, animalType: randomAnimal, distance: randomDistance, source: 'camera' }
+      });
+
+      res.json({ 
+        simulated: true,
+        detection: { ...detection, optimalFrequency, effectiveness },
+        deterrentTriggered,
+        message: deterrentTriggered 
+          ? `Automatic deterrent activated for ${animalData?.name || randomAnimal}` 
+          : `${animalData?.name || randomAnimal} detected but outside activation range`
+      });
+    } catch (err) {
+      res.status(400).json({ message: "Camera simulation failed" });
+    }
+  });
+
+  // Get automation status
+  app.get("/api/automation/status", async (req, res) => {
+    const settings = await storage.getDeterrentSettings();
+    const recentDetections = await storage.getAnimalDetections();
+    const last24h = recentDetections?.filter((d: any) => {
+      const detectionTime = new Date(d.createdAt).getTime();
+      const now = Date.now();
+      return now - detectionTime < 24 * 60 * 60 * 1000;
+    }) || [];
+    
+    const deterredCount = last24h.filter((d: any) => d.deterrentActivated).length;
+    
+    res.json({
+      isAutomated: settings?.isEnabled && settings?.autoActivate,
+      systemStatus: settings?.isEnabled ? 'active' : 'standby',
+      detections24h: last24h.length,
+      deterrents24h: deterredCount,
+      activationDistance: settings?.activationDistance || 50,
+      volume: settings?.volume || 70,
+    });
   });
 
   // === Farm Tasks ===

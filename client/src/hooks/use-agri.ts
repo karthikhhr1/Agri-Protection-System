@@ -231,3 +231,37 @@ export function useUpdateDeterrentSettings() {
     },
   });
 }
+
+// === AUTOMATION STATUS ===
+
+export function useAutomationStatus() {
+  return useQuery({
+    queryKey: ["/api/automation/status"],
+    queryFn: async () => {
+      const res = await fetch("/api/automation/status");
+      if (!res.ok) throw new Error("Failed to fetch automation status");
+      return res.json();
+    },
+    refetchInterval: 10000, // Update every 10 seconds
+  });
+}
+
+export function useSimulateCameraDetection() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/detections/simulate-camera", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!res.ok) throw new Error("Camera simulation failed");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/animals"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/automation/status"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/logs"] });
+    },
+  });
+}
