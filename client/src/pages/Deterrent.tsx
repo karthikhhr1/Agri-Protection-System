@@ -1,44 +1,21 @@
-import { useState, useEffect } from "react";
-import { useAnimalDetections, useDeterrentSettings, useUpdateDeterrentSettings, useAutomationStatus, useSimulateCameraDetection } from "@/hooks/use-agri";
+import { useAnimalDetections, useDeterrentSettings, useUpdateDeterrentSettings, useAutomationStatus } from "@/hooks/use-agri";
 import { useLanguage } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
 import { 
   Volume2, 
-  VolumeX,
   Shield,
   ShieldCheck,
-  ShieldAlert,
-  AlertTriangle,
   Activity,
   Radio,
-  Gauge,
   Clock,
   Target,
-  ChevronDown,
-  ChevronUp,
-  Info,
   Zap
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { indianWildlifeFrequencies, animalCategories, frequencyBands, type AnimalFrequencyData } from "@shared/animalFrequencies";
+import { indianWildlifeFrequencies } from "@shared/animalFrequencies";
 
 export default function Deterrent() {
   const { t, formatTime, formatNumber } = useLanguage();
@@ -46,28 +23,13 @@ export default function Deterrent() {
   const { data: settings, isLoading: settingsLoading } = useDeterrentSettings();
   const { data: automationStatus } = useAutomationStatus();
   const updateSettings = useUpdateDeterrentSettings();
-  const simulateCamera = useSimulateCameraDetection();
 
   const recentDetections = detections?.slice(0, 10) || [];
-  const activeAlerts = detections?.filter((d: any) => d.status === 'detected' && !d.deterrentActivated).length || 0;
   const deterredCount = detections?.filter((d: any) => d.deterrentActivated).length || 0;
-  
-  const isFullyAutomated = settings?.isEnabled && settings?.autoActivate;
+  const totalDetections = detections?.length || 0;
 
   const handleToggleSystem = (enabled: boolean) => {
-    updateSettings.mutate({ isEnabled: enabled });
-  };
-
-  const handleVolumeChange = (value: number[]) => {
-    updateSettings.mutate({ volume: value[0] });
-  };
-
-  const handleDistanceChange = (value: number[]) => {
-    updateSettings.mutate({ activationDistance: value[0] });
-  };
-
-  const handleSoundTypeChange = (value: string) => {
-    updateSettings.mutate({ soundType: value });
+    updateSettings.mutate({ isEnabled: enabled, autoActivate: enabled });
   };
 
   const getAnimalIcon = (type: string) => {
@@ -78,24 +40,24 @@ export default function Deterrent() {
       'elephant': '🐘',
       'peacock': '🦚',
       'snake': '🐍',
-      'dog': '🐕',
-      'cat': '🐈',
+      'nilgai': '🦬',
+      'jackal': '🦊',
+      'porcupine': '🦔',
+      'rat': '🐀',
+      'parrot': '🦜',
+      'crow': '🐦‍⬛',
     };
     return icons[type] || '🐾';
   };
 
   const getAnimalName = (type: string) => {
-    const names: Record<string, string> = {
-      'wild_boar': t('deterrent.animalWildBoar'),
-      'deer': t('deterrent.animalDeer'),
-      'monkey': t('deterrent.animalMonkey'),
-      'elephant': t('deterrent.animalElephant'),
-      'peacock': t('deterrent.animalPeacock'),
-      'snake': t('deterrent.animalSnake'),
-      'dog': t('deterrent.animalDog'),
-      'cat': t('deterrent.animalCat'),
-    };
-    return names[type] || type;
+    const animal = indianWildlifeFrequencies.find(a => a.id === type);
+    return animal?.name || type.replace('_', ' ');
+  };
+
+  const getAnimalFrequency = (type: string) => {
+    const animal = indianWildlifeFrequencies.find(a => a.id === type);
+    return animal?.optimalFrequency || 15;
   };
 
   const isLoading = detectionsLoading || settingsLoading;
@@ -107,451 +69,170 @@ export default function Deterrent() {
           <Shield className="w-8 h-8" />
           {t('deterrent.pageTitle')}
         </h1>
-        <p className="text-muted-foreground text-sm md:text-base">{t('deterrent.pageSubtitle')}</p>
+        <p className="text-muted-foreground text-sm md:text-base">{t('deterrent.simpleDesc')}</p>
       </header>
 
-      {/* Automation Status Banner */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={cn(
-          "rounded-xl p-4 border-2 flex flex-col md:flex-row items-start md:items-center justify-between gap-4",
-          isFullyAutomated 
-            ? "bg-green-500/10 border-green-500/30" 
-            : "bg-amber-500/10 border-amber-500/30"
-        )}
-      >
-        <div className="flex items-center gap-3">
-          <div className={cn(
-            "w-12 h-12 rounded-full flex items-center justify-center",
-            isFullyAutomated ? "bg-green-500/20" : "bg-amber-500/20"
-          )}>
-            {isFullyAutomated ? (
-              <Zap className="w-6 h-6 text-green-600" />
-            ) : (
-              <AlertTriangle className="w-6 h-6 text-amber-600" />
-            )}
-          </div>
-          <div>
-            <h3 className={cn(
-              "font-semibold text-lg",
-              isFullyAutomated ? "text-green-700 dark:text-green-400" : "text-amber-700 dark:text-amber-400"
-            )}>
-              {isFullyAutomated ? t('deterrent.fullyAutomated') : t('deterrent.manualMode')}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {isFullyAutomated 
-                ? t('deterrent.automatedDesc')
-                : t('deterrent.manualModeDesc')}
-            </p>
-          </div>
-        </div>
-        {isFullyAutomated && automationStatus && (
-          <div className="flex items-center gap-4 text-sm">
-            <div className="text-center px-3 py-1 bg-background/50 rounded-lg">
-              <div className="font-bold text-lg text-primary">{automationStatus.detections24h || 0}</div>
-              <div className="text-xs text-muted-foreground">{t('deterrent.detections24h')}</div>
-            </div>
-            <div className="text-center px-3 py-1 bg-background/50 rounded-lg">
-              <div className="font-bold text-lg text-green-600">{automationStatus.deterrents24h || 0}</div>
-              <div className="text-xs text-muted-foreground">{t('deterrent.autoDeterrents')}</div>
-            </div>
-            <Badge className="bg-green-500 text-white animate-pulse">
-              <Radio className="w-3 h-3 mr-1" />
-              {t('deterrent.monitoring')}
-            </Badge>
-          </div>
-        )}
-        {!isFullyAutomated && (
-          <button
-            onClick={() => updateSettings.mutate({ isEnabled: true, autoActivate: true })}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover-elevate"
-            data-testid="button-enable-automation"
-          >
-            {t('deterrent.enableAutomation')}
-          </button>
-        )}
-      </motion.div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <StatusCard
-          title={t('deterrent.systemStatus')}
-          value={settings?.isEnabled ? t('deterrent.on') : t('deterrent.off')}
-          icon={settings?.isEnabled ? ShieldCheck : ShieldAlert}
-          color={settings?.isEnabled ? "green" : "gray"}
-        />
-        <StatusCard
-          title={t('deterrent.activeAlerts')}
-          value={activeAlerts}
-          icon={AlertTriangle}
-          color={activeAlerts > 0 ? "orange" : "green"}
-        />
-        <StatusCard
-          title={t('deterrent.animalsDeterred')}
-          value={deterredCount}
-          icon={Shield}
-          color="blue"
-        />
-        <StatusCard
-          title={t('deterrent.activationRange')}
-          value={`${settings?.activationDistance || 50}m`}
-          icon={Target}
-          color="primary"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-        <Card className="lg:col-span-2 shadow-lg">
-          <CardHeader className="border-b bg-muted/20 pb-4">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-primary" />
-                  {t('deterrent.liveDetections')}
-                </CardTitle>
-                <CardDescription className="text-sm">{t('deterrent.autoProtection')}</CardDescription>
-              </div>
-              {settings?.isEnabled && (
-                <Badge className="bg-green-500/10 text-green-600 border-green-500/20 animate-pulse">
-                  <Radio className="w-3 h-3 mr-1" />
-                  {t('deterrent.monitoring')}
-                </Badge>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className="p-4">
-            {recentDetections.length === 0 ? (
-              <div className="py-12 text-center">
-                <ShieldCheck className="w-16 h-16 mx-auto text-green-500/50 mb-4" />
-                <p className="text-lg font-medium text-muted-foreground">{t('deterrent.noAnimals')}</p>
-                <p className="text-sm text-muted-foreground/70 mt-1">{t('deterrent.fieldSafe')}</p>
-              </div>
-            ) : (
-              <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
-                <AnimatePresence>
-                  {recentDetections.map((detection: any, index: number) => (
-                    <motion.div
-                      key={detection.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
-                      transition={{ delay: index * 0.05 }}
-                      className={cn(
-                        "flex items-center justify-between p-4 rounded-xl border transition-all",
-                        detection.deterrentActivated 
-                          ? "bg-green-500/5 border-green-500/20" 
-                          : detection.status === 'detected'
-                            ? "bg-orange-500/5 border-orange-500/20"
-                            : "bg-muted/30 border-muted"
-                      )}
-                      data-testid={`detection-${detection.id}`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="text-3xl">{getAnimalIcon(detection.animalType)}</div>
-                        <div>
-                          <p className="font-semibold text-foreground">{getAnimalName(detection.animalType)}</p>
-                          <div className="flex items-center gap-3 text-sm text-muted-foreground mt-0.5">
-                            <span className="flex items-center gap-1">
-                              <Target className="w-3 h-3" />
-                              {formatNumber(detection.distance)}m {t('deterrent.away')}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {formatTime(detection.createdAt)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {detection.deterrentActivated ? (
-                          <Badge className="bg-green-500 text-white">
-                            <Volume2 className="w-3 h-3 mr-1" />
-                            {t('deterrent.soundPlayed')}
-                          </Badge>
-                        ) : detection.status === 'detected' ? (
-                          <Badge variant="outline" className="border-orange-500/50 text-orange-600">
-                            <AlertTriangle className="w-3 h-3 mr-1" />
-                            {t('deterrent.detected')}
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary">
-                            {t('deterrent.animalLeft')}
-                          </Badge>
-                        )}
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <div className="space-y-4">
-          <Card className="shadow-lg border-primary/20">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-primary" />
-                  {t('deterrent.systemControl')}
-                </span>
-                <Switch
-                  checked={settings?.isEnabled || false}
-                  onCheckedChange={handleToggleSystem}
-                  disabled={updateSettings.isPending}
-                  data-testid="switch-deterrent-power"
-                />
-              </CardTitle>
-              <CardDescription className="text-xs">
-                {settings?.isEnabled ? t('deterrent.systemActive') : t('deterrent.systemInactive')}
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="shadow-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Target className="w-5 h-5 text-primary" />
-                {t('deterrent.triggerDistance')}
-              </CardTitle>
-              <CardDescription className="text-xs">{t('deterrent.triggerDistanceDesc')}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-primary">{settings?.activationDistance || 50}m</span>
-                <Badge variant="outline">{t('deterrent.fromCrops')}</Badge>
-              </div>
-              <Slider
-                value={[settings?.activationDistance || 50]}
-                onValueChange={handleDistanceChange}
-                min={10}
-                max={200}
-                step={10}
-                disabled={updateSettings.isPending}
-                data-testid="slider-activation-distance"
-              />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>10m</span>
-                <span>200m</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Volume2 className="w-5 h-5 text-primary" />
-                {t('deterrent.volume')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-primary">{settings?.volume || 70}%</span>
-                {(settings?.volume || 70) > 80 && (
-                  <Badge variant="destructive" className="text-xs">{t('deterrent.loud')}</Badge>
+      {/* Simple On/Off Control */}
+      <Card className={cn(
+        "shadow-xl border-2 transition-all",
+        settings?.isEnabled 
+          ? "border-green-500/50 bg-green-500/5" 
+          : "border-muted"
+      )}>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className={cn(
+                "w-16 h-16 rounded-full flex items-center justify-center transition-all",
+                settings?.isEnabled 
+                  ? "bg-green-500/20 animate-pulse" 
+                  : "bg-muted"
+              )}>
+                {settings?.isEnabled ? (
+                  <Zap className="w-8 h-8 text-green-600" />
+                ) : (
+                  <Shield className="w-8 h-8 text-muted-foreground" />
                 )}
               </div>
-              <div className="flex items-center gap-3">
-                <VolumeX className="w-4 h-4 text-muted-foreground" />
-                <Slider
-                  value={[settings?.volume || 70]}
-                  onValueChange={handleVolumeChange}
-                  min={0}
-                  max={100}
-                  step={5}
-                  disabled={updateSettings.isPending}
-                  className="flex-1"
-                  data-testid="slider-volume"
-                />
-                <Volume2 className="w-4 h-4 text-muted-foreground" />
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold">
+                  {settings?.isEnabled ? t('deterrent.systemOn') : t('deterrent.systemOff')}
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {settings?.isEnabled 
+                    ? t('deterrent.autoProtectionActive')
+                    : t('deterrent.turnOnToProtect')}
+                </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            <Switch
+              checked={settings?.isEnabled || false}
+              onCheckedChange={handleToggleSystem}
+              disabled={updateSettings.isPending}
+              className="scale-150"
+              data-testid="switch-deterrent-power"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-          <Card className="shadow-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Gauge className="w-5 h-5 text-primary" />
-                {t('deterrent.soundType')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select
-                value={settings?.soundType || "alarm"}
-                onValueChange={handleSoundTypeChange}
-                disabled={updateSettings.isPending}
-              >
-                <SelectTrigger data-testid="select-sound-type">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="alarm">{t('deterrent.alarm')}</SelectItem>
-                  <SelectItem value="ultrasonic">{t('deterrent.ultrasonic')}</SelectItem>
-                  <SelectItem value="predator">{t('deterrent.predator')}</SelectItem>
-                  <SelectItem value="custom">{t('deterrent.custom')}</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground mt-2">{t('deterrent.soundTypeDesc')}</p>
-            </CardContent>
-          </Card>
-        </div>
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-4">
+        <Card className="shadow-lg bg-green-500/5 border-green-500/20">
+          <CardContent className="p-4 text-center">
+            <ShieldCheck className="w-8 h-8 mx-auto text-green-600 mb-2" />
+            <p className="text-3xl font-bold text-green-600">{deterredCount}</p>
+            <p className="text-sm text-muted-foreground">{t('deterrent.animalsDeterred')}</p>
+          </CardContent>
+        </Card>
+        <Card className="shadow-lg bg-primary/5 border-primary/20">
+          <CardContent className="p-4 text-center">
+            <Activity className="w-8 h-8 mx-auto text-primary mb-2" />
+            <p className="text-3xl font-bold text-primary">{totalDetections}</p>
+            <p className="text-sm text-muted-foreground">{t('deterrent.totalDetections')}</p>
+          </CardContent>
+        </Card>
       </div>
 
-      <Card className="shadow-lg bg-primary/5 border-primary/20">
+      {/* How it works - Simple explanation */}
+      <Card className="shadow-lg border-primary/20 bg-primary/5">
         <CardContent className="p-4 md:p-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+          <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-6 h-6 text-primary" />
+              <Zap className="w-6 h-6 text-primary" />
             </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-foreground">{t('deterrent.howItWorks')}</h3>
-              <p className="text-sm text-muted-foreground mt-1">{t('deterrent.howItWorksDesc')}</p>
+            <div>
+              <h3 className="font-bold text-lg">{t('deterrent.fullyAutomatic')}</h3>
+              <p className="text-sm text-muted-foreground mt-1">{t('deterrent.fullyAutomaticDesc')}</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
+      {/* Live Detections */}
       <Card className="shadow-lg">
-        <CardHeader className="border-b bg-muted/20">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Zap className="w-5 h-5 text-primary" />
-            {t('deterrent.frequencyGuide')}
-          </CardTitle>
-          <CardDescription>{t('deterrent.frequencyGuideDesc')}</CardDescription>
+        <CardHeader className="border-b bg-muted/20 pb-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Activity className="w-5 h-5 text-primary" />
+                {t('deterrent.recentActivity')}
+              </CardTitle>
+              <CardDescription className="text-sm">{t('deterrent.whatHappened')}</CardDescription>
+            </div>
+            {settings?.isEnabled && (
+              <Badge className="bg-green-500/10 text-green-600 border-green-500/20 animate-pulse">
+                <Radio className="w-3 h-3 mr-1" />
+                {t('deterrent.watching')}
+              </Badge>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="p-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 mb-6">
-            {frequencyBands.map((band) => (
-              <div 
-                key={band.name}
-                className="p-3 rounded-lg border bg-muted/30 text-center"
-                data-testid={`frequency-band-${band.name.toLowerCase().replace(/\s+/g, '-')}`}
-              >
-                <p className="text-xs font-medium text-muted-foreground truncate">{band.name}</p>
-                <p className="text-sm font-bold text-primary mt-1">{band.range}</p>
-                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{band.targetAnimals.slice(0, 2).join(', ')}</p>
-              </div>
-            ))}
-          </div>
-
-          <Accordion type="multiple" className="w-full">
-            {(Object.keys(animalCategories) as Array<keyof typeof animalCategories>).map((categoryKey) => {
-              const category = animalCategories[categoryKey];
-              const animals = indianWildlifeFrequencies.filter(a => a.category === categoryKey);
-              
-              return (
-                <AccordionItem key={categoryKey} value={categoryKey} className="border rounded-lg mb-2 overflow-hidden">
-                  <AccordionTrigger 
-                    className="px-4 py-3 hover:no-underline hover:bg-muted/50"
-                    data-testid={`accordion-${categoryKey}`}
+          {recentDetections.length === 0 ? (
+            <div className="py-12 text-center">
+              <ShieldCheck className="w-16 h-16 mx-auto text-green-500/50 mb-4" />
+              <p className="text-lg font-medium text-muted-foreground">{t('deterrent.noAnimals')}</p>
+              <p className="text-sm text-muted-foreground/70 mt-1">{t('deterrent.fieldSafe')}</p>
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+              <AnimatePresence>
+                {recentDetections.map((detection: any, index: number) => (
+                  <motion.div
+                    key={detection.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ delay: index * 0.05 }}
+                    className={cn(
+                      "flex items-center justify-between p-4 rounded-xl border transition-all",
+                      detection.deterrentActivated 
+                        ? "bg-green-500/5 border-green-500/20" 
+                        : "bg-orange-500/5 border-orange-500/20"
+                    )}
+                    data-testid={`detection-${detection.id}`}
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{category.icon}</span>
-                      <div className="text-left">
-                        <p className="font-semibold">{t(`deterrent.category.${categoryKey}`)}</p>
-                        <p className="text-xs text-muted-foreground">{animals.length} {t('deterrent.animals')}</p>
+                    <div className="flex items-center gap-4">
+                      <div className="text-3xl">{getAnimalIcon(detection.animalType)}</div>
+                      <div>
+                        <p className="font-semibold text-foreground">{getAnimalName(detection.animalType)}</p>
+                        <div className="flex items-center gap-3 text-sm text-muted-foreground mt-0.5">
+                          <span className="flex items-center gap-1">
+                            <Target className="w-3 h-3" />
+                            {formatNumber(detection.distance)}m
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {formatTime(detection.createdAt)}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-4 pb-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {animals.map((animal) => (
-                        <AnimalFrequencyCard 
-                          key={animal.id} 
-                          animal={animal} 
-                          t={t}
-                        />
-                      ))}
+                    <div className="flex flex-col items-end gap-1">
+                      {detection.deterrentActivated ? (
+                        <>
+                          <Badge className="bg-green-500 text-white">
+                            <Volume2 className="w-3 h-3 mr-1" />
+                            {t('deterrent.scaredAway')}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {getAnimalFrequency(detection.animalType)} kHz
+                          </span>
+                        </>
+                      ) : (
+                        <Badge variant="outline" className="border-orange-500/50 text-orange-600">
+                          {t('deterrent.detected')}
+                        </Badge>
+                      )}
                     </div>
-                  </AccordionContent>
-                </AccordionItem>
-              );
-            })}
-          </Accordion>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-function AnimalFrequencyCard({ animal, t }: { animal: AnimalFrequencyData; t: (key: string) => string }) {
-  const effectivenessColors = {
-    high: 'bg-green-500/10 text-green-600 border-green-500/30',
-    medium: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/30',
-    low: 'bg-red-500/10 text-red-600 border-red-500/30',
-  };
-
-  return (
-    <div 
-      className="p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors"
-      data-testid={`animal-card-${animal.id}`}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm truncate">{animal.name}</p>
-          <p className="text-xs text-muted-foreground truncate">{animal.hindiName}</p>
-        </div>
-        <Badge 
-          variant="outline" 
-          className={cn("text-xs shrink-0", effectivenessColors[animal.effectiveness])}
-        >
-          {t(`deterrent.effectiveness.${animal.effectiveness}`)}
-        </Badge>
-      </div>
-      
-      <div className="mt-2 space-y-1">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">{t('deterrent.optimalFreq')}:</span>
-          <span className="font-bold text-primary">{animal.optimalFrequency} kHz</span>
-        </div>
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">{t('deterrent.freqRange')}:</span>
-          <span className="font-medium">{animal.frequencyRange.min}-{animal.frequencyRange.max} kHz</span>
-        </div>
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">{t('deterrent.activeTime')}:</span>
-          <span className="font-medium capitalize">{t(`deterrent.time.${animal.activeTime}`)}</span>
-        </div>
-      </div>
-      
-      <div className="mt-2 pt-2 border-t">
-        <p className="text-xs text-muted-foreground line-clamp-2">{animal.cropDamageType}</p>
-      </div>
-      
-      <div className="mt-2 flex flex-wrap gap-1">
-        {animal.seasonalPeak.slice(0, 3).map((month) => (
-          <Badge key={month} variant="secondary" className="text-xs px-1.5 py-0">
-            {month}
-          </Badge>
-        ))}
-        {animal.seasonalPeak.length > 3 && (
-          <Badge variant="secondary" className="text-xs px-1.5 py-0">
-            +{animal.seasonalPeak.length - 3}
-          </Badge>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function StatusCard({ title, value, icon: Icon, color }: { title: string; value: string | number; icon: any; color: string }) {
-  const colorClasses: Record<string, string> = {
-    green: "bg-green-500/10 text-green-600 border-green-500/20",
-    orange: "bg-orange-500/10 text-orange-600 border-orange-500/20",
-    blue: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-    gray: "bg-muted text-muted-foreground border-muted",
-    primary: "bg-primary/10 text-primary border-primary/20",
-  };
-
-  return (
-    <Card className={cn("shadow-md border", colorClasses[color] || colorClasses.primary)}>
-      <CardContent className="p-3 md:p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <Icon className="w-4 h-4" />
-          <span className="text-xs font-medium truncate">{title}</span>
-        </div>
-        <p className="text-xl md:text-2xl font-bold">{value}</p>
-      </CardContent>
-    </Card>
   );
 }
