@@ -155,7 +155,54 @@ export async function registerRoutes(
         - Oedema (raised corky bumps)
         
         ============================================
-        STAGE 2: PEST & INSECT IDENTIFICATION (100+ species)
+        STAGE 2: WILDLIFE/ANIMAL DETECTION (40+ species)
+        ============================================
+        
+        IMPORTANT: Check if any ANIMALS or WILDLIFE are visible in the image!
+        These are larger creatures (not insects) that damage crops:
+        
+        LARGE MAMMALS:
+        - Wild Boar / Jungli Suar (Sus scrofa) - gray/brown pig, tusks
+        - Nilgai / Blue Bull (Boselaphus) - large blue-gray antelope
+        - Sambar Deer (Rusa unicolor) - large brown deer
+        - Spotted Deer / Chital (Axis axis) - spotted brown deer
+        - Indian Elephant (Elephas maximus) - gray elephant
+        - Gaur / Indian Bison (Bos gaurus) - massive black bovine
+        - Wild Buffalo (Bubalus arnee) - dark water buffalo
+        
+        SMALL MAMMALS:
+        - Indian Porcupine (Hystrix indica) - quills, nocturnal
+        - Indian Hare (Lepus nigricollis) - rabbit-like
+        - Mongoose (Herpestes) - slender, long tail
+        - Civet / Toddy Cat - spotted, nocturnal
+        - Squirrels (Funambulus) - striped, bushy tail
+        - Rats/Bandicoots - field rodents
+        - Jackal (Canis aureus) - fox-like, golden
+        - Fox (Vulpes bengalensis) - small, reddish
+        
+        PRIMATES:
+        - Rhesus Macaque (Macaca mulatta) - brown monkey, red face
+        - Langur / Hanuman (Semnopithecus) - gray with black face
+        - Bonnet Macaque (Macaca radiata) - hair whorl on head
+        
+        BIRDS (crop damaging):
+        - Parakeet / Parrot (Psittacula) - green, red beak
+        - Peacock / Mor (Pavo cristatus) - blue, long tail
+        - Crow (Corvus) - black bird
+        - Myna / Mainah - brown with yellow
+        - Pigeon / Kabutar - gray bird
+        - Sparrow / Gauraiya - small brown
+        
+        REPTILES:
+        - Cobra (Naja naja) - hooded snake
+        - Russell's Viper (Daboia) - brown, chain pattern
+        - Rat Snake (Ptyas) - long, non-venomous
+        - Monitor Lizard (Varanus) - large lizard
+        
+        If you see ANY of these animals, report them with location and estimated distance from camera.
+        
+        ============================================
+        STAGE 3: PEST & INSECT IDENTIFICATION (100+ species)
         ============================================
         
         APHIDS (All species):
@@ -308,6 +355,7 @@ export async function registerRoutes(
         {
           "diseaseDetected": boolean,
           "pestsDetected": boolean,
+          "animalsDetected": boolean,
           "severity": "none" | "low" | "medium" | "high" | "critical",
           "cropType": "string (crop name in simple terms)",
           "summary": "string (1-2 sentence plain language summary of ALL findings)",
@@ -317,6 +365,16 @@ export async function registerRoutes(
             "category": "fungal" | "bacterial" | "viral" | "nutrient" | "environmental",
             "confidence": number (0-100),
             "symptoms": ["string (visible symptoms described simply)"]
+          }],
+          "animals": [{
+            "type": "string (animal ID: wild_boar, nilgai, deer, elephant, monkey, langur, porcupine, hare, jackal, peacock, parrot, crow, cobra, rat, etc.)",
+            "name": "string (common name)",
+            "localName": "string (Hindi/regional name)",
+            "confidence": number (0-100),
+            "estimatedDistance": number (estimated meters from camera, e.g. 10, 25, 50, 100),
+            "location": "string (where in the image - left, right, center, background)",
+            "count": number (how many visible),
+            "threat": "low" | "medium" | "high" (crop damage threat level)
           }],
           "pests": [{
             "name": "string (pest/insect name)",
@@ -398,6 +456,50 @@ export async function registerRoutes(
         details: `Analysis complete: ${analysis.diseaseDetected ? 'Disease detected' : 'No disease'} - ${analysis.cropType}`,
         metadata: { reportId: id, severity: analysis.severity }
       });
+
+      // AUTO-TRIGGER WILDLIFE DETERRENT if animals detected
+      if (analysis.animalsDetected && analysis.animals && analysis.animals.length > 0) {
+        const deterrentSettings = await storage.getDeterrentSettings();
+        
+        for (const animal of analysis.animals) {
+          // Create animal detection record
+          const detection = await storage.createAnimalDetection({
+            animalType: animal.type || 'unknown',
+            distance: animal.estimatedDistance || 50,
+            confidence: animal.confidence || 70,
+            status: 'detected',
+            deterrentActivated: false,
+          });
+
+          // Auto-activate deterrent if enabled
+          if (deterrentSettings?.isEnabled && deterrentSettings?.autoActivate) {
+            const optimalFrequency = getRecommendedFrequency([animal.type || 'unknown']);
+            
+            // Update detection to show deterrent was activated
+            await storage.updateAnimalDetection(detection.id, {
+              deterrentActivated: true,
+              status: 'deterred',
+            });
+
+            await storage.createActivityLog({
+              action: "deterrent",
+              details: `Auto-activated deterrent for ${animal.name || animal.type}: ${optimalFrequency} kHz`,
+              metadata: { 
+                animalType: animal.type,
+                distance: animal.estimatedDistance,
+                frequency: optimalFrequency,
+                detectionId: detection.id
+              }
+            });
+          }
+        }
+
+        await storage.createActivityLog({
+          action: "detection",
+          details: `Wildlife detected in drone image: ${analysis.animals.map((a: any) => a.name || a.type).join(', ')}`,
+          metadata: { reportId: id, animalCount: analysis.animals.length }
+        });
+      }
 
       res.json(updatedReport);
     } catch (err) {
