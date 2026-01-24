@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Droplets, Volume2, ScanEye, Sprout, Bot, Globe, Calendar, Package, FileText, ChevronDown, MapPin, Clock, Menu, X } from "lucide-react";
+import { LayoutDashboard, Droplets, Volume2, ScanEye, Sprout, Bot, Globe, Calendar, Package, FileText, ChevronDown, MapPin, Clock, Menu, X, Cpu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage, languageNames, languageNamesEnglish, type Language } from "@/lib/i18n";
 import { useState } from "react";
@@ -24,6 +24,7 @@ const navItems = [
   { href: "/schedule", labelKey: "nav.schedule", icon: Calendar },
   { href: "/inventory", labelKey: "nav.inventory", icon: Package },
   { href: "/logs", labelKey: "nav.logs", icon: FileText },
+  { href: "/hardware", labelKey: "nav.hardware", icon: Cpu },
 ];
 
 export function Navigation() {

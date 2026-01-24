@@ -1,7 +1,7 @@
 import { db } from "./db";
 import { 
   reports, sensorReadings, audioLogs, farmTasks, inventoryItems, transactions, activityLogs,
-  deterrentSettings, irrigationSettings, animalDetections, farmFields, fieldCaptures,
+  deterrentSettings, irrigationSettings, animalDetections, farmFields, fieldCaptures, hardwareDevices,
   type InsertReport, type Report,
   type InsertSensorReading, type SensorReading,
   type InsertAudioLog, type AudioLog,
@@ -13,7 +13,8 @@ import {
   type InsertIrrigationSetting, type IrrigationSetting,
   type InsertAnimalDetection, type AnimalDetection,
   type FarmField, type InsertFarmField,
-  type FieldCapture, type InsertFieldCapture
+  type FieldCapture, type InsertFieldCapture,
+  type HardwareDevice, type InsertHardwareDevice
 } from "@shared/schema";
 import { eq, desc, inArray } from "drizzle-orm";
 
@@ -80,6 +81,13 @@ export interface IStorage {
   getFieldCapture(id: number): Promise<FieldCapture | undefined>;
   createFieldCapture(capture: InsertFieldCapture): Promise<FieldCapture>;
   deleteFieldCapture(id: number): Promise<boolean>;
+
+  // Hardware Devices
+  getHardwareDevices(): Promise<HardwareDevice[]>;
+  getHardwareDevice(id: number): Promise<HardwareDevice | undefined>;
+  createHardwareDevice(device: InsertHardwareDevice): Promise<HardwareDevice>;
+  updateHardwareDevice(id: number, updates: Partial<HardwareDevice>): Promise<HardwareDevice | undefined>;
+  deleteHardwareDevice(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -311,6 +319,34 @@ export class DatabaseStorage implements IStorage {
 
   async deleteFieldCapture(id: number): Promise<boolean> {
     const result = await db.delete(fieldCaptures).where(eq(fieldCaptures.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Hardware Devices
+  async getHardwareDevices(): Promise<HardwareDevice[]> {
+    return await db.select().from(hardwareDevices).orderBy(desc(hardwareDevices.createdAt));
+  }
+
+  async getHardwareDevice(id: number): Promise<HardwareDevice | undefined> {
+    const [device] = await db.select().from(hardwareDevices).where(eq(hardwareDevices.id, id));
+    return device;
+  }
+
+  async createHardwareDevice(device: InsertHardwareDevice): Promise<HardwareDevice> {
+    const [newDevice] = await db.insert(hardwareDevices).values(device).returning();
+    return newDevice;
+  }
+
+  async updateHardwareDevice(id: number, updates: Partial<HardwareDevice>): Promise<HardwareDevice | undefined> {
+    const [updated] = await db.update(hardwareDevices)
+      .set(updates)
+      .where(eq(hardwareDevices.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteHardwareDevice(id: number): Promise<boolean> {
+    const result = await db.delete(hardwareDevices).where(eq(hardwareDevices.id, id));
     return (result.rowCount ?? 0) > 0;
   }
 }

@@ -62,10 +62,17 @@ export async function registerRoutes(
         
         Your report should answer these key questions:
         1. WHAT IS IT? - Identify the crop and any disease/problem in simple terms
-        2. HOW SERIOUS? - Rate severity: none, low, medium, high, or critical
-        3. WHAT TO DO NOW? - Give clear, step-by-step treatment actions the farmer can take TODAY
-        4. HOW TO PREVENT? - Explain how to stop this from happening again
-        5. WARNING SIGNS - What to watch for in the future
+        2. INSECTS/PESTS? - Look carefully for ANY insects, bugs, caterpillars, beetles, aphids, mites, worms, or other pests on leaves, stems, or soil
+        3. HOW SERIOUS? - Rate severity: none, low, medium, high, or critical
+        4. WHAT TO DO NOW? - Give clear, step-by-step treatment actions the farmer can take TODAY
+        5. HOW TO PREVENT? - Explain how to stop this from happening again
+        6. WARNING SIGNS - What to watch for in the future
+        
+        IMPORTANT: Look very carefully for:
+        - Live insects (aphids, whiteflies, mealybugs, caterpillars, beetles, grasshoppers, moths, thrips, mites)
+        - Insect eggs or larvae on leaves (look for clusters, patterns)
+        - Insect damage patterns (holes, tunnels, bite marks, trails)
+        - Beneficial insects vs harmful pests
         
         Be specific with treatment advice:
         - Name actual products/remedies farmers can buy locally
@@ -75,6 +82,7 @@ export async function registerRoutes(
         Return a JSON object with this exact structure:
         {
           "diseaseDetected": boolean,
+          "pestsDetected": boolean,
           "severity": "none" | "low" | "medium" | "high" | "critical",
           "cropType": "string (crop name in simple terms)",
           "summary": "string (1-2 sentence plain language summary of findings)",
@@ -83,6 +91,15 @@ export async function registerRoutes(
             "localName": "string (common/local name if different)",
             "confidence": number (0-100),
             "symptoms": ["string (visible symptoms described simply)"]
+          }],
+          "pests": [{
+            "name": "string (pest/insect name)",
+            "localName": "string (common/local name if different)",
+            "type": "insect" | "mite" | "worm" | "larvae" | "eggs" | "other",
+            "confidence": number (0-100),
+            "description": "string (what it looks like)",
+            "damageType": "string (what damage it causes)",
+            "location": "string (where on the plant it was found)"
           }],
           "whatToDoNow": [{
             "step": number,
@@ -612,6 +629,166 @@ export async function registerRoutes(
       res.sendStatus(204);
     } catch (err) {
       res.status(500).json({ message: "Failed to delete field capture" });
+    }
+  });
+
+  // === Hardware Devices ===
+  app.get("/api/devices", async (req, res) => {
+    try {
+      const devices = await storage.getHardwareDevices();
+      res.json(devices);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch devices" });
+    }
+  });
+
+  app.get("/api/devices/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const device = await storage.getHardwareDevice(id);
+      if (!device) return res.status(404).json({ message: "Device not found" });
+      res.json(device);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch device" });
+    }
+  });
+
+  app.post("/api/devices", async (req, res) => {
+    try {
+      const { hardwareDeviceRequestSchema } = await import("@shared/schema");
+      const data = hardwareDeviceRequestSchema.parse(req.body);
+      const device = await storage.createHardwareDevice(data);
+      
+      await storage.createActivityLog({
+        action: "system",
+        details: `Hardware device "${data.name}" added (${data.type})`,
+        metadata: { deviceId: device.id, type: data.type }
+      });
+      
+      res.status(201).json(device);
+    } catch (err) {
+      console.error("Create device error:", err);
+      res.status(500).json({ message: "Failed to create device" });
+    }
+  });
+
+  app.patch("/api/devices/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const updateSchema = z.object({
+        name: z.string().optional(),
+        type: z.enum(['soil_sensor', 'camera', 'weather_station', 'water_meter']).optional(),
+        connectionType: z.enum(['wifi', 'lora', 'zigbee', 'wired', 'bluetooth']).optional(),
+        connectionUrl: z.string().optional(),
+        status: z.string().optional(),
+        lastDataAt: z.date().optional(),
+      });
+      const updates = updateSchema.parse(req.body);
+      const device = await storage.updateHardwareDevice(id, updates);
+      if (!device) return res.status(404).json({ message: "Device not found" });
+      res.json(device);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update device" });
+    }
+  });
+
+  app.delete("/api/devices/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deleteHardwareDevice(id);
+      if (!success) return res.status(404).json({ message: "Device not found" });
+      
+      await storage.createActivityLog({
+        action: "system",
+        details: `Hardware device removed`,
+        metadata: { deviceId: id }
+      });
+      
+      res.sendStatus(204);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to delete device" });
+    }
+  });
+
+  // Test device connection
+  app.post("/api/devices/:id/test", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const device = await storage.getHardwareDevice(id);
+      if (!device) return res.status(404).json({ message: "Device not found" });
+
+      // Simulate connection test based on device type
+      const testResult = {
+        success: true,
+        latency: Math.floor(Math.random() * 100) + 50,
+        message: "Connection successful"
+      };
+
+      // Update device status to online
+      await storage.updateHardwareDevice(id, { 
+        status: "online",
+        lastDataAt: new Date()
+      });
+
+      res.json(testResult);
+    } catch (err) {
+      res.status(500).json({ message: "Connection test failed" });
+    }
+  });
+
+  // Capture image from camera device
+  app.post("/api/devices/:id/capture", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const device = await storage.getHardwareDevice(id);
+      if (!device) return res.status(404).json({ message: "Device not found" });
+      if (device.type !== 'camera') return res.status(400).json({ message: "Device is not a camera" });
+
+      // Create a report from the camera capture
+      const report = await storage.createReport({
+        imageUrl: device.connectionUrl || "https://via.placeholder.com/800x600?text=Camera+Feed",
+        status: "pending"
+      });
+
+      await storage.createActivityLog({
+        action: "detection",
+        details: `Image captured from camera "${device.name}"`,
+        metadata: { deviceId: id, reportId: report.id }
+      });
+
+      res.status(201).json(report);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to capture image" });
+    }
+  });
+
+  // Get sensor reading from sensor device
+  app.post("/api/devices/:id/read", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const device = await storage.getHardwareDevice(id);
+      if (!device) return res.status(404).json({ message: "Device not found" });
+      if (device.type !== 'soil_sensor' && device.type !== 'weather_station') {
+        return res.status(400).json({ message: "Device is not a sensor" });
+      }
+
+      // Simulate sensor reading
+      const reading = {
+        soilMoisture: Math.floor(Math.random() * 60) + 20, // 20-80%
+        humidity: Math.floor(Math.random() * 40) + 40, // 40-80%
+        temperature: Math.floor(Math.random() * 15) + 20, // 20-35°C
+        timestamp: new Date().toISOString()
+      };
+
+      // Update device last data time
+      await storage.updateHardwareDevice(id, { 
+        status: "online",
+        lastDataAt: new Date()
+      });
+
+      res.json(reading);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to read sensor data" });
     }
   });
 

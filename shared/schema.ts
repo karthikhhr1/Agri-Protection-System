@@ -140,6 +140,23 @@ export const fieldCaptures = pgTable("field_captures", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// === HARDWARE DEVICES (Sensors & Cameras) ===
+export const hardwareDevices = pgTable("hardware_devices", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // 'soil_sensor', 'camera', 'weather_station', 'water_meter'
+  model: text("model"), // device model/brand
+  connectionType: text("connection_type").default("wifi"), // wifi, lora, zigbee, wired, bluetooth
+  connectionUrl: text("connection_url"), // IP address, stream URL, or endpoint
+  apiKey: text("api_key"), // device API key if needed
+  fieldId: integer("field_id"), // which field this device monitors
+  location: jsonb("location"), // { lat: number, lng: number } or { zone: string }
+  status: text("status").default("offline"), // online, offline, error, calibrating
+  lastDataAt: timestamp("last_data_at"), // last time data was received
+  config: jsonb("config"), // device-specific configuration
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // === SCHEMAS ===
 export const insertReportSchema = createInsertSchema(reports).omit({ id: true, createdAt: true });
 export const insertSensorReadingSchema = createInsertSchema(sensorReadings).omit({ id: true, createdAt: true });
@@ -153,6 +170,7 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({ i
 export const insertActivityLogSchema = createInsertSchema(activityLogs).omit({ id: true, createdAt: true });
 export const insertFarmFieldSchema = createInsertSchema(farmFields).omit({ id: true, createdAt: true });
 export const insertFieldCaptureSchema = createInsertSchema(fieldCaptures).omit({ id: true, createdAt: true });
+export const insertHardwareDeviceSchema = createInsertSchema(hardwareDevices).omit({ id: true, createdAt: true });
 
 // === TYPES ===
 export type Report = typeof reports.$inferSelect;
@@ -190,6 +208,9 @@ export type InsertFarmField = z.infer<typeof insertFarmFieldSchema>;
 
 export type FieldCapture = typeof fieldCaptures.$inferSelect;
 export type InsertFieldCapture = z.infer<typeof insertFieldCaptureSchema>;
+
+export type HardwareDevice = typeof hardwareDevices.$inferSelect;
+export type InsertHardwareDevice = z.infer<typeof insertHardwareDeviceSchema>;
 
 // API Request Types
 export const analyzeImageSchema = z.object({
@@ -276,4 +297,16 @@ export const fieldCaptureRequestSchema = z.object({
     recommendations: z.array(z.string()),
   }).optional(),
   notes: z.string().optional(),
+});
+
+export const hardwareDeviceRequestSchema = z.object({
+  name: z.string().min(1),
+  type: z.enum(['soil_sensor', 'camera', 'weather_station', 'water_meter']),
+  model: z.string().optional(),
+  connectionType: z.enum(['wifi', 'lora', 'zigbee', 'wired', 'bluetooth']).optional(),
+  connectionUrl: z.string().optional(),
+  apiKey: z.string().optional(),
+  fieldId: z.number().optional(),
+  location: z.object({ lat: z.number(), lng: z.number() }).optional(),
+  config: z.record(z.any()).optional(),
 });
