@@ -489,63 +489,74 @@ export default function Analysis() {
                     </div>
                   </div>
 
-                  {data?.animals?.length > 0 && (
-                    <Card className="border-orange-200 bg-orange-50/50 dark:bg-orange-950/20">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-base md:text-lg flex items-center gap-2 text-orange-600">
-                          <Zap className="w-5 h-5" />
-                          {t('analysis.animalsDetected')}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        {data.animals.map((animal: any, i: number) => {
-                          const frequency = getRecommendedFrequency([animal.type || 'unknown']);
-                          const animalData = indianWildlifeFrequencies.find(a => a.id === animal.type);
-                          return (
-                            <div key={i} className="p-4 bg-background rounded-xl border border-orange-200">
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-3">
-                                  <span className="text-3xl">{getAnimalEmoji(animal.type)}</span>
-                                  <div>
-                                    <p className="font-bold text-orange-600">{animal.name || animal.type}</p>
-                                    {animal.localName && <p className="text-sm text-muted-foreground">{animal.localName}</p>}
+                  <Card className={`${data?.animals?.length > 0 ? 'border-orange-200 bg-orange-50/50 dark:bg-orange-950/20' : 'border-green-200 bg-green-50/50 dark:bg-green-950/20'}`}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className={`text-base md:text-lg flex items-center gap-2 ${data?.animals?.length > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+                        <Zap className="w-5 h-5" />
+                        {t('analysis.wildlifeScan')}
+                      </CardTitle>
+                      <CardDescription className="text-xs">
+                        {t('analysis.connectedToDeterrent')}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {data?.animals?.length > 0 ? (
+                        <>
+                          {data.animals.map((animal: any, i: number) => {
+                            const frequency = getRecommendedFrequency([animal.type || 'unknown']);
+                            const animalData = indianWildlifeFrequencies.find(a => a.id === animal.type);
+                            return (
+                              <div key={i} className="p-4 bg-background rounded-xl border border-orange-200">
+                                <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-3xl">{getAnimalEmoji(animal.type)}</span>
+                                    <div>
+                                      <p className="font-bold text-orange-600">{animal.name || animal.type}</p>
+                                      {animal.localName && <p className="text-sm text-muted-foreground">{animal.localName}</p>}
+                                    </div>
+                                  </div>
+                                  <Badge className="bg-green-500 text-white">
+                                    <Volume2 className="w-3 h-3 mr-1" />
+                                    {t('analysis.deterrentTriggered')}
+                                  </Badge>
+                                </div>
+                                
+                                <div className="grid grid-cols-3 gap-2 md:gap-3 text-center">
+                                  <div className="p-2 md:p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                                    <Target className="w-4 h-4 md:w-5 md:h-5 mx-auto text-orange-600 mb-1" />
+                                    <p className="text-xs text-muted-foreground">{t('analysis.distance')}</p>
+                                    <p className="text-base md:text-lg font-bold text-orange-600">{animal.estimatedDistance || '?'}m</p>
+                                  </div>
+                                  <div className="p-2 md:p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                                    <Volume2 className="w-4 h-4 md:w-5 md:h-5 mx-auto text-blue-600 mb-1" />
+                                    <p className="text-xs text-muted-foreground">{t('analysis.frequency')}</p>
+                                    <p className="text-base md:text-lg font-bold text-blue-600">{frequency} kHz</p>
+                                  </div>
+                                  <div className="p-2 md:p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                                    <ShieldCheck className="w-4 h-4 md:w-5 md:h-5 mx-auto text-green-600 mb-1" />
+                                    <p className="text-xs text-muted-foreground">{t('analysis.result')}</p>
+                                    <p className="text-xs md:text-sm font-bold text-green-600">{t('analysis.scaredAway')}</p>
                                   </div>
                                 </div>
-                                <Badge className="bg-green-500 text-white">
-                                  <Volume2 className="w-3 h-3 mr-1" />
-                                  {t('analysis.deterrentTriggered')}
-                                </Badge>
+                                
+                                {animalData && (
+                                  <p className="text-xs text-muted-foreground mt-3">
+                                    {t('analysis.optimalRange')}: {animalData.frequencyRange.min}-{animalData.frequencyRange.max} kHz
+                                  </p>
+                                )}
                               </div>
-                              
-                              <div className="grid grid-cols-3 gap-3 text-center">
-                                <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                                  <Target className="w-5 h-5 mx-auto text-orange-600 mb-1" />
-                                  <p className="text-xs text-muted-foreground">{t('analysis.distance')}</p>
-                                  <p className="text-lg font-bold text-orange-600">{animal.estimatedDistance || '?'}m</p>
-                                </div>
-                                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                                  <Volume2 className="w-5 h-5 mx-auto text-blue-600 mb-1" />
-                                  <p className="text-xs text-muted-foreground">{t('analysis.frequency')}</p>
-                                  <p className="text-lg font-bold text-blue-600">{frequency} kHz</p>
-                                </div>
-                                <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                                  <ShieldCheck className="w-5 h-5 mx-auto text-green-600 mb-1" />
-                                  <p className="text-xs text-muted-foreground">{t('analysis.result')}</p>
-                                  <p className="text-sm font-bold text-green-600">{t('analysis.scaredAway')}</p>
-                                </div>
-                              </div>
-                              
-                              {animalData && (
-                                <p className="text-xs text-muted-foreground mt-3">
-                                  {t('analysis.optimalRange')}: {animalData.frequencyRange.min}-{animalData.frequencyRange.max} kHz
-                                </p>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </CardContent>
-                    </Card>
-                  )}
+                            );
+                          })}
+                        </>
+                      ) : (
+                        <div className="p-6 text-center bg-background rounded-xl border border-green-200">
+                          <ShieldCheck className="w-12 h-12 mx-auto text-green-500 mb-3" />
+                          <p className="font-bold text-green-600 text-lg">{t('analysis.noAnimalsDetected')}</p>
+                          <p className="text-sm text-muted-foreground mt-1">{t('analysis.fieldClear')}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
 
                   {data?.diseases?.length > 0 && (
                     <Card className="border-red-200 bg-red-50/50 dark:bg-red-950/20">
