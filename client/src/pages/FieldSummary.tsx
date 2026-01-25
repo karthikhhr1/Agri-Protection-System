@@ -31,10 +31,14 @@ import {
   Droplets,
   Calendar,
   TrendingUp,
-  FileText
+  FileText,
+  Map,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import type { FarmField } from "@shared/schema";
+import { GoogleMapsField } from "@/components/GoogleMapsField";
 
 interface PolygonPoint {
   lat: number;
@@ -117,6 +121,7 @@ export default function FieldSummary() {
   const { toast } = useToast();
   const [selectedFieldId, setSelectedFieldId] = useState<number | null>(null);
   const [showDialog, setShowDialog] = useState(false);
+  const [showAllFieldsMap, setShowAllFieldsMap] = useState(true);
   const [newField, setNewField] = useState({
     name: '',
     cropType: '',
@@ -338,6 +343,52 @@ export default function FieldSummary() {
           </DialogContent>
         </Dialog>
       </header>
+
+      {/* All Fields Google Map */}
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Map className="w-5 h-5 text-primary" />
+              {t('fieldSummary.mapView')}
+            </CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAllFieldsMap(!showAllFieldsMap)}
+              data-testid="button-toggle-map"
+            >
+              {showAllFieldsMap ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </Button>
+          </div>
+        </CardHeader>
+        <AnimatePresence>
+          {showAllFieldsMap && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <CardContent className="pt-0">
+                <GoogleMapsField
+                  polygons={fields?.map((field, index) => ({
+                    id: field.id,
+                    name: field.name,
+                    polygon: Array.isArray(field.polygon) ? field.polygon as { lat: number; lng: number }[] : [],
+                    color: index === fields.findIndex(f => f.id === selectedFieldId) ? "#3b82f6" : "#22c55e"
+                  })) || []}
+                  height="300px"
+                  onPolygonClick={(fieldId) => setSelectedFieldId(fieldId)}
+                />
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  {t('fieldSummary.viewOnMap')} - {fields?.length || 0} {fields?.length === 1 ? 'field' : 'fields'}
+                </p>
+              </CardContent>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </Card>
 
       <ScrollArea className="w-full whitespace-nowrap">
         <div className="flex gap-3 pb-4">

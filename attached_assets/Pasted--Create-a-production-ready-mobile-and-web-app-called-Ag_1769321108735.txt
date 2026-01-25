@@ -1,0 +1,83 @@
+**“Create a production-ready mobile and web app called AgriShield AI designed specifically for farmers, agriculture field officers, and cooperatives. The app must detect plant pests and diseases with extreme accuracy using state-of-the-art vision models. This is a real-world farming tool — it must be fast, reliable, and idiot-proof.
+
+CORE PURPOSE
+
+Farmers take a photo of a crop → the app instantly identifies the pest/disease → explains severity → gives clear treatment steps → generates a field report.
+
+NON-NEGOTIABLE REQUIREMENTS (Very High Accuracy & Reliability)
+
+Ultra-accurate detection of pests, fungal diseases, nutrient deficiencies, leaf spots, stem issues, root patterns.
+
+Confidence score per detection.
+
+Works with dirty, low-light, real farm images — not studio photos.
+
+Offline mode for image capture and queuing (critical for rural areas).
+
+Model must be optimized for real crops in India: rice, wheat, maize, sugarcane, cotton, pulses, vegetables, fruits.
+
+Must support 20+ common pests (e.g., fall armyworm, aphids, whiteflies, bollworm) and major diseases (blight, mildew, rust, mosaic, rot).
+
+USER EXPERIENCE (Simple Enough for Any Farmer)
+
+Home screen: ONE BIG BUTTON → “Scan My Crop”.
+
+Instant result screen with:
+
+Pest/disease name
+
+Severity level
+
+What caused it
+
+What to do today (immediate action)
+
+What to do this week (follow-up steps)
+
+Voice instructions (Hindi + English + local language option).
+
+A “Farmer Mode” (simple) and “Expert Mode” (detailed agri insights).
+
+REPORTING
+
+Auto-generate a clean, easy-to-read report:
+
+Crop name
+
+Location (manual entry to avoid GPS issues)
+
+Pest/disease identified
+
+Severity
+
+Recommended treatment
+
+Date and time
+
+Export as PDF, text, or WhatsApp share.
+
+Reports must be stored in the user’s “Field History”.
+
+DASHBOARD (Green, Natural, Tree-Themed)
+
+Clean and calm green palette inspired by farms, leaves, and trees.
+
+Large tiles, rounded corners, soft shadows.
+
+Simple navigation: Scan | History | Insights | Settings.
+
+Visual farm-like background illustrations (trees, leaves, soil texture).
+
+Usage analytics for admins (number of scans, accuracy, pest categories).
+
+PERFORMANCE & SCALABILITY
+
+Must support thousands of farmers.
+
+Fast scanning under 2 seconds on 4G.
+
+Auto model updates when online.
+
+OVERALL TONE OF THE PRODUCT
+
+Practical, farmer-friendly, extremely accurate, no confusion, no clutter. Designed to genuinely help farmers reduce crop loss and save money.”**
