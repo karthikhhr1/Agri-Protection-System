@@ -2,6 +2,7 @@ import { db } from "./db";
 import { 
   reports, sensorReadings, audioLogs, farmTasks, inventoryItems, transactions, activityLogs,
   deterrentSettings, irrigationSettings, animalDetections, farmFields, fieldCaptures, hardwareDevices,
+  plantProfiles, scanAnalytics, offlineQueue,
   type InsertReport, type Report,
   type InsertSensorReading, type SensorReading,
   type InsertAudioLog, type AudioLog,
@@ -14,9 +15,12 @@ import {
   type InsertAnimalDetection, type AnimalDetection,
   type FarmField, type InsertFarmField,
   type FieldCapture, type InsertFieldCapture,
-  type HardwareDevice, type InsertHardwareDevice
+  type HardwareDevice, type InsertHardwareDevice,
+  type PlantProfile, type InsertPlantProfile,
+  type ScanAnalytic, type InsertScanAnalytic,
+  type OfflineQueueItem, type InsertOfflineQueueItem
 } from "@shared/schema";
-import { eq, desc, inArray } from "drizzle-orm";
+import { eq, desc, inArray, sql, count, avg } from "drizzle-orm";
 
 export interface IStorage {
   // Reports
@@ -88,6 +92,31 @@ export interface IStorage {
   createHardwareDevice(device: InsertHardwareDevice): Promise<HardwareDevice>;
   updateHardwareDevice(id: number, updates: Partial<HardwareDevice>): Promise<HardwareDevice | undefined>;
   deleteHardwareDevice(id: number): Promise<boolean>;
+
+  // Plant Profiles
+  getPlantProfiles(): Promise<PlantProfile[]>;
+  getPlantProfile(id: number): Promise<PlantProfile | undefined>;
+  createPlantProfile(profile: InsertPlantProfile): Promise<PlantProfile>;
+  updatePlantProfile(id: number, updates: Partial<PlantProfile>): Promise<PlantProfile | undefined>;
+  deletePlantProfile(id: number): Promise<boolean>;
+  getPlantReports(plantProfileId: number): Promise<Report[]>;
+
+  // Scan Analytics
+  createScanAnalytic(analytic: InsertScanAnalytic): Promise<ScanAnalytic>;
+  getScanAnalytics(): Promise<ScanAnalytic[]>;
+  getAdminDashboardStats(): Promise<{
+    totalScans: number;
+    avgConfidence: number;
+    categoryBreakdown: { category: string; count: number }[];
+    accuracyRate: number;
+    recentScans: ScanAnalytic[];
+  }>;
+
+  // Offline Queue
+  createOfflineQueueItem(item: InsertOfflineQueueItem): Promise<OfflineQueueItem>;
+  getPendingOfflineItems(): Promise<OfflineQueueItem[]>;
+  updateOfflineQueueItem(id: number, updates: Partial<OfflineQueueItem>): Promise<OfflineQueueItem | undefined>;
+  deleteOfflineQueueItem(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -347,6 +376,105 @@ export class DatabaseStorage implements IStorage {
 
   async deleteHardwareDevice(id: number): Promise<boolean> {
     const result = await db.delete(hardwareDevices).where(eq(hardwareDevices.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Plant Profiles
+  async getPlantProfiles(): Promise<PlantProfile[]> {
+    return await db.select().from(plantProfiles).orderBy(desc(plantProfiles.createdAt));
+  }
+
+  async getPlantProfile(id: number): Promise<PlantProfile | undefined> {
+    const [profile] = await db.select().from(plantProfiles).where(eq(plantProfiles.id, id));
+    return profile;
+  }
+
+  async createPlantProfile(profile: InsertPlantProfile): Promise<PlantProfile> {
+    const [newProfile] = await db.insert(plantProfiles).values(profile).returning();
+    return newProfile;
+  }
+
+  async updatePlantProfile(id: number, updates: Partial<PlantProfile>): Promise<PlantProfile | undefined> {
+    const [updated] = await db.update(plantProfiles)
+      .set(updates)
+      .where(eq(plantProfiles.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deletePlantProfile(id: number): Promise<boolean> {
+    const result = await db.delete(plantProfiles).where(eq(plantProfiles.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getPlantReports(plantProfileId: number): Promise<Report[]> {
+    return await db.select().from(reports)
+      .where(eq(reports.plantProfileId, plantProfileId))
+      .orderBy(desc(reports.createdAt));
+  }
+
+  // Scan Analytics
+  async createScanAnalytic(analytic: InsertScanAnalytic): Promise<ScanAnalytic> {
+    const [newAnalytic] = await db.insert(scanAnalytics).values(analytic).returning();
+    return newAnalytic;
+  }
+
+  async getScanAnalytics(): Promise<ScanAnalytic[]> {
+    return await db.select().from(scanAnalytics).orderBy(desc(scanAnalytics.createdAt));
+  }
+
+  async getAdminDashboardStats(): Promise<{
+    totalScans: number;
+    avgConfidence: number;
+    categoryBreakdown: { category: string; count: number }[];
+    accuracyRate: number;
+    recentScans: ScanAnalytic[];
+  }> {
+    const allAnalytics = await db.select().from(scanAnalytics).orderBy(desc(scanAnalytics.createdAt));
+    const totalScans = allAnalytics.length;
+    
+    const avgConfidence = totalScans > 0 
+      ? allAnalytics.reduce((sum, a) => sum + (a.confidence || 0), 0) / totalScans * 100
+      : 0;
+    
+    const categoryMap = new Map<string, number>();
+    allAnalytics.forEach(a => {
+      const cat = a.detectionCategory;
+      categoryMap.set(cat, (categoryMap.get(cat) || 0) + 1);
+    });
+    const categoryBreakdown = Array.from(categoryMap.entries()).map(([category, count]) => ({ category, count }));
+    
+    const accurateCount = allAnalytics.filter(a => a.wasAccurate === true).length;
+    const verifiedCount = allAnalytics.filter(a => a.wasAccurate !== null).length;
+    const accuracyRate = verifiedCount > 0 ? (accurateCount / verifiedCount) * 100 : 0;
+    
+    const recentScans = allAnalytics.slice(0, 10);
+    
+    return { totalScans, avgConfidence, categoryBreakdown, accuracyRate, recentScans };
+  }
+
+  // Offline Queue
+  async createOfflineQueueItem(item: InsertOfflineQueueItem): Promise<OfflineQueueItem> {
+    const [newItem] = await db.insert(offlineQueue).values(item).returning();
+    return newItem;
+  }
+
+  async getPendingOfflineItems(): Promise<OfflineQueueItem[]> {
+    return await db.select().from(offlineQueue)
+      .where(eq(offlineQueue.status, 'pending'))
+      .orderBy(desc(offlineQueue.queuedAt));
+  }
+
+  async updateOfflineQueueItem(id: number, updates: Partial<OfflineQueueItem>): Promise<OfflineQueueItem | undefined> {
+    const [updated] = await db.update(offlineQueue)
+      .set(updates)
+      .where(eq(offlineQueue.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteOfflineQueueItem(id: number): Promise<boolean> {
+    const result = await db.delete(offlineQueue).where(eq(offlineQueue.id, id));
     return (result.rowCount ?? 0) > 0;
   }
 }

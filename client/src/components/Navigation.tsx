@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Droplets, Volume2, ScanEye, Sprout, Bot, Globe, Calendar, Package, FileText, ChevronDown, MapPin, Clock, Menu, X, Cpu, DollarSign, LogOut, User } from "lucide-react";
+import { LayoutDashboard, Droplets, Volume2, ScanEye, Sprout, Bot, Globe, Calendar, Package, FileText, ChevronDown, MapPin, Clock, Menu, X, Cpu, DollarSign, LogOut, User, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage, languageNames, languageNamesEnglish, type Language } from "@/lib/i18n";
 import { useState } from "react";
@@ -28,6 +28,7 @@ const navItems = [
   { href: "/finances", labelKey: "nav.finances", icon: DollarSign },
   { href: "/logs", labelKey: "nav.logs", icon: FileText },
   { href: "/hardware", labelKey: "nav.hardware", icon: Cpu },
+  { href: "/admin", labelKey: "nav.admin", icon: BarChart3 },
 ];
 
 export function Navigation() {

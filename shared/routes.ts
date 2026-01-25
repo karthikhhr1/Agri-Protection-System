@@ -90,6 +90,22 @@ export const api = {
         500: errorSchemas.internal,
       },
     },
+    exportPdf: {
+      method: 'GET' as const,
+      path: '/api/reports/:id/export/pdf',
+      responses: {
+        200: z.any(),
+        404: errorSchemas.notFound,
+      },
+    },
+    exportText: {
+      method: 'GET' as const,
+      path: '/api/reports/:id/export/text',
+      responses: {
+        200: z.string(),
+        404: errorSchemas.notFound,
+      },
+    },
   },
   irrigation: {
     calculate: {
@@ -122,6 +138,67 @@ export const api = {
       path: '/api/audio',
       responses: {
         200: z.array(z.custom<typeof audioLogs.$inferSelect>()),
+      },
+    },
+  },
+  admin: {
+    stats: {
+      method: 'GET' as const,
+      path: '/api/admin/stats',
+      responses: {
+        200: z.object({
+          totalScans: z.number(),
+          avgConfidence: z.number(),
+          categoryBreakdown: z.array(z.object({ category: z.string(), count: z.number() })),
+          accuracyRate: z.number(),
+          recentScans: z.array(z.any()),
+        }),
+      },
+    },
+    updateAccuracy: {
+      method: 'POST' as const,
+      path: '/api/admin/accuracy/:id',
+      input: z.object({ wasAccurate: z.boolean() }),
+      responses: {
+        200: z.any(),
+        404: errorSchemas.notFound,
+      },
+    },
+  },
+  plantProfiles: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/plant-profiles',
+      responses: {
+        200: z.array(z.any()),
+      },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/plant-profiles',
+      input: z.object({
+        name: z.string(),
+        cropType: z.string(),
+        fieldId: z.number().optional(),
+        notes: z.string().optional(),
+      }),
+      responses: {
+        201: z.any(),
+      },
+    },
+    get: {
+      method: 'GET' as const,
+      path: '/api/plant-profiles/:id',
+      responses: {
+        200: z.any(),
+        404: errorSchemas.notFound,
+      },
+    },
+    reports: {
+      method: 'GET' as const,
+      path: '/api/plant-profiles/:id/reports',
+      responses: {
+        200: z.array(z.any()),
       },
     },
   },

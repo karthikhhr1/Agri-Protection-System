@@ -5,6 +5,18 @@ import { z } from "zod";
 // Export auth models
 export * from "./models/auth";
 
+// === PLANT PROFILES (For Trend Analysis) ===
+export const plantProfiles = pgTable("plant_profiles", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // e.g., "Tomato Plant #1", "Field A Row 3"
+  cropType: text("crop_type").notNull(),
+  fieldId: integer("field_id"), // optional link to farm field
+  location: jsonb("location"), // { lat, lng } or { row, column }
+  plantedDate: timestamp("planted_date"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // === REPORTS (Drone Image Analysis) ===
 export const reports = pgTable("reports", {
   id: serial("id").primaryKey(),
@@ -12,9 +24,44 @@ export const reports = pgTable("reports", {
   status: text("status").default("pending").notNull(),
   severity: text("severity").default("none"), // none, low, medium, high, critical
   cropType: text("crop_type").default("unknown"),
-  // JSON structure: { diseaseDetected: boolean, diseases: [{ name: string, confidence: number, symptoms: string[] }], risks: [{ risk: string, reason: string }], ipmMeasures: string[], confirmed: boolean }
+  plantProfileId: integer("plant_profile_id"), // optional link for trend analysis
+  scanMode: text("scan_mode").default("farmer"), // farmer (simplified) or expert (detailed)
+  // Enhanced analysis structure with confidence scores
+  // JSON structure: { 
+  //   predictions: [{ type: 'disease'|'insect'|'nutrient'|'damage', name: string, confidence: number, severity: string, symptoms: string[], treatment: string[] }],
+  //   overallHealth: number (0-100),
+  //   nutrientDeficiencies: [{ nutrient: string, confidence: number, symptoms: string[] }],
+  //   insects: [{ name: string, confidence: number, damage: string, treatment: string[] }],
+  //   diseases: [{ name: string, confidence: number, symptoms: string[], treatment: string[] }],
+  //   leafDamage: { detected: boolean, severity: string, confidence: number, cause: string },
+  //   modelMetadata: { model: string, version: string, processingTime: number }
+  // }
   analysis: jsonb("analysis"),
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// === SCAN ANALYTICS (Admin Dashboard) ===
+export const scanAnalytics = pgTable("scan_analytics", {
+  id: serial("id").primaryKey(),
+  reportId: integer("report_id").notNull(),
+  detectionCategory: text("detection_category").notNull(), // disease, insect, nutrient, damage, healthy
+  detectionName: text("detection_name"),
+  confidence: real("confidence").default(0),
+  wasAccurate: boolean("was_accurate"), // user feedback on accuracy
+  processingTimeMs: integer("processing_time_ms"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// === OFFLINE QUEUE (For sync when online) ===
+export const offlineQueue = pgTable("offline_queue", {
+  id: serial("id").primaryKey(),
+  imageData: text("image_data").notNull(), // base64 or blob reference
+  plantProfileId: integer("plant_profile_id"),
+  scanMode: text("scan_mode").default("farmer"),
+  status: text("status").default("pending"), // pending, uploading, completed, failed
+  retryCount: integer("retry_count").default(0),
+  queuedAt: timestamp("queued_at").defaultNow(),
+  syncedAt: timestamp("synced_at"),
 });
 
 // === SENSOR READINGS (Irrigation) ===
@@ -161,7 +208,10 @@ export const hardwareDevices = pgTable("hardware_devices", {
 });
 
 // === SCHEMAS ===
+export const insertPlantProfileSchema = createInsertSchema(plantProfiles).omit({ id: true, createdAt: true });
 export const insertReportSchema = createInsertSchema(reports).omit({ id: true, createdAt: true });
+export const insertScanAnalyticsSchema = createInsertSchema(scanAnalytics).omit({ id: true, createdAt: true });
+export const insertOfflineQueueSchema = createInsertSchema(offlineQueue).omit({ id: true, queuedAt: true, syncedAt: true });
 export const insertSensorReadingSchema = createInsertSchema(sensorReadings).omit({ id: true, createdAt: true });
 export const insertAudioLogSchema = createInsertSchema(audioLogs).omit({ id: true, createdAt: true });
 export const insertAnimalDetectionSchema = createInsertSchema(animalDetections).omit({ id: true, createdAt: true });
@@ -176,8 +226,17 @@ export const insertFieldCaptureSchema = createInsertSchema(fieldCaptures).omit({
 export const insertHardwareDeviceSchema = createInsertSchema(hardwareDevices).omit({ id: true, createdAt: true });
 
 // === TYPES ===
+export type PlantProfile = typeof plantProfiles.$inferSelect;
+export type InsertPlantProfile = z.infer<typeof insertPlantProfileSchema>;
+
 export type Report = typeof reports.$inferSelect;
 export type InsertReport = z.infer<typeof insertReportSchema>;
+
+export type ScanAnalytic = typeof scanAnalytics.$inferSelect;
+export type InsertScanAnalytic = z.infer<typeof insertScanAnalyticsSchema>;
+
+export type OfflineQueueItem = typeof offlineQueue.$inferSelect;
+export type InsertOfflineQueueItem = z.infer<typeof insertOfflineQueueSchema>;
 
 export type SensorReading = typeof sensorReadings.$inferSelect;
 export type InsertSensorReading = z.infer<typeof insertSensorReadingSchema>;
