@@ -62,15 +62,27 @@ const getAnimalEmoji = (type: string) => {
   return icons[type] || '🐾';
 };
 
+type ScanMode = 'farmer' | 'expert';
+
 export default function Analysis() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [activeReportId, setActiveReportId] = useState<number | null>(null);
   const [showCamera, setShowCamera] = useState(false);
   const [viewingReport, setViewingReport] = useState<Report | null>(null);
+  const [scanMode, setScanMode] = useState<ScanMode>(() => {
+    const stored = localStorage.getItem('agriguard-scan-mode');
+    return (stored as ScanMode) || 'farmer';
+  });
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
   const { t, formatDate, formatTime, language } = useLanguage();
+
+  const toggleScanMode = () => {
+    const newMode = scanMode === 'farmer' ? 'expert' : 'farmer';
+    setScanMode(newMode);
+    localStorage.setItem('agriguard-scan-mode', newMode);
+  };
 
   const { data: reports, isLoading: isLoadingHistory } = useQuery<Report[]>({
     queryKey: ["/api/reports"],
@@ -174,12 +186,34 @@ export default function Analysis() {
 
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6 md:space-y-8 bg-background/50 min-h-screen">
-      <header className="space-y-1">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter text-foreground flex items-center gap-3">
-          <Scan className="w-8 sm:w-10 h-8 sm:h-10 text-primary" />
-          {t('analysis.uplinkCenter')}
-        </h1>
-        <p className="text-muted-foreground text-sm md:text-base font-medium">{t('analysis.pathologyAnalysis')}</p>
+      <header className="space-y-3">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter text-foreground flex items-center gap-3">
+              <Scan className="w-8 sm:w-10 h-8 sm:h-10 text-primary" />
+              {t('analysis.uplinkCenter')}
+            </h1>
+            <p className="text-muted-foreground text-sm md:text-base font-medium">{t('analysis.pathologyAnalysis')}</p>
+          </div>
+          <Button
+            onClick={toggleScanMode}
+            variant="outline"
+            className="self-start md:self-auto rounded-full px-4 gap-2"
+            data-testid="button-scan-mode"
+          >
+            {scanMode === 'farmer' ? (
+              <>
+                <Sprout className="w-4 h-4 text-green-600" />
+                <span className="font-bold">{t('analysis.farmerMode')}</span>
+              </>
+            ) : (
+              <>
+                <Beaker className="w-4 h-4 text-blue-600" />
+                <span className="font-bold">{t('analysis.expertMode')}</span>
+              </>
+            )}
+          </Button>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
