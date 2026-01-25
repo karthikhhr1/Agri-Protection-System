@@ -603,9 +603,16 @@ export default function Analysis() {
                       <CardContent className="space-y-3">
                         {data.diseases.map((d: any, i: number) => (
                           <div key={i} className="p-3 bg-background rounded-lg">
-                            <p className="font-bold text-red-600">{d.name}</p>
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                              <p className="font-bold text-red-600">{d.name}</p>
+                              {scanMode === 'expert' && d.confidence && (
+                                <Badge variant="outline" className="text-xs">
+                                  {d.confidence}% {t('common.confidence')}
+                                </Badge>
+                              )}
+                            </div>
                             {d.localName && <p className="text-sm text-muted-foreground">({d.localName})</p>}
-                            {d.symptoms?.length > 0 && (
+                            {scanMode === 'expert' && d.symptoms?.length > 0 && (
                               <ul className="mt-2 text-sm space-y-1">
                                 {d.symptoms.map((s: string, j: number) => (
                                   <li key={j} className="flex items-start gap-2">
