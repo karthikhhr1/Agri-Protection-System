@@ -28,49 +28,74 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/lib/i18n";
-import { useMemo } from "react";
 
-const LEAF_CONFIG = [
-  { id: 0, delay: 0, duration: 18, x: 20, size: 12 },
-  { id: 1, delay: 3, duration: 20, x: 50, size: 10 },
-  { id: 2, delay: 6, duration: 22, x: 80, size: 11 },
-];
-
-function FloatingLeaves() {
-  const leaves = useMemo(() => LEAF_CONFIG, []);
-
+function NatureFrame() {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {leaves.map((leaf) => (
-        <motion.div
-          key={leaf.id}
-          initial={{ y: -30, x: `${leaf.x}%`, rotate: 0, opacity: 0 }}
-          animate={{ 
-            y: "105vh", 
-            x: [`${leaf.x}%`, `${leaf.x + 5}%`, `${leaf.x - 3}%`],
-            rotate: [0, 30, -20, 45],
-            opacity: [0, 0.25, 0.25, 0]
-          }}
-          transition={{
-            duration: leaf.duration,
-            delay: leaf.delay,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-          className="absolute"
-        >
-          <Leaf className="text-green-500/30" style={{ width: leaf.size, height: leaf.size }} />
-        </motion.div>
-      ))}
-    </div>
-  );
-}
-
-function GentleBackdrop() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-green-500/3 to-transparent" />
-      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-green-500/3 to-transparent" />
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      {/* Central bright glow - light mode */}
+      <div className="absolute inset-0 dark:hidden" 
+           style={{ background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.9) 0%, rgba(240,253,244,0.4) 40%, transparent 70%)' }} />
+      {/* Central dark glow - dark mode */}
+      <div className="absolute inset-0 hidden dark:block" 
+           style={{ background: 'radial-gradient(ellipse at center, rgba(20,20,20,0.5) 0%, rgba(20,83,45,0.15) 40%, transparent 70%)' }} />
+      
+      {/* Top left corner leaves */}
+      <svg className="absolute -top-8 -left-8 w-64 h-64 text-green-500/60 dark:text-green-400/40" viewBox="0 0 200 200" fill="currentColor">
+        <ellipse cx="30" cy="50" rx="45" ry="25" transform="rotate(-45 30 50)" opacity="0.7" />
+        <ellipse cx="60" cy="30" rx="40" ry="20" transform="rotate(-30 60 30)" opacity="0.6" />
+        <ellipse cx="90" cy="55" rx="35" ry="18" transform="rotate(-50 90 55)" opacity="0.5" />
+        <ellipse cx="40" cy="85" rx="38" ry="22" transform="rotate(-60 40 85)" opacity="0.6" />
+        <ellipse cx="15" cy="100" rx="30" ry="16" transform="rotate(-70 15 100)" opacity="0.4" />
+        <ellipse cx="75" cy="90" rx="32" ry="17" transform="rotate(-40 75 90)" opacity="0.45" />
+        <ellipse cx="110" cy="40" rx="28" ry="14" transform="rotate(-25 110 40)" opacity="0.35" />
+      </svg>
+      
+      {/* Top right corner leaves */}
+      <svg className="absolute -top-8 -right-8 w-64 h-64 text-green-500/60 dark:text-green-400/40" viewBox="0 0 200 200" fill="currentColor">
+        <ellipse cx="170" cy="50" rx="45" ry="25" transform="rotate(45 170 50)" opacity="0.7" />
+        <ellipse cx="140" cy="30" rx="40" ry="20" transform="rotate(30 140 30)" opacity="0.6" />
+        <ellipse cx="110" cy="55" rx="35" ry="18" transform="rotate(50 110 55)" opacity="0.5" />
+        <ellipse cx="160" cy="85" rx="38" ry="22" transform="rotate(60 160 85)" opacity="0.6" />
+        <ellipse cx="185" cy="100" rx="30" ry="16" transform="rotate(70 185 100)" opacity="0.4" />
+        <ellipse cx="125" cy="90" rx="32" ry="17" transform="rotate(40 125 90)" opacity="0.45" />
+        <ellipse cx="90" cy="40" rx="28" ry="14" transform="rotate(25 90 40)" opacity="0.35" />
+      </svg>
+      
+      {/* Bottom left corner leaves */}
+      <svg className="absolute -bottom-8 -left-8 w-56 h-56 text-green-600/50 dark:text-green-500/30" viewBox="0 0 200 200" fill="currentColor">
+        <ellipse cx="30" cy="150" rx="42" ry="24" transform="rotate(45 30 150)" opacity="0.6" />
+        <ellipse cx="55" cy="170" rx="38" ry="20" transform="rotate(30 55 170)" opacity="0.5" />
+        <ellipse cx="80" cy="145" rx="32" ry="16" transform="rotate(55 80 145)" opacity="0.45" />
+        <ellipse cx="20" cy="120" rx="28" ry="14" transform="rotate(60 20 120)" opacity="0.4" />
+      </svg>
+      
+      {/* Bottom right corner leaves */}
+      <svg className="absolute -bottom-8 -right-8 w-56 h-56 text-green-600/50 dark:text-green-500/30" viewBox="0 0 200 200" fill="currentColor">
+        <ellipse cx="170" cy="150" rx="42" ry="24" transform="rotate(-45 170 150)" opacity="0.6" />
+        <ellipse cx="145" cy="170" rx="38" ry="20" transform="rotate(-30 145 170)" opacity="0.5" />
+        <ellipse cx="120" cy="145" rx="32" ry="16" transform="rotate(-55 120 145)" opacity="0.45" />
+        <ellipse cx="180" cy="120" rx="28" ry="14" transform="rotate(-60 180 120)" opacity="0.4" />
+      </svg>
+      
+      {/* Side accent leaves - left */}
+      <svg className="absolute top-1/3 -left-4 w-32 h-48 text-green-500/40 dark:text-green-400/25" viewBox="0 0 100 150" fill="currentColor">
+        <ellipse cx="20" cy="50" rx="30" ry="15" transform="rotate(-60 20 50)" opacity="0.5" />
+        <ellipse cx="15" cy="80" rx="25" ry="12" transform="rotate(-55 15 80)" opacity="0.4" />
+        <ellipse cx="25" cy="110" rx="28" ry="14" transform="rotate(-65 25 110)" opacity="0.45" />
+      </svg>
+      
+      {/* Side accent leaves - right */}
+      <svg className="absolute top-1/3 -right-4 w-32 h-48 text-green-500/40 dark:text-green-400/25" viewBox="0 0 100 150" fill="currentColor">
+        <ellipse cx="80" cy="50" rx="30" ry="15" transform="rotate(60 80 50)" opacity="0.5" />
+        <ellipse cx="85" cy="80" rx="25" ry="12" transform="rotate(55 85 80)" opacity="0.4" />
+        <ellipse cx="75" cy="110" rx="28" ry="14" transform="rotate(65 75 110)" opacity="0.45" />
+      </svg>
+      
+      {/* Subtle vignette effect */}
+      <div className="absolute inset-0 dark:hidden" 
+           style={{ background: 'radial-gradient(ellipse at center, transparent 30%, rgba(34,197,94,0.08) 100%)' }} />
+      <div className="absolute inset-0 hidden dark:block" 
+           style={{ background: 'radial-gradient(ellipse at center, transparent 30%, rgba(34,197,94,0.15) 100%)' }} />
     </div>
   );
 }
@@ -116,9 +141,8 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-background via-background to-green-500/5 overflow-hidden">
-      <GentleBackdrop />
-      <FloatingLeaves />
+    <div className="relative min-h-screen bg-gradient-to-b from-green-50/50 via-background to-green-50/30 dark:from-green-950/20 dark:via-background dark:to-green-950/10 overflow-hidden">
+      <NatureFrame />
 
       <motion.div 
         className="p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8 relative z-10"

@@ -7,68 +7,117 @@ import {
   AlertTriangle, 
   CheckCircle2, 
   Loader2, 
-  ShieldAlert, 
-  ArrowRight, 
   Camera, 
-  Search, 
   FileText, 
   X,
   Scan,
   ShieldCheck,
-  RefreshCw,
   Upload,
   Leaf,
-  Clock,
   Shield,
-  Eye,
   Sprout,
   Beaker,
   Timer,
-  ChevronRight,
   Volume2,
   Target,
-  Zap
+  Zap,
+  Download,
+  TreePine
 } from "lucide-react";
 import { indianWildlifeFrequencies, getRecommendedFrequency } from "@shared/animalFrequencies";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { type Report } from "@shared/schema";
 import { useLanguage } from "@/lib/i18n";
 
-const getAnimalEmoji = (type: string) => {
-  const icons: Record<string, string> = {
-    'wild_boar': '🐗',
-    'deer': '🦌',
-    'monkey': '🐒',
-    'langur': '🐒',
-    'elephant': '🐘',
-    'peacock': '🦚',
-    'snake': '🐍',
-    'cobra': '🐍',
-    'nilgai': '🦬',
-    'jackal': '🦊',
-    'porcupine': '🦔',
-    'hare': '🐰',
-    'rat': '🐀',
-    'parrot': '🦜',
-    'crow': '🐦‍⬛',
-    'pigeon': '🕊️',
-    'sparrow': '🐦',
-    'monitor_lizard': '🦎',
-  };
-  return icons[type] || '🐾';
+import { Bug, Bird, Rat, Rabbit, Snail, Fish, Dog } from "lucide-react";
+
+const AnimalIcon = ({ type }: { type: string }) => {
+  const iconClass = "w-6 h-6 text-orange-600";
+  switch (type) {
+    case 'wild_boar':
+    case 'nilgai':
+    case 'jackal':
+    case 'dog':
+      return <Dog className={iconClass} />;
+    case 'deer':
+    case 'monkey':
+    case 'langur':
+    case 'elephant':
+      return <Bug className={iconClass} />;
+    case 'peacock':
+    case 'parrot':
+    case 'crow':
+    case 'pigeon':
+    case 'sparrow':
+      return <Bird className={iconClass} />;
+    case 'snake':
+    case 'cobra':
+    case 'monitor_lizard':
+      return <Snail className={iconClass} />;
+    case 'hare':
+    case 'rabbit':
+      return <Rabbit className={iconClass} />;
+    case 'rat':
+    case 'porcupine':
+      return <Rat className={iconClass} />;
+    default:
+      return <Bug className={iconClass} />;
+  }
 };
 
 type ScanMode = 'farmer' | 'expert';
 
+function NatureFrame() {
+  return (
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      <div className="absolute inset-0 dark:hidden" 
+           style={{ background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.9) 0%, rgba(240,253,244,0.4) 40%, transparent 70%)' }} />
+      <div className="absolute inset-0 hidden dark:block" 
+           style={{ background: 'radial-gradient(ellipse at center, rgba(20,20,20,0.5) 0%, rgba(20,83,45,0.15) 40%, transparent 70%)' }} />
+      
+      <svg className="absolute -top-8 -left-8 w-64 h-64 text-green-500/60 dark:text-green-400/40" viewBox="0 0 200 200" fill="currentColor">
+        <ellipse cx="30" cy="50" rx="45" ry="25" transform="rotate(-45 30 50)" opacity="0.7" />
+        <ellipse cx="60" cy="30" rx="40" ry="20" transform="rotate(-30 60 30)" opacity="0.6" />
+        <ellipse cx="90" cy="55" rx="35" ry="18" transform="rotate(-50 90 55)" opacity="0.5" />
+        <ellipse cx="40" cy="85" rx="38" ry="22" transform="rotate(-60 40 85)" opacity="0.6" />
+        <ellipse cx="75" cy="90" rx="32" ry="17" transform="rotate(-40 75 90)" opacity="0.45" />
+      </svg>
+      
+      <svg className="absolute -top-8 -right-8 w-64 h-64 text-green-500/60 dark:text-green-400/40" viewBox="0 0 200 200" fill="currentColor">
+        <ellipse cx="170" cy="50" rx="45" ry="25" transform="rotate(45 170 50)" opacity="0.7" />
+        <ellipse cx="140" cy="30" rx="40" ry="20" transform="rotate(30 140 30)" opacity="0.6" />
+        <ellipse cx="110" cy="55" rx="35" ry="18" transform="rotate(50 110 55)" opacity="0.5" />
+        <ellipse cx="160" cy="85" rx="38" ry="22" transform="rotate(60 160 85)" opacity="0.6" />
+        <ellipse cx="125" cy="90" rx="32" ry="17" transform="rotate(40 125 90)" opacity="0.45" />
+      </svg>
+      
+      <svg className="absolute -bottom-8 -left-8 w-48 h-48 text-green-600/50 dark:text-green-500/30" viewBox="0 0 200 200" fill="currentColor">
+        <ellipse cx="30" cy="150" rx="42" ry="24" transform="rotate(45 30 150)" opacity="0.6" />
+        <ellipse cx="55" cy="170" rx="38" ry="20" transform="rotate(30 55 170)" opacity="0.5" />
+        <ellipse cx="80" cy="145" rx="32" ry="16" transform="rotate(55 80 145)" opacity="0.45" />
+      </svg>
+      
+      <svg className="absolute -bottom-8 -right-8 w-48 h-48 text-green-600/50 dark:text-green-500/30" viewBox="0 0 200 200" fill="currentColor">
+        <ellipse cx="170" cy="150" rx="42" ry="24" transform="rotate(-45 170 150)" opacity="0.6" />
+        <ellipse cx="145" cy="170" rx="38" ry="20" transform="rotate(-30 145 170)" opacity="0.5" />
+        <ellipse cx="120" cy="145" rx="32" ry="16" transform="rotate(-55 120 145)" opacity="0.45" />
+      </svg>
+      
+      <div className="absolute inset-0 dark:hidden" 
+           style={{ background: 'radial-gradient(ellipse at center, transparent 30%, rgba(34,197,94,0.06) 100%)' }} />
+      <div className="absolute inset-0 hidden dark:block" 
+           style={{ background: 'radial-gradient(ellipse at center, transparent 30%, rgba(34,197,94,0.15) 100%)' }} />
+    </div>
+  );
+}
+
 export default function Analysis() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [activeReportId, setActiveReportId] = useState<number | null>(null);
   const [showCamera, setShowCamera] = useState(false);
-  const [viewingReport, setViewingReport] = useState<Report | null>(null);
+  const [currentReport, setCurrentReport] = useState<Report | null>(null);
   const [scanMode, setScanMode] = useState<ScanMode>(() => {
     const stored = localStorage.getItem('agriguard-scan-mode');
     return (stored as ScanMode) || 'farmer';
@@ -76,7 +125,7 @@ export default function Analysis() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
-  const { t, formatDate, formatTime, language } = useLanguage();
+  const { t, formatDate, language } = useLanguage();
 
   const toggleScanMode = () => {
     const newMode = scanMode === 'farmer' ? 'expert' : 'farmer';
@@ -137,13 +186,9 @@ export default function Analysis() {
       return res.json();
     },
     onSuccess: (data) => {
-      setActiveReportId(data.id);
       setSelectedImage(null);
       queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
-      toast({
-        title: t('analysis.analyzing'),
-        description: t('analysis.autoProcessing'),
-      });
+      toast({ title: t('analysis.analyzing'), description: t('analysis.autoProcessing') });
       processMutation.mutate(data.id);
     },
   });
@@ -153,24 +198,12 @@ export default function Analysis() {
       const res = await apiRequest("POST", `/api/reports/${id}/process`, { language });
       return res.json();
     },
-    onSuccess: () => {
-      setActiveReportId(null);
+    onSuccess: (data) => {
+      setCurrentReport(data);
       queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
-      toast({
-        title: t('analysis.analysisComplete'),
-        description: t('analysis.reportGenerated'),
-      });
+      toast({ title: t('analysis.analysisComplete'), description: t('analysis.reportGenerated') });
     },
   });
-
-  const handleCapture = () => {
-    if (!selectedImage) return;
-    captureMutation.mutate(selectedImage);
-  };
-
-  const handleProcess = (id: number) => {
-    processMutation.mutate(id);
-  };
 
   useEffect(() => {
     return () => stopCamera();
@@ -182,52 +215,78 @@ export default function Analysis() {
     }
   }, [selectedImage]);
 
-  const activeReport = reports?.find(r => r.id === activeReportId) || reports?.find(r => r.status === 'pending');
+  const isProcessing = captureMutation.isPending || processMutation.isPending;
+  const latestCompleteReport = currentReport || reports?.find(r => r.status === 'complete');
+
+  const handleDownload = async (format: 'pdf' | 'text') => {
+    if (!latestCompleteReport) return;
+    try {
+      const res = await fetch(`/api/reports/${latestCompleteReport.id}/export?format=${format}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `report-${latestCompleteReport.id}.${format === 'pdf' ? 'pdf' : 'txt'}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      toast({ title: t('common.error'), variant: 'destructive' });
+    }
+  };
 
   return (
-    <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6 md:space-y-8 bg-background/50 min-h-screen">
-      <header className="space-y-3">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter text-foreground flex items-center gap-3">
-              <Scan className="w-8 sm:w-10 h-8 sm:h-10 text-primary" />
-              {t('analysis.uplinkCenter')}
-            </h1>
-            <p className="text-muted-foreground text-sm md:text-base font-medium">{t('analysis.pathologyAnalysis')}</p>
+    <div className="min-h-screen bg-gradient-to-b from-green-50/50 via-background to-green-50/30 dark:from-green-950/20 dark:via-background dark:to-green-950/10 relative overflow-hidden">
+      <NatureFrame />
+      <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto space-y-6 relative z-10">
+        <header className="space-y-2">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-500/10 rounded-xl">
+                <TreePine className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+                  {t('analysis.uplinkCenter')}
+                </h1>
+                <p className="text-sm text-muted-foreground">{t('analysis.pathologyAnalysis')}</p>
+              </div>
+            </div>
+            <Button
+              onClick={toggleScanMode}
+              variant="outline"
+              className="rounded-full gap-2"
+              data-testid="button-scan-mode"
+            >
+              {scanMode === 'farmer' ? (
+                <>
+                  <Sprout className="w-4 h-4 text-green-600" />
+                  <span className="font-medium">{t('analysis.farmerMode')}</span>
+                </>
+              ) : (
+                <>
+                  <Beaker className="w-4 h-4 text-blue-600" />
+                  <span className="font-medium">{t('analysis.expertMode')}</span>
+                </>
+              )}
+            </Button>
           </div>
-          <Button
-            onClick={toggleScanMode}
-            variant="outline"
-            className="self-start md:self-auto rounded-full px-4 gap-2"
-            data-testid="button-scan-mode"
-          >
-            {scanMode === 'farmer' ? (
-              <>
-                <Sprout className="w-4 h-4 text-green-600" />
-                <span className="font-bold">{t('analysis.farmerMode')}</span>
-              </>
-            ) : (
-              <>
-                <Beaker className="w-4 h-4 text-blue-600" />
-                <span className="font-bold">{t('analysis.expertMode')}</span>
-              </>
-            )}
-          </Button>
-        </div>
-      </header>
+        </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
-        <Card className="border-none shadow-2xl bg-card overflow-hidden rounded-3xl">
-          <CardHeader className="bg-muted/30 border-b pb-4 md:pb-6">
-            <CardTitle className="text-lg md:text-xl font-black flex items-center gap-2">
-              <Camera className="w-5 h-5 text-primary" />
-              {t('analysis.captureIntelligence')}
-            </CardTitle>
-            <CardDescription className="text-xs md:text-sm">{t('analysis.directUplink')}</CardDescription>
+        <Card className="border-0 shadow-lg bg-card rounded-2xl overflow-hidden">
+          <CardHeader className="bg-green-500/5 border-b p-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-500/10 rounded-xl">
+                <Scan className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-semibold">{t('analysis.captureIntelligence')}</CardTitle>
+                <CardDescription className="text-xs">{t('analysis.directUplink')}</CardDescription>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent className="p-4 md:p-8">
-            <div className="space-y-6">
-              <div className="relative aspect-video rounded-2xl bg-muted/50 border-2 border-dashed border-muted flex items-center justify-center overflow-hidden group">
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              <div className="relative aspect-video rounded-xl bg-muted/30 border-2 border-dashed border-muted-foreground/20 flex items-center justify-center overflow-hidden">
                 <AnimatePresence mode="wait">
                   {showCamera ? (
                     <motion.div 
@@ -237,73 +296,63 @@ export default function Analysis() {
                       exit={{ opacity: 0 }}
                       className="absolute inset-0"
                     >
-                      <video 
-                        ref={videoRef} 
-                        autoPlay 
-                        playsInline 
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4">
-                        <Button onClick={capturePhoto} size="lg" className="rounded-full w-16 h-16 shadow-2xl hover-elevate bg-white text-black hover:bg-white/90">
-                          <div className="w-12 h-12 rounded-full border-2 border-black/20" />
+                      <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3">
+                        <Button onClick={capturePhoto} size="icon" className="rounded-full shadow-lg">
+                          <Camera className="w-5 h-5" />
                         </Button>
-                        <Button onClick={stopCamera} variant="destructive" size="icon" className="rounded-full w-16 h-16 shadow-2xl hover-elevate">
-                          <X className="w-6 h-6" />
+                        <Button onClick={stopCamera} variant="destructive" size="icon" className="rounded-full shadow-lg">
+                          <X className="w-5 h-5" />
                         </Button>
                       </div>
                     </motion.div>
-                  ) : selectedImage ? (
+                  ) : isProcessing ? (
                     <motion.div 
-                      key="preview"
+                      key="processing"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="absolute inset-0"
+                      className="text-center space-y-4 p-8"
                     >
-                      <img src={selectedImage} alt="preview" className="w-full h-full object-cover" />
-                      <div className="absolute top-4 right-4">
-                        <Button 
-                          onClick={() => setSelectedImage(null)} 
-                          variant="destructive" 
-                          size="icon" 
-                          className="rounded-full shadow-lg"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
+                      <div className="w-16 h-16 mx-auto rounded-full bg-green-500/10 flex items-center justify-center">
+                        <Loader2 className="w-8 h-8 animate-spin text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-green-600">{t('analysis.analyzing')}...</p>
+                        <p className="text-sm text-muted-foreground">{t('analysis.autoProcessing')}</p>
                       </div>
                     </motion.div>
                   ) : (
                     <motion.div 
-                      key="empty"
+                      key="upload"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="text-center space-y-4 p-8 w-full"
+                      className="w-full h-full p-4"
                     >
-                      <UploadZone 
-                        onImageSelected={setSelectedImage} 
-                        isProcessing={captureMutation.isPending}
-                      />
+                      <UploadZone onImageSelected={setSelectedImage} isProcessing={false} />
                     </motion.div>
                   )}
                 </AnimatePresence>
                 <canvas ref={canvasRef} className="hidden" />
               </div>
 
-              <div className="grid grid-cols-2 gap-2 md:gap-4">
+              <div className="flex gap-3">
                 <Button 
                   onClick={startCamera} 
-                  disabled={showCamera}
+                  disabled={showCamera || isProcessing}
                   variant="outline" 
-                  className="h-12 md:h-14 rounded-2xl font-black uppercase tracking-widest hover-elevate border-2 text-xs md:text-sm"
+                  className="flex-1 rounded-xl gap-2"
+                  data-testid="button-camera"
                 >
-                  <Camera className="w-4 md:w-5 h-4 md:h-5 mr-1 md:mr-2" />
+                  <Camera className="w-5 h-5" />
                   {t('analysis.liveCamera')}
                 </Button>
-                <div className="relative">
+                <div className="relative flex-1">
                   <input
                     type="file"
                     accept="image/*"
+                    disabled={isProcessing}
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
@@ -313,460 +362,301 @@ export default function Analysis() {
                       }
                     }}
                     className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                    data-testid="input-upload"
                   />
-                  <Button variant="outline" className="w-full h-12 md:h-14 rounded-2xl font-black uppercase tracking-widest border-2 text-xs md:text-sm">
-                    <Upload className="w-4 md:w-5 h-4 md:h-5 mr-1 md:mr-2" />
+                  <Button variant="outline" className="w-full rounded-xl gap-2" disabled={isProcessing}>
+                    <Upload className="w-5 h-5" />
                     {t('analysis.uploadFile')}
                   </Button>
                 </div>
               </div>
-
-              <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20">
-                <p className="text-xs font-bold text-primary uppercase tracking-widest mb-2">{t('analysis.remoteCamera')}</p>
-                <p className="text-[10px] text-muted-foreground leading-relaxed mb-3">
-                  {t('analysis.remoteDescription')}
-                </p>
-                <Button 
-                  variant="ghost" 
-                  className="p-0 h-auto text-xs font-black uppercase tracking-widest text-primary hover:text-primary/80"
-                  onClick={() => {
-                    const ip = prompt(t('analysis.promptMessage'));
-                    if (ip) toast({ title: t('analysis.connectingStream'), description: `${t('analysis.attemptingUplink')} ${ip}...` });
-                  }}
-                >
-                  {t('analysis.configureLink')} <ArrowRight className="w-3 h-3 ml-1" />
-                </Button>
-              </div>
-
-              {(captureMutation.isPending || processMutation.isPending) && (
-                <div className="w-full h-12 md:h-16 rounded-2xl bg-primary/10 border-2 border-primary/30 flex items-center justify-center gap-3">
-                  <RefreshCw className="w-6 h-6 animate-spin text-primary" />
-                  <span className="text-sm md:text-lg font-black uppercase tracking-widest text-primary">
-                    {t('analysis.analyzing')}...
-                  </span>
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-2xl bg-card rounded-3xl overflow-hidden">
-          <CardHeader className="bg-muted/30 border-b pb-4 md:pb-6">
-            <CardTitle className="text-lg md:text-xl font-black flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-green-500" />
-              {t('analysis.productionSafeguards')}
-            </CardTitle>
-            <CardDescription className="text-xs md:text-sm">{t('analysis.diagnosticIntegrity')}</CardDescription>
-          </CardHeader>
-          <CardContent className="p-4 md:p-8 space-y-6">
-            <div className="space-y-4">
-              <div className="p-4 rounded-2xl bg-green-500/5 border border-green-500/20 flex gap-4">
-                <ShieldCheck className="w-6 h-6 text-green-500 shrink-0" />
-                <div>
-                  <p className="font-black text-xs md:text-sm uppercase tracking-tight text-green-600">{t('analysis.encryptedUplink')}</p>
-                  <p className="text-xs text-muted-foreground font-medium mt-1">{t('analysis.encryptedDescription')}</p>
+        {latestCompleteReport && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
+          >
+            <ReportView report={latestCompleteReport} scanMode={scanMode} />
+            
+            <Card className="border-0 shadow-lg bg-card rounded-2xl">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <p className="text-sm font-medium text-muted-foreground">{t('analysis.exportReport')}</p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => handleDownload('text')}
+                      className="gap-2"
+                      data-testid="button-download-text"
+                    >
+                      <FileText className="w-4 h-4" />
+                      Text
+                    </Button>
+                    <Button
+                      onClick={() => handleDownload('pdf')}
+                      className="gap-2"
+                      data-testid="button-download-pdf"
+                    >
+                      <Download className="w-4 h-4" />
+                      PDF
+                    </Button>
+                  </div>
                 </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        <Card className="border-0 shadow-lg bg-card rounded-2xl">
+          <CardHeader className="bg-green-500/5 border-b p-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-500/10 rounded-xl">
+                <FileText className="w-5 h-5 text-green-600" />
               </div>
-              <div className="p-4 rounded-2xl bg-orange-500/5 border border-orange-500/20 flex gap-4">
-                <AlertTriangle className="w-6 h-6 text-orange-500 shrink-0" />
-                <div>
-                  <p className="font-black text-xs md:text-sm uppercase tracking-tight text-orange-600">{t('analysis.smartAlerting')}</p>
-                  <p className="text-xs text-muted-foreground font-medium mt-1">{t('analysis.smartAlertingDescription')}</p>
-                </div>
+              <div>
+                <CardTitle className="text-lg font-semibold">{t('analysis.intelligenceArchive')}</CardTitle>
+                <CardDescription className="text-xs">{t('analysis.previousScans')}</CardDescription>
               </div>
             </div>
-            
-            <AnimatePresence>
-              {activeReport && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 20 }}
-                  className="pt-6 border-t"
-                >
-                  <div className="flex gap-4 items-center">
-                    <div className="w-20 h-20 rounded-xl overflow-hidden border">
-                      <img src={activeReport.imageUrl} alt="Target" className="w-full h-full object-cover" />
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <p className="text-sm font-black uppercase tracking-widest text-primary">{t('analysis.pendingAnalysis')}</p>
-                      <Button 
-                        size="sm" 
-                        onClick={() => handleProcess(activeReport.id)}
-                        disabled={processMutation.isPending}
-                        className="w-full font-bold h-10 rounded-xl"
-                      >
-                        {processMutation.isPending ? (
-                          <RefreshCw className="w-4 h-4 animate-spin" />
-                        ) : (
-                          t('analysis.runFullReport')
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+          </CardHeader>
+          <CardContent className="p-4">
+            {isLoadingHistory ? (
+              <div className="flex justify-center p-8">
+                <Loader2 className="w-8 h-8 animate-spin text-green-600" />
+              </div>
+            ) : reports?.filter(r => r.status === 'complete').length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Scan className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p>{t('analysis.noReportsYet')}</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {reports?.filter(r => r.status === 'complete').slice(0, 5).map((report) => {
+                  const data = report.analysis as any;
+                  return (
+                    <motion.div
+                      key={report.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      onClick={() => setCurrentReport(report)}
+                      className="flex items-center gap-4 p-3 rounded-xl bg-muted/30 hover-elevate cursor-pointer"
+                      data-testid={`card-report-${report.id}`}
+                    >
+                      <img 
+                        src={report.imageUrl} 
+                        alt="Report" 
+                        className="w-14 h-14 rounded-lg object-cover border"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{t('common.entry')} #{report.id}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {formatDate(report.createdAt, { month: 'short', day: 'numeric' })}
+                        </p>
+                      </div>
+                      {data?.diseases?.length > 0 ? (
+                        <Badge className="bg-red-500/10 text-red-600 border-0">
+                          {data.diseases.length} {t('analysis.issues')}
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-green-500/10 text-green-600 border-0">
+                          {t('analysis.healthy')}
+                        </Badge>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
+    </div>
+  );
+}
 
-      <div className="space-y-4">
-        <h2 className="text-xl md:text-2xl font-black flex items-center gap-2 uppercase tracking-tighter">
-          <FileText className="w-5 md:w-6 h-5 md:h-6 text-primary" />
-          {t('analysis.intelligenceArchive')}
-        </h2>
-        {isLoadingHistory ? (
-          <div className="flex justify-center p-12"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {reports?.filter(r => r.status === 'complete' || r.status === 'failed').map((report) => {
-              const data = report.analysis as any;
+function ReportView({ report, scanMode }: { report: Report; scanMode: ScanMode }) {
+  const { t } = useLanguage();
+  const data = report.analysis as any;
+  
+  const severityColors: Record<string, string> = {
+    none: 'bg-green-500', low: 'bg-yellow-500', medium: 'bg-orange-500',
+    high: 'bg-red-500', critical: 'bg-red-700'
+  };
+
+  return (
+    <Card className="border-0 shadow-lg bg-card rounded-2xl overflow-hidden">
+      <CardHeader className="bg-green-500/5 border-b p-5">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-green-500/10 rounded-xl">
+              <Leaf className="w-5 h-5 text-green-600" />
+            </div>
+            <div>
+              <CardTitle className="text-lg font-semibold">{t('analysis.cropReport')} #{report.id}</CardTitle>
+              <CardDescription className="text-xs">{t('analysis.analysisResults')}</CardDescription>
+            </div>
+          </div>
+          <Badge className={severityColors[data?.severity || 'none']}>
+            {t(`severity.${data?.severity || 'none'}`)}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="p-5 space-y-5">
+        <div className="flex gap-4 flex-wrap">
+          <img src={report.imageUrl} alt="Crop" className="w-24 h-24 rounded-xl object-cover border" />
+          <div className="flex-1 space-y-2 min-w-0">
+            <p className="font-semibold text-lg">{data?.cropType || t('common.unknown')}</p>
+            {data?.summary && <p className="text-sm text-muted-foreground">{data.summary}</p>}
+            {data?.estimatedRecoveryTime && (
+              <div className="flex items-center gap-2 text-sm">
+                <Timer className="w-4 h-4 text-green-600" />
+                <span>{t('analysis.recovery')}: {data.estimatedRecoveryTime}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {data?.animals?.length > 0 && (
+          <div className="p-4 rounded-xl bg-orange-500/5 border border-orange-500/20 space-y-3">
+            <div className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-orange-600" />
+              <span className="font-semibold text-orange-600">{t('analysis.wildlifeScan')}</span>
+            </div>
+            {data.animals.map((animal: any, i: number) => {
+              const frequency = getRecommendedFrequency([animal.type || 'unknown']);
               return (
-                <motion.div
-                  key={report.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  onClick={() => setViewingReport(report)}
-                  className="bg-card border-none shadow-lg rounded-3xl p-4 md:p-6 flex flex-col md:flex-row gap-4 md:gap-6 hover:shadow-2xl transition-all cursor-pointer"
-                  data-testid={`card-report-${report.id}`}
-                >
-                  <div className="w-20 md:w-24 h-20 md:h-24 rounded-2xl overflow-hidden shrink-0 border">
-                    <img src={report.imageUrl} alt="Report" className="w-full h-full object-cover" />
+                <div key={i} className="flex items-center gap-4 p-3 bg-background rounded-lg">
+                  <AnimalIcon type={animal.type} />
+                  <div className="flex-1">
+                    <p className="font-medium text-orange-600">{animal.name || animal.type}</p>
+                    {animal.localName && <p className="text-xs text-muted-foreground">{animal.localName}</p>}
                   </div>
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <h3 className="font-black text-base md:text-lg tracking-tighter uppercase">{t('common.entry')} #{report.id}</h3>
-                      <Badge className={report.status === 'complete' ? 'bg-green-500' : 'bg-red-500'}>
-                        {t(`status.${report.status}`)}
-                      </Badge>
-                    </div>
-
-                    {data?.summary && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">{data.summary}</p>
-                    )}
-
-                    {data?.diseases?.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {data.diseases.map((d: any, i: number) => (
-                          <Badge key={i} variant="destructive" className="bg-red-500/10 text-red-600 border-none font-bold">
-                            {d.name}
-                          </Badge>
-                        ))}
-                      </div>
-                    ) : (
-                      <Badge variant="outline" className="bg-green-500/10 text-green-600 border-none font-bold">
-                        {t('analysis.healthyCrop')}
-                      </Badge>
-                    )}
-                    <div className="flex items-center justify-between pt-2">
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                        {formatDate(report.createdAt, { year: 'numeric', month: 'short', day: 'numeric' })}
-                      </p>
-                      <span className="text-xs text-primary flex items-center gap-1">
-                        {t('analysis.viewDetails')} <ChevronRight className="w-3 h-3" />
-                      </span>
-                    </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium">{animal.estimatedDistance || '?'}m</p>
+                    <p className="text-xs text-muted-foreground">{frequency} kHz</p>
                   </div>
-                </motion.div>
+                  <Badge className="bg-green-500 text-white">
+                    <Volume2 className="w-3 h-3 mr-1" />
+                    {t('analysis.deterrentTriggered')}
+                  </Badge>
+                </div>
               );
             })}
           </div>
         )}
-      </div>
 
-      <Dialog open={!!viewingReport} onOpenChange={() => setViewingReport(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] md:w-full">
-          {viewingReport && (() => {
-            const data = viewingReport.analysis as any;
-            const severityColors: Record<string, string> = {
-              none: 'bg-green-500',
-              low: 'bg-yellow-500',
-              medium: 'bg-orange-500',
-              high: 'bg-red-500',
-              critical: 'bg-red-700'
-            };
-            return (
-              <>
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-3">
-                    <Leaf className="w-6 h-6 text-primary" />
-                    {t('analysis.cropReport')} #{viewingReport.id}
-                  </DialogTitle>
-                </DialogHeader>
-                
-                {/* Severity badge with translation */}
-                
-                <div className="space-y-4 md:space-y-6">
-                  <div className="flex flex-col md:flex-row gap-4">
-                    <img 
-                      src={viewingReport.imageUrl} 
-                      alt="Crop" 
-                      className="w-full md:w-32 h-32 rounded-xl object-cover border"
-                    />
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Badge className={severityColors[data?.severity || 'none']}>
-                          {data?.severity?.toUpperCase() || 'NONE'}
-                        </Badge>
-                        <span className="font-bold text-lg">{data?.cropType || t('common.unknown')}</span>
-                      </div>
-                      {data?.summary && (
-                        <p className="text-muted-foreground">{data.summary}</p>
-                      )}
-                      {data?.estimatedRecoveryTime && (
-                        <p className="text-sm flex items-center gap-2">
-                          <Timer className="w-4 h-4 text-primary" />
-                          {t('analysis.recovery')}: {data.estimatedRecoveryTime}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <Card className={`${data?.animals?.length > 0 ? 'border-orange-200 bg-orange-50/50 dark:bg-orange-950/20' : 'border-green-200 bg-green-50/50 dark:bg-green-950/20'}`}>
-                    <CardHeader className="pb-2">
-                      <CardTitle className={`text-base md:text-lg flex items-center gap-2 ${data?.animals?.length > 0 ? 'text-orange-600' : 'text-green-600'}`}>
-                        <Zap className="w-5 h-5" />
-                        {t('analysis.wildlifeScan')}
-                      </CardTitle>
-                      <CardDescription className="text-xs">
-                        {t('analysis.connectedToDeterrent')}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      {data?.animals?.length > 0 ? (
-                        <>
-                          {data.animals.map((animal: any, i: number) => {
-                            const frequency = getRecommendedFrequency([animal.type || 'unknown']);
-                            const animalData = indianWildlifeFrequencies.find(a => a.id === animal.type);
-                            return (
-                              <div key={i} className="p-4 bg-background rounded-xl border border-orange-200">
-                                <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-                                  <div className="flex items-center gap-3">
-                                    <span className="text-3xl">{getAnimalEmoji(animal.type)}</span>
-                                    <div>
-                                      <p className="font-bold text-orange-600">{animal.name || animal.type}</p>
-                                      {animal.localName && <p className="text-sm text-muted-foreground">{animal.localName}</p>}
-                                    </div>
-                                  </div>
-                                  <Badge className="bg-green-500 text-white">
-                                    <Volume2 className="w-3 h-3 mr-1" />
-                                    {t('analysis.deterrentTriggered')}
-                                  </Badge>
-                                </div>
-                                
-                                <div className="grid grid-cols-3 gap-2 md:gap-3 text-center">
-                                  <div className="p-2 md:p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                                    <Target className="w-4 h-4 md:w-5 md:h-5 mx-auto text-orange-600 mb-1" />
-                                    <p className="text-xs text-muted-foreground">{t('analysis.distance')}</p>
-                                    <p className="text-base md:text-lg font-bold text-orange-600">{animal.estimatedDistance || '?'}m</p>
-                                  </div>
-                                  <div className="p-2 md:p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                                    <Volume2 className="w-4 h-4 md:w-5 md:h-5 mx-auto text-blue-600 mb-1" />
-                                    <p className="text-xs text-muted-foreground">{t('analysis.frequency')}</p>
-                                    <p className="text-base md:text-lg font-bold text-blue-600">{frequency} kHz</p>
-                                  </div>
-                                  <div className="p-2 md:p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                                    <ShieldCheck className="w-4 h-4 md:w-5 md:h-5 mx-auto text-green-600 mb-1" />
-                                    <p className="text-xs text-muted-foreground">{t('analysis.result')}</p>
-                                    <p className="text-xs md:text-sm font-bold text-green-600">{t('analysis.scaredAway')}</p>
-                                  </div>
-                                </div>
-                                
-                                {animalData && (
-                                  <p className="text-xs text-muted-foreground mt-3">
-                                    {t('analysis.optimalRange')}: {animalData.frequencyRange.min}-{animalData.frequencyRange.max} kHz
-                                  </p>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </>
-                      ) : (
-                        <div className="p-6 text-center bg-background rounded-xl border border-green-200">
-                          <ShieldCheck className="w-12 h-12 mx-auto text-green-500 mb-3" />
-                          <p className="font-bold text-green-600 text-lg">{t('analysis.noAnimalsDetected')}</p>
-                          <p className="text-sm text-muted-foreground mt-1">{t('analysis.fieldClear')}</p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {data?.diseases?.length > 0 && (
-                    <Card className="border-red-200 bg-red-50/50 dark:bg-red-950/20">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-base md:text-lg flex items-center gap-2 text-red-600">
-                          <AlertTriangle className="w-5 h-5" />
-                          {t('analysis.diseaseFound')}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        {data.diseases.map((d: any, i: number) => (
-                          <div key={i} className="p-3 bg-background rounded-lg">
-                            <div className="flex items-center justify-between flex-wrap gap-2">
-                              <p className="font-bold text-red-600">{d.name}</p>
-                              {scanMode === 'expert' && d.confidence && (
-                                <Badge variant="outline" className="text-xs">
-                                  {d.confidence}% {t('common.confidence')}
-                                </Badge>
-                              )}
-                            </div>
-                            {d.localName && <p className="text-sm text-muted-foreground">({d.localName})</p>}
-                            {scanMode === 'expert' && d.symptoms?.length > 0 && (
-                              <ul className="mt-2 text-sm space-y-1">
-                                {d.symptoms.map((s: string, j: number) => (
-                                  <li key={j} className="flex items-start gap-2">
-                                    <span className="text-red-500">•</span> {s}
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
-                        ))}
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {data?.whatToDoNow?.length > 0 && (
-                    <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-base md:text-lg flex items-center gap-2 text-blue-600">
-                          <CheckCircle2 className="w-5 h-5" />
-                          {t('analysis.whatToDo')}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        {data.whatToDoNow.map((step: any, i: number) => (
-                          <div key={i} className="flex gap-3 p-3 bg-background rounded-lg">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold shrink-0 ${
-                              step.urgency === 'immediate' ? 'bg-red-500' :
-                              step.urgency === 'within3days' ? 'bg-orange-500' : 'bg-blue-500'
-                            }`}>
-                              {step.step}
-                            </div>
-                            <div>
-                              <p className="font-bold">{step.action}</p>
-                              <p className="text-sm text-muted-foreground">{step.details}</p>
-                              <Badge variant="outline" className="mt-1 text-xs">
-                                {step.urgency === 'immediate' ? t('analysis.doNow') :
-                                 step.urgency === 'within3days' ? t('analysis.within3Days') : t('analysis.thisWeek')}
-                              </Badge>
-                            </div>
-                          </div>
-                        ))}
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                    {data?.organicOptions?.length > 0 && (
-                      <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20">
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-xs md:text-sm flex items-center gap-2 text-green-600">
-                            <Sprout className="w-4 h-4" />
-                            {t('analysis.organicOptions')}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="text-sm space-y-1">
-                            {data.organicOptions.map((opt: string, i: number) => (
-                              <li key={i} className="flex items-start gap-2">
-                                <span className="text-green-500">•</span> {opt}
-                              </li>
-                            ))}
-                          </ul>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {data?.chemicalOptions?.length > 0 && (
-                      <Card className="border-purple-200 bg-purple-50/50 dark:bg-purple-950/20">
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-xs md:text-sm flex items-center gap-2 text-purple-600">
-                            <Beaker className="w-4 h-4" />
-                            {t('analysis.chemicalOptions')}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="text-sm space-y-1">
-                            {data.chemicalOptions.map((opt: string, i: number) => (
-                              <li key={i} className="flex items-start gap-2">
-                                <span className="text-purple-500">•</span> {opt}
-                              </li>
-                            ))}
-                          </ul>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-
-                  {data?.prevention?.length > 0 && (
-                    <Card className="border-primary/20 bg-primary/5">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-base md:text-lg flex items-center gap-2 text-primary">
-                          <Shield className="w-5 h-5" />
-                          {t('analysis.prevention')}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        {data.prevention.map((p: any, i: number) => (
-                          <div key={i} className="flex gap-3 p-2 bg-background rounded-lg">
-                            <Shield className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                            <div>
-                              <p className="font-medium">{p.tip}</p>
-                              <p className="text-xs text-muted-foreground">{p.when}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {data?.warningSigns?.length > 0 && (
-                    <Card className="border-orange-200 bg-orange-50/50 dark:bg-orange-950/20">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-xs md:text-sm flex items-center gap-2 text-orange-600">
-                          <Eye className="w-4 h-4" />
-                          {t('analysis.warningSigns')}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="text-sm space-y-1">
-                          {data.warningSigns.map((sign: string, i: number) => (
-                            <li key={i} className="flex items-start gap-2">
-                              <span className="text-orange-500">•</span> {sign}
-                            </li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {data?.canHarvest !== undefined && (
-                    <Card className={data.canHarvest ? 'border-green-200 bg-green-50/50 dark:bg-green-950/20' : 'border-red-200 bg-red-50/50 dark:bg-red-950/20'}>
-                      <CardContent className="pt-4">
-                        <div className="flex items-center gap-3">
-                          {data.canHarvest ? (
-                            <CheckCircle2 className="w-5 md:w-6 h-5 md:h-6 text-green-600" />
-                          ) : (
-                            <AlertTriangle className="w-5 md:w-6 h-5 md:h-6 text-red-600" />
-                          )}
-                          <div>
-                            <p className="font-bold text-sm md:text-base">{data.canHarvest ? t('analysis.canHarvest') : t('analysis.waitToHarvest')}</p>
-                            {data.harvestAdvice && (
-                              <p className="text-sm text-muted-foreground">{data.harvestAdvice}</p>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+        {data?.diseases?.length > 0 && (
+          <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/20 space-y-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
+              <span className="font-semibold text-red-600">{t('analysis.diseaseFound')}</span>
+            </div>
+            {data.diseases.map((d: any, i: number) => (
+              <div key={i} className="p-3 bg-background rounded-lg">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <p className="font-medium text-red-600">{d.name}</p>
+                  {scanMode === 'expert' && d.confidence && (
+                    <Badge variant="outline" className="text-xs">
+                      {d.confidence}% {t('common.confidence')}
+                    </Badge>
                   )}
                 </div>
-              </>
-            );
-          })()}
-        </DialogContent>
-      </Dialog>
-    </div>
+                {d.localName && <p className="text-sm text-muted-foreground">({d.localName})</p>}
+                {scanMode === 'expert' && d.symptoms?.length > 0 && (
+                  <ul className="mt-2 text-sm space-y-1">
+                    {d.symptoms.map((s: string, j: number) => (
+                      <li key={j} className="flex items-start gap-2">
+                        <span className="text-red-500">•</span> {s}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {data?.whatToDoNow?.length > 0 && (
+          <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20 space-y-3">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-blue-600" />
+              <span className="font-semibold text-blue-600">{t('analysis.whatToDo')}</span>
+            </div>
+            {data.whatToDoNow.map((step: any, i: number) => (
+              <div key={i} className="flex gap-3 p-3 bg-background rounded-lg">
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 ${
+                  step.urgency === 'immediate' ? 'bg-red-500' :
+                  step.urgency === 'within3days' ? 'bg-orange-500' : 'bg-blue-500'
+                }`}>
+                  {step.step}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium">{step.action}</p>
+                  <p className="text-sm text-muted-foreground">{step.details}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {data?.organicOptions?.length > 0 && (
+            <div className="p-4 rounded-xl bg-green-500/5 border border-green-500/20">
+              <div className="flex items-center gap-2 mb-3">
+                <Sprout className="w-4 h-4 text-green-600" />
+                <span className="font-medium text-green-600 text-sm">{t('analysis.organicOptions')}</span>
+              </div>
+              <ul className="text-sm space-y-1">
+                {data.organicOptions.map((opt: string, i: number) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="text-green-500">•</span> {opt}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {data?.chemicalOptions?.length > 0 && (
+            <div className="p-4 rounded-xl bg-purple-500/5 border border-purple-500/20">
+              <div className="flex items-center gap-2 mb-3">
+                <Beaker className="w-4 h-4 text-purple-600" />
+                <span className="font-medium text-purple-600 text-sm">{t('analysis.chemicalOptions')}</span>
+              </div>
+              <ul className="text-sm space-y-1">
+                {data.chemicalOptions.map((opt: string, i: number) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="text-purple-500">•</span> {opt}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {data?.prevention?.length > 0 && (
+          <div className="p-4 rounded-xl bg-green-500/5 border border-green-500/20">
+            <div className="flex items-center gap-2 mb-3">
+              <Shield className="w-5 h-5 text-green-600" />
+              <span className="font-semibold text-green-600">{t('analysis.prevention')}</span>
+            </div>
+            <div className="space-y-2">
+              {data.prevention.map((p: any, i: number) => (
+                <div key={i} className="flex gap-3 p-2 bg-background rounded-lg">
+                  <Shield className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-sm">{p.tip}</p>
+                    <p className="text-xs text-muted-foreground">{p.when}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
