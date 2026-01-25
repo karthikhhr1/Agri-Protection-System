@@ -70,7 +70,7 @@ export default function Analysis() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
-  const { t, formatDate, formatTime } = useLanguage();
+  const { t, formatDate, formatTime, language } = useLanguage();
 
   const { data: reports, isLoading: isLoadingHistory } = useQuery<Report[]>({
     queryKey: ["/api/reports"],
@@ -138,7 +138,7 @@ export default function Analysis() {
 
   const processMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await apiRequest("POST", `/api/reports/${id}/process`, {});
+      const res = await apiRequest("POST", `/api/reports/${id}/process`, { language });
       return res.json();
     },
     onSuccess: () => {

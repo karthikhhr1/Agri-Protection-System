@@ -23,10 +23,6 @@ const navItems = [
   { href: "/irrigation", labelKey: "nav.irrigation", icon: Droplets },
   { href: "/deterrent", labelKey: "nav.deterrent", icon: Volume2 },
   { href: "/assistant", labelKey: "nav.assistant", icon: Bot },
-  { href: "/schedule", labelKey: "nav.schedule", icon: Calendar },
-  { href: "/inventory", labelKey: "nav.inventory", icon: Package },
-  { href: "/finances", labelKey: "nav.finances", icon: DollarSign },
-  { href: "/logs", labelKey: "nav.logs", icon: FileText },
   { href: "/hardware", labelKey: "nav.hardware", icon: Cpu },
   { href: "/admin", labelKey: "nav.admin", icon: BarChart3 },
 ];

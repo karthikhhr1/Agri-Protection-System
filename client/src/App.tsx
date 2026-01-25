@@ -13,10 +13,6 @@ import Analysis from "@/pages/Analysis";
 import Irrigation from "@/pages/Irrigation";
 import Deterrent from "@/pages/Deterrent";
 import Assistant from "@/pages/Assistant";
-import Schedule from "@/pages/Schedule";
-import Inventory from "@/pages/Inventory";
-import Finances from "@/pages/Finances";
-import Logs from "@/pages/Logs";
 import FieldSummary from "@/pages/FieldSummary";
 import FieldTimeline from "@/pages/FieldTimeline";
 import Hardware from "@/pages/Hardware";
@@ -43,10 +39,6 @@ function Router() {
           <Route path="/irrigation" component={Irrigation} />
           <Route path="/deterrent" component={Deterrent} />
           <Route path="/assistant" component={Assistant} />
-          <Route path="/schedule" component={Schedule} />
-          <Route path="/inventory" component={Inventory} />
-          <Route path="/finances" component={Finances} />
-          <Route path="/logs" component={Logs} />
           <Route path="/field-summary" component={FieldSummary} />
           <Route path="/field-timeline" component={FieldTimeline} />
           <Route path="/hardware" component={Hardware} />
