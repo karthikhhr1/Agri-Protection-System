@@ -36,6 +36,18 @@ export default function Assistant() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  const getServerErrorMessage = (error: unknown) => {
+    if (!(error instanceof Error)) return null;
+    const jsonStart = error.message.indexOf("{");
+    if (jsonStart === -1) return null;
+    try {
+      const parsed = JSON.parse(error.message.slice(jsonStart));
+      return typeof parsed?.message === "string" ? parsed.message : null;
+    } catch {
+      return null;
+    }
+  };
+
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -53,10 +65,11 @@ export default function Assistant() {
       const data = await res.json();
       setMessages(prev => [...prev, { role: "assistant", content: data.message }]);
     } catch (err) {
+      const serverMessage = getServerErrorMessage(err);
       toast({
         variant: "destructive",
         title: t('common.error'),
-        description: t('assistant.error'),
+        description: serverMessage || t('assistant.error'),
       });
     } finally {
       setIsLoading(false);

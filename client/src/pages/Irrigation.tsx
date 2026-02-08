@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,6 +26,7 @@ export default function Irrigation() {
   const { data: settings } = useIrrigationSettings();
   const updateSettings = useUpdateIrrigationSettings();
   const [lastAdvice, setLastAdvice] = useState<string | null>(null);
+  const [localThreshold, setLocalThreshold] = useState<number | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(irrigationRequestSchema),
@@ -43,10 +44,16 @@ export default function Irrigation() {
     });
   };
 
+  useEffect(() => {
+    setLocalThreshold(settings?.moistureThreshold ?? 30);
+  }, [settings?.moistureThreshold]);
+
   // Check if latest reading needs irrigation
   const latestReading = history?.[0];
+  const moistureThreshold = settings?.moistureThreshold ?? 30;
+  const displayThreshold = localThreshold ?? moistureThreshold;
   const needsIrrigation = latestReading && settings?.isActive && !settings?.manualOverride
-    && latestReading.soilMoisture < (settings?.moistureThreshold || 30);
+    && latestReading.soilMoisture < moistureThreshold;
 
   // Format data for chart with localized dates
   const locale = getLocale();
@@ -78,7 +85,7 @@ export default function Irrigation() {
               {t('irrigation.needsIrrigation') || 'Irrigation Needed!'}
             </p>
             <p className="text-sm text-muted-foreground">
-              Soil moisture is {latestReading.soilMoisture}% (threshold: {settings?.moistureThreshold || 30}%)
+              Soil moisture is {latestReading.soilMoisture}% (threshold: {moistureThreshold}%)
             </p>
           </div>
           <Badge className="bg-red-500 text-white shrink-0">
@@ -117,10 +124,11 @@ export default function Irrigation() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="font-medium">{t('irrigation.moistureThreshold') || 'Moisture Threshold'}</Label>
-                  <Badge variant="outline">{settings?.moistureThreshold || 30}%</Badge>
+                  <Badge variant="outline">{displayThreshold}%</Badge>
                 </div>
                 <Slider
-                  value={[settings?.moistureThreshold || 30]}
+                  value={[displayThreshold]}
+                  onValueChange={(value) => setLocalThreshold(value[0])}
                   onValueCommit={(value) => updateSettings.mutate({ moistureThreshold: value[0] })}
                   min={10}
                   max={80}

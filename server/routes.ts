@@ -714,7 +714,7 @@ export async function registerRoutes(
           const detection = await storage.createAnimalDetection({
             animalType: animal.type || 'unknown',
             distance: animal.estimatedDistance || 50,
-            confidence: (animal.confidence || 70) / 100, // normalize 0-100 AI scale to 0-1 DB scale
+            confidence: (animal.confidence ?? 70) / 100, // normalize 0-100 AI scale to 0-1 DB scale
             status: 'detected',
             deterrentActivated: false,
           });
@@ -1961,6 +1961,12 @@ export async function registerRoutes(
         language: z.string().optional().default("en"),
         languageName: z.string().optional().default("English")
       }).parse(req.body);
+
+      if (!process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
+        return res.status(503).json({
+          message: "AI assistant not configured. Set AI_INTEGRATIONS_OPENAI_API_KEY.",
+        });
+      }
       
       const systemPrompt = language === "en" 
         ? "You are an AI agricultural assistant for AgriGuard. You help farmers with crop diseases, irrigation, and land management. Use the 'Beyond Good Intentions' principles: ecological durability, semi-arid land design, and restorative agriculture. Answer concisely and practically."
