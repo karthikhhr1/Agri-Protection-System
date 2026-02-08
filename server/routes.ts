@@ -95,6 +95,25 @@ export async function registerRoutes(
     return isAuthenticated(req, res, next);
   });
   
+  // === Health Check ===
+  app.get("/api/health", async (_req, res) => {
+    try {
+      // Quick DB connectivity check
+      await storage.getReports();
+      res.json({
+        status: "ok",
+        timestamp: new Date().toISOString(),
+        version: "1.0.0",
+      });
+    } catch {
+      res.status(503).json({
+        status: "error",
+        timestamp: new Date().toISOString(),
+        message: "Database connectivity issue",
+      });
+    }
+  });
+
   // === Reports ===
   app.get(api.reports.list.path, async (req, res) => {
     const reports = await storage.getReports();
@@ -498,10 +517,11 @@ export async function registerRoutes(
         }
       `;
 
-      const systemPromptLanguage = language !== "en" 
+      const systemPromptLanguage = language !== "en"
         ? ` You MUST respond ENTIRELY in ${languageName} using its native script. All text, summaries, recommendations - everything must be in ${languageName}. Only scientific names can remain in English (in parentheses).`
         : "";
-      
+
+      const processingStartTime = Date.now();
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [
@@ -539,8 +559,7 @@ export async function registerRoutes(
       }
 
       // Add model metadata and calculate overall health
-      const processingEndTime = Date.now();
-      const processingTime = processingEndTime - Date.now();
+      const processingTime = Date.now() - processingStartTime;
       
       const enhancedAnalysis = {
         ...analysis,
@@ -1053,11 +1072,11 @@ export async function registerRoutes(
   // === Audio ===
   app.post(api.audio.calculate.path, async (req, res) => {
     const { distance, coordinates } = api.audio.calculate.input.parse(req.body);
-    
+
     // Get deterrent settings for volume calculation
     const settings = await storage.getDeterrentSettings();
     const baseVolume = settings?.volume || 70;
-    const volume = Math.round(baseVolume + 20 * Math.log10(Number(distance)));
+    const volume = Math.round(baseVolume + 20 * Math.log10(Math.max(1, distance)));
 
     const log = await storage.createAudioLog({
       distance: String(distance),
@@ -1769,20 +1788,68 @@ export async function registerRoutes(
       }
 
       // Simulate sensor reading
-      const reading = {
-        soilMoisture: Math.floor(Math.random() * 60) + 20, // 20-80%
-        humidity: Math.floor(Math.random() * 40) + 40, // 40-80%
-        temperature: Math.floor(Math.random() * 15) + 20, // 20-35°C
-        timestamp: new Date().toISOString()
-      };
+      const soilMoisture = Math.floor(Math.random() * 60) + 20; // 20-80%
+      const humidity = Math.floor(Math.random() * 40) + 40; // 40-80%
+      const temperature = Math.floor(Math.random() * 15) + 20; // 20-35°C
+      const ambientHumidity = Math.floor(Math.random() * 40) + 40;
+
+      // Compute irrigation advice using same logic as POST /api/irrigation
+      const settings = await storage.getIrrigationSettings();
+      const threshold = settings?.moistureThreshold || 30;
+
+      let advice = "";
+      if (soilMoisture < threshold) {
+        advice = "CRITICAL: Irrigate immediately. Soil moisture is below threshold.";
+      } else if (soilMoisture < 50) {
+        advice = humidity > 80
+          ? "Monitor closely. Soil is drying, but high humidity will slow water loss."
+          : "Irrigate soon. Soil moisture is getting low.";
+      } else if (soilMoisture > 80) {
+        advice = "Do not irrigate. Soil is saturated.";
+      } else {
+        advice = "Conditions optimal. No irrigation needed.";
+      }
+
+      // Write to sensor_readings so irrigation history updates
+      const sensorReading = await storage.createSensorReading({
+        soilMoisture,
+        humidity,
+        temperature,
+        ambientHumidity,
+        irrigationAdvice: advice,
+        healthScore: Math.round((soilMoisture + humidity + (100 - (temperature - 20) * 4)) / 3),
+      });
+
+      // Create activity log with device context
+      await storage.createActivityLog({
+        action: "irrigation",
+        details: `Device "${device.name}" sensor read: ${advice}`,
+        metadata: { deviceId: id, soilMoisture, humidity, temperature, readingId: sensorReading.id }
+      });
+
+      // If irrigation is needed, create a high-visibility log
+      if (settings?.isActive && !settings?.manualOverride && soilMoisture < threshold) {
+        await storage.createActivityLog({
+          action: "irrigation",
+          details: `ALERT: Soil moisture ${soilMoisture}% is below threshold ${threshold}% - Irrigation needed!`,
+          metadata: { deviceId: id, soilMoisture, threshold, urgent: true }
+        });
+      }
 
       // Update device last data time
-      await storage.updateHardwareDevice(id, { 
+      await storage.updateHardwareDevice(id, {
         status: "online",
         lastDataAt: new Date()
       });
 
-      res.json(reading);
+      res.json({
+        soilMoisture,
+        humidity,
+        temperature,
+        irrigationAdvice: advice,
+        readingId: sensorReading.id,
+        timestamp: new Date().toISOString()
+      });
     } catch (err) {
       res.status(500).json({ message: "Failed to read sensor data" });
     }

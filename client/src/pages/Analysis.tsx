@@ -221,7 +221,8 @@ export default function Analysis() {
   const handleDownload = async (format: 'pdf' | 'text') => {
     if (!latestCompleteReport) return;
     try {
-      const res = await fetch(`/api/reports/${latestCompleteReport.id}/export?format=${format}`);
+      const res = await fetch(`/api/reports/${latestCompleteReport.id}/export/${format}`);
+      if (!res.ok) throw new Error('Export failed');
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -577,6 +578,81 @@ function ReportView({ report, scanMode }: { report: Report; scanMode: ScanMode }
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {data?.pests?.length > 0 && (
+          <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 space-y-3">
+            <div className="flex items-center gap-2">
+              <Bug className="w-5 h-5 text-amber-600" />
+              <span className="font-semibold text-amber-600">{t('analysis.pestsFound') || 'Pests / Insects Found'}</span>
+              <Badge variant="outline" className="ml-auto text-xs">
+                {data.pests.length} {data.pests.length === 1 ? 'pest' : 'pests'}
+              </Badge>
+            </div>
+            {scanMode === 'farmer' ? (
+              // Farmer mode: simple summary + top 3 pests with actions
+              <div className="space-y-2">
+                {data.pests.slice(0, 3).map((p: any, i: number) => (
+                  <div key={i} className="p-3 bg-background rounded-lg">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <p className="font-medium text-amber-700">{p.name}</p>
+                      {p.confidence && (
+                        <Badge className="bg-amber-500/10 text-amber-600 border-0 text-xs">
+                          {p.confidence}%
+                        </Badge>
+                      )}
+                    </div>
+                    {p.localName && <p className="text-sm text-muted-foreground">({p.localName})</p>}
+                    {p.damageType && (
+                      <p className="text-sm text-muted-foreground mt-1">{p.damageType}</p>
+                    )}
+                  </div>
+                ))}
+                {data.pests.length > 3 && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    +{data.pests.length - 3} more detected
+                  </p>
+                )}
+              </div>
+            ) : (
+              // Expert mode: detailed per-pest info
+              <div className="space-y-2">
+                {data.pests.map((p: any, i: number) => (
+                  <div key={i} className="p-3 bg-background rounded-lg space-y-1">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <p className="font-medium text-amber-700">{p.name}</p>
+                      {p.confidence && (
+                        <Badge variant="outline" className="text-xs">
+                          {p.confidence}% confidence
+                        </Badge>
+                      )}
+                    </div>
+                    {p.localName && <p className="text-sm text-muted-foreground">({p.localName})</p>}
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {p.category && (
+                        <Badge variant="secondary" className="text-xs">{p.category}</Badge>
+                      )}
+                      {p.type && (
+                        <Badge variant="secondary" className="text-xs">{p.type}</Badge>
+                      )}
+                      {p.lifestage && (
+                        <Badge variant="secondary" className="text-xs">{p.lifestage}</Badge>
+                      )}
+                    </div>
+                    {p.description && (
+                      <p className="text-sm text-muted-foreground">{p.description}</p>
+                    )}
+                    {p.damageType && (
+                      <p className="text-sm"><span className="text-amber-600 font-medium">Damage:</span> {p.damageType}</p>
+                    )}
+                    {p.location && (
+                      <p className="text-sm"><span className="text-amber-600 font-medium">Location:</span> {p.location}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

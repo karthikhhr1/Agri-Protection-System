@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, buildUrl, type analyzeImageSchema, type irrigationRequestSchema, type audioRequestSchema } from "@shared/routes";
+import type { SensorReading } from "@shared/schema";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 
@@ -111,12 +112,12 @@ export function useBulkDeleteReports() {
 // === IRRIGATION ===
 
 export function useIrrigationHistory() {
-  return useQuery({
+  return useQuery<SensorReading[]>({
     queryKey: [api.irrigation.list.path],
-    queryFn: async () => {
+    queryFn: async (): Promise<SensorReading[]> => {
       const res = await fetch(api.irrigation.list.path);
       if (!res.ok) throw new Error("Failed to fetch irrigation history");
-      return res.json();
+      return (await res.json()) as SensorReading[];
     },
   });
 }
@@ -142,6 +143,43 @@ export function useCalculateIrrigation() {
         title: "Advice Generated",
         description: `Recommendation: ${data.irrigationAdvice}`,
       });
+    },
+  });
+}
+
+// === IRRIGATION SETTINGS ===
+
+export function useIrrigationSettings() {
+  return useQuery({
+    queryKey: ["/api/irrigation/settings"],
+    queryFn: async () => {
+      const res = await fetch("/api/irrigation/settings");
+      if (!res.ok) throw new Error("Failed to fetch irrigation settings");
+      return res.json();
+    },
+  });
+}
+
+export function useUpdateIrrigationSettings() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: {
+      isActive?: boolean;
+      moistureThreshold?: number;
+      manualOverride?: boolean;
+    }) => {
+      const res = await fetch("/api/irrigation/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to update irrigation settings");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/irrigation/settings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/irrigation"] });
     },
   });
 }
@@ -184,9 +222,9 @@ export function useCalculateAudio() {
 
 export function useAnimalDetections() {
   return useQuery({
-    queryKey: ["/api/animals"],
+    queryKey: ["/api/detections"],
     queryFn: async () => {
-      const res = await fetch("/api/animals");
+      const res = await fetch("/api/detections");
       if (!res.ok) throw new Error("Failed to fetch animal detections");
       return res.json();
     },
@@ -259,7 +297,7 @@ export function useSimulateCameraDetection() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/animals"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/detections"] });
       queryClient.invalidateQueries({ queryKey: ["/api/automation/status"] });
       queryClient.invalidateQueries({ queryKey: ["/api/logs"] });
     },

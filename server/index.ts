@@ -14,6 +14,7 @@ declare module "http" {
 
 app.use(
   express.json({
+    limit: '50mb',
     verify: (req, _res, buf) => {
       req.rawBody = buf;
     },
@@ -63,6 +64,10 @@ app.use((req, res, next) => {
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    // Handle payload too large errors with a friendly message
+    if (err.type === 'entity.too.large') {
+      return res.status(413).json({ message: "Image is too large. Please use a smaller image or reduce resolution." });
+    }
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 

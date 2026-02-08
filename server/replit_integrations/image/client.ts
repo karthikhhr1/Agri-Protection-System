@@ -20,7 +20,14 @@ export async function generateImageBuffer(
     prompt,
     size,
   });
-  const base64 = response.data[0]?.b64_json ?? "";
+  const data = response.data;
+  if (!data?.length) {
+    throw new Error("No image data returned from OpenAI");
+  }
+  const base64 = data[0]?.b64_json;
+  if (!base64) {
+    throw new Error("OpenAI response missing base64 image data");
+  }
   return Buffer.from(base64, "base64");
 }
 
@@ -47,7 +54,14 @@ export async function editImages(
     prompt,
   });
 
-  const imageBase64 = response.data[0]?.b64_json ?? "";
+  const data = response.data;
+  if (!data?.length) {
+    throw new Error("No edited image data returned from OpenAI");
+  }
+  const imageBase64 = data[0]?.b64_json;
+  if (!imageBase64) {
+    throw new Error("OpenAI response missing base64 edited image data");
+  }
   const imageBytes = Buffer.from(imageBase64, "base64");
 
   if (outputPath) {
@@ -56,4 +70,3 @@ export async function editImages(
 
   return imageBytes;
 }
-

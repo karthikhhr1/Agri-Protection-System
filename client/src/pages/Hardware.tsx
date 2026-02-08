@@ -112,7 +112,8 @@ export default function Hardware() {
 
   const addDevice = useMutation({
     mutationFn: async (data: typeof newDevice) => {
-      return await apiRequest("/api/devices", { method: "POST", body: JSON.stringify(data) });
+      const res = await apiRequest("POST", "/api/devices", data);
+      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/devices"] });
@@ -127,7 +128,7 @@ export default function Hardware() {
 
   const deleteDevice = useMutation({
     mutationFn: async (id: number) => {
-      return await apiRequest(`/api/devices/${id}`, { method: "DELETE" });
+      return await apiRequest("DELETE", `/api/devices/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/devices"] });
@@ -137,7 +138,8 @@ export default function Hardware() {
 
   const testConnection = useMutation({
     mutationFn: async (id: number) => {
-      return await apiRequest(`/api/devices/${id}/test`, { method: "POST" });
+      const res = await apiRequest("POST", `/api/devices/${id}/test`);
+      return res.json();
     },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/devices"] });
@@ -153,7 +155,8 @@ export default function Hardware() {
 
   const captureImage = useMutation({
     mutationFn: async (id: number) => {
-      return await apiRequest(`/api/devices/${id}/capture`, { method: "POST" });
+      const res = await apiRequest("POST", `/api/devices/${id}/capture`);
+      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
@@ -169,12 +172,15 @@ export default function Hardware() {
 
   const readSensor = useMutation({
     mutationFn: async (id: number) => {
-      return await apiRequest(`/api/devices/${id}/read`, { method: "POST" });
+      const res = await apiRequest("POST", `/api/devices/${id}/read`);
+      return res.json();
     },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/devices"] });
-      toast({ 
-        title: t('hardware.sensorRead'), 
+      queryClient.invalidateQueries({ queryKey: ["/api/irrigation"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/irrigation/settings"] });
+      toast({
+        title: t('hardware.sensorRead'),
         description: `${t('irrigation.soilMoisture')}: ${data.soilMoisture}%, ${t('irrigation.humidity')}: ${data.humidity}%`
       });
     },

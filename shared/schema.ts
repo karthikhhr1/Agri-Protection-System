@@ -4,6 +4,7 @@ import { z } from "zod";
 
 // Export auth models
 export * from "./models/auth";
+export * from "./models/chat";
 
 // === PLANT PROFILES (For Trend Analysis) ===
 export const plantProfiles = pgTable("plant_profiles", {
@@ -276,11 +277,11 @@ export type InsertHardwareDevice = z.infer<typeof insertHardwareDeviceSchema>;
 
 // API Request Types
 export const analyzeImageSchema = z.object({
-  imageUrl: z.string().url(),
+  imageUrl: z.string().min(1),
 });
 
 export const captureImageSchema = z.object({
-  imageUrl: z.string().url(),
+  imageUrl: z.string().min(1),
 });
 
 export const irrigationRequestSchema = z.object({
@@ -289,7 +290,7 @@ export const irrigationRequestSchema = z.object({
 });
 
 export const audioRequestSchema = z.object({
-  distance: z.string(),
+  distance: z.coerce.number(),
   coordinates: z.object({
     x: z.number(),
     y: z.number(),

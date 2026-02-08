@@ -3,13 +3,17 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { irrigationRequestSchema } from "@shared/routes";
-import { useCalculateIrrigation, useIrrigationHistory } from "@/hooks/use-agri";
+import { useCalculateIrrigation, useIrrigationHistory, useIrrigationSettings, useUpdateIrrigationSettings } from "@/hooks/use-agri";
 import { useLanguage } from "@/lib/i18n";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Droplets, ThermometerSun, History, Leaf } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
+import { Droplets, ThermometerSun, History, Leaf, Settings, AlertTriangle } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { motion } from "framer-motion";
 
@@ -19,6 +23,8 @@ export default function Irrigation() {
   const { t, formatDate, formatNumber, getLocale } = useLanguage();
   const { mutate: calculate, isPending } = useCalculateIrrigation();
   const { data: history } = useIrrigationHistory();
+  const { data: settings } = useIrrigationSettings();
+  const updateSettings = useUpdateIrrigationSettings();
   const [lastAdvice, setLastAdvice] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
@@ -37,6 +43,11 @@ export default function Irrigation() {
     });
   };
 
+  // Check if latest reading needs irrigation
+  const latestReading = history?.[0];
+  const needsIrrigation = latestReading && settings?.isActive && !settings?.manualOverride
+    && latestReading.soilMoisture < (settings?.moistureThreshold || 30);
+
   // Format data for chart with localized dates
   const locale = getLocale();
   const chartData = history?.map(h => ({
@@ -54,9 +65,92 @@ export default function Irrigation() {
         </p>
       </div>
 
+      {/* Irrigation Alert Banner */}
+      {needsIrrigation && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/30"
+        >
+          <AlertTriangle className="w-6 h-6 text-red-600 shrink-0" />
+          <div className="flex-1">
+            <p className="font-semibold text-red-600">
+              {t('irrigation.needsIrrigation') || 'Irrigation Needed!'}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Soil moisture is {latestReading.soilMoisture}% (threshold: {settings?.moistureThreshold || 30}%)
+            </p>
+          </div>
+          <Badge className="bg-red-500 text-white shrink-0">
+            {t('common.urgent') || 'Urgent'}
+          </Badge>
+        </motion.div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 lg:gap-8">
-        {/* Left Column: Calculator */}
+        {/* Left Column: Calculator + Settings */}
         <div className="lg:col-span-5 space-y-4 md:space-y-6">
+          {/* Irrigation Settings Card */}
+          <Card className="border-border shadow-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+                <Settings className="w-5 h-5 text-muted-foreground" />
+                {t('irrigation.settings') || 'Irrigation Settings'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="font-medium">{t('irrigation.autoIrrigation') || 'Auto Irrigation'}</Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {t('irrigation.autoIrrigationDesc') || 'Enable automatic irrigation monitoring'}
+                  </p>
+                </div>
+                <Switch
+                  checked={settings?.isActive || false}
+                  onCheckedChange={(checked) => updateSettings.mutate({ isActive: checked })}
+                  disabled={updateSettings.isPending}
+                  data-testid="switch-irrigation-active"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="font-medium">{t('irrigation.moistureThreshold') || 'Moisture Threshold'}</Label>
+                  <Badge variant="outline">{settings?.moistureThreshold || 30}%</Badge>
+                </div>
+                <Slider
+                  value={[settings?.moistureThreshold || 30]}
+                  onValueCommit={(value) => updateSettings.mutate({ moistureThreshold: value[0] })}
+                  min={10}
+                  max={80}
+                  step={5}
+                  disabled={updateSettings.isPending}
+                  data-testid="slider-moisture-threshold"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t('irrigation.thresholdDesc') || 'Alert when soil moisture drops below this level'}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="font-medium">{t('irrigation.manualOverride') || 'Manual Override'}</Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {t('irrigation.manualOverrideDesc') || 'Disable automatic alerts temporarily'}
+                  </p>
+                </div>
+                <Switch
+                  checked={settings?.manualOverride || false}
+                  onCheckedChange={(checked) => updateSettings.mutate({ manualOverride: checked })}
+                  disabled={updateSettings.isPending}
+                  data-testid="switch-manual-override"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Calculator */}
           <Card className="border-border shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
@@ -135,40 +229,40 @@ export default function Irrigation() {
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis 
-                      dataKey="date" 
-                      stroke="#888888" 
-                      fontSize={12} 
-                      tickLine={false} 
-                      axisLine={false} 
+                    <XAxis
+                      dataKey="date"
+                      stroke="#888888"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
                     />
-                    <YAxis 
-                      stroke="#888888" 
-                      fontSize={12} 
-                      tickLine={false} 
-                      axisLine={false} 
-                      tickFormatter={(value) => `${value}%`} 
+                    <YAxis
+                      stroke="#888888"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(value) => `${value}%`}
                     />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: "hsl(var(--card))", 
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--card))",
                         border: "1px solid hsl(var(--border))",
                         borderRadius: "8px"
-                      }} 
+                      }}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="moisture" 
-                      name={t('irrigation.soilMoisture')} 
-                      stroke="hsl(217, 91%, 60%)" 
+                    <Line
+                      type="monotone"
+                      dataKey="moisture"
+                      name={t('irrigation.soilMoisture')}
+                      stroke="hsl(217, 91%, 60%)"
                       strokeWidth={2}
                       dot={false}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="humidity" 
-                      name={t('irrigation.humidity')} 
-                      stroke="hsl(35, 90%, 55%)" 
+                    <Line
+                      type="monotone"
+                      dataKey="humidity"
+                      name={t('irrigation.humidity')}
+                      stroke="hsl(35, 90%, 55%)"
                       strokeWidth={2}
                       dot={false}
                     />

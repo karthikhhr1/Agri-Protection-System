@@ -125,7 +125,7 @@ export default function Logs() {
                         </span>
                       </div>
                       <p className="text-xs md:text-sm text-foreground">{log.details}</p>
-                      {log.metadata && (
+                      {log.metadata != null && (
                         <pre className="text-xs text-muted-foreground mt-2 bg-muted/50 p-2 rounded overflow-x-auto max-w-full">
                           {JSON.stringify(log.metadata, null, 2)}
                         </pre>
