@@ -61,8 +61,6 @@ English, Hindi, Telugu, Kannada, Tamil, Marathi, Bengali, Gujarati, Punjabi, Mal
 | AI Assistant shows "AI request failed" | Missing or invalid OpenAI API key | Set `AI_INTEGRATIONS_OPENAI_API_KEY` in secrets. The key needs access to `gpt-4o`. |
 | Image analysis fails | Same API key issue | See above. Large images are auto-compressed client-side to stay under the 50MB server limit. |
 | Auth issues running locally | Replit Auth uses secure cookies over HTTPS | Either use HTTPS or set `DEV_DISABLE_AUTH=1` for local dev. |
-| Settings pages show raw key names (e.g. `irrigation.settings`) | Running outdated code | Pull the latest code — translations were added for all 11 locales. |
-| Moisture slider doesn't respond | Running outdated code | Pull latest — slider now uses local state while dragging and persists on release. |
 
 ## Architecture
 
