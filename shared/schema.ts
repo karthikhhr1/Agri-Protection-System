@@ -276,12 +276,17 @@ export type HardwareDevice = typeof hardwareDevices.$inferSelect;
 export type InsertHardwareDevice = z.infer<typeof insertHardwareDeviceSchema>;
 
 // API Request Types
+const imageUrlSchema = z.string().min(1).refine(
+  (val) => val.startsWith('data:image/') || val.startsWith('http://') || val.startsWith('https://'),
+  { message: "Must be a valid URL or a data:image/ data URL" }
+);
+
 export const analyzeImageSchema = z.object({
-  imageUrl: z.string().min(1),
+  imageUrl: imageUrlSchema,
 });
 
 export const captureImageSchema = z.object({
-  imageUrl: z.string().min(1),
+  imageUrl: imageUrlSchema,
 });
 
 export const irrigationRequestSchema = z.object({

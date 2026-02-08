@@ -191,6 +191,14 @@ export default function Analysis() {
       toast({ title: t('analysis.analyzing'), description: t('analysis.autoProcessing') });
       processMutation.mutate(data.id);
     },
+    onError: (error: Error) => {
+      setSelectedImage(null);
+      toast({
+        title: t('analysis.uploadFailed') || 'Upload Failed',
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 
   const processMutation = useMutation({
@@ -202,6 +210,13 @@ export default function Analysis() {
       setCurrentReport(data);
       queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
       toast({ title: t('analysis.analysisComplete'), description: t('analysis.reportGenerated') });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: t('analysis.analysisFailed') || 'Analysis Failed',
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -216,7 +231,11 @@ export default function Analysis() {
   }, [selectedImage]);
 
   const isProcessing = captureMutation.isPending || processMutation.isPending;
+  const hasError = captureMutation.isError || processMutation.isError;
+  const errorMessage = captureMutation.error?.message || processMutation.error?.message;
   const latestCompleteReport = currentReport || reports?.find(r => r.status === 'complete');
+  // For retry: find the latest pending/failed report
+  const latestFailedReport = reports?.find(r => r.status === 'pending' || r.status === 'failed');
 
   const handleDownload = async (format: 'pdf' | 'text') => {
     if (!latestCompleteReport) return;
@@ -357,9 +376,30 @@ export default function Analysis() {
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        const reader = new FileReader();
-                        reader.onloadend = () => setSelectedImage(reader.result as string);
-                        reader.readAsDataURL(file);
+                        // Resize/compress before upload
+                        const img = new Image();
+                        img.onload = () => {
+                          let w = img.width, h = img.height;
+                          const MAX = 1600;
+                          if (w > MAX || h > MAX) {
+                            if (w > h) { h = Math.round(h * (MAX / w)); w = MAX; }
+                            else { w = Math.round(w * (MAX / h)); h = MAX; }
+                          }
+                          const canvas = document.createElement('canvas');
+                          canvas.width = w; canvas.height = h;
+                          const ctx = canvas.getContext('2d');
+                          if (ctx) {
+                            ctx.drawImage(img, 0, 0, w, h);
+                            setSelectedImage(canvas.toDataURL('image/jpeg', 0.8));
+                          }
+                        };
+                        img.onerror = () => {
+                          // Fallback to raw
+                          const reader = new FileReader();
+                          reader.onloadend = () => setSelectedImage(reader.result as string);
+                          reader.readAsDataURL(file);
+                        };
+                        img.src = URL.createObjectURL(file);
                       }
                     }}
                     className="absolute inset-0 opacity-0 cursor-pointer z-10"
@@ -374,6 +414,32 @@ export default function Analysis() {
             </div>
           </CardContent>
         </Card>
+
+        {hasError && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center gap-3"
+          >
+            <AlertTriangle className="w-6 h-6 text-red-600 shrink-0" />
+            <div className="flex-1">
+              <p className="font-semibold text-red-600">{t('analysis.analysisFailed') || 'Analysis Failed'}</p>
+              <p className="text-sm text-muted-foreground">{errorMessage || 'An error occurred during processing.'}</p>
+            </div>
+            {latestFailedReport && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => processMutation.mutate(latestFailedReport.id)}
+                disabled={isProcessing}
+                className="shrink-0 gap-2"
+              >
+                <Loader2 className={isProcessing ? "w-4 h-4 animate-spin" : "w-4 h-4 hidden"} />
+                {t('analysis.retryAnalysis') || 'Retry Analysis'}
+              </Button>
+            )}
+          </motion.div>
+        )}
 
         {latestCompleteReport && (
           <motion.div

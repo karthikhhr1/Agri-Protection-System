@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useAnimalDetections, useDeterrentSettings, useUpdateDeterrentSettings, useAutomationStatus, useSimulateCameraDetection } from "@/hooks/use-agri";
+import { useAnimalDetections, useDeterrentSettings, useUpdateDeterrentSettings, useSimulateCameraDetection } from "@/hooks/use-agri";
 import { useLanguage } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -33,9 +33,8 @@ import { indianWildlifeFrequencies } from "@shared/animalFrequencies";
 
 export default function Deterrent() {
   const { t, formatTime, formatNumber } = useLanguage();
-  const { data: detections, isLoading: detectionsLoading } = useAnimalDetections();
-  const { data: settings, isLoading: settingsLoading } = useDeterrentSettings();
-  const { data: automationStatus } = useAutomationStatus();
+  const { data: detections } = useAnimalDetections();
+  const { data: settings } = useDeterrentSettings();
   const updateSettings = useUpdateDeterrentSettings();
   const simulateCamera = useSimulateCameraDetection();
   const [soundEnabled, setSoundEnabled] = useState(false);
@@ -114,8 +113,6 @@ export default function Deterrent() {
     const animal = indianWildlifeFrequencies.find(a => a.id === type);
     return animal?.optimalFrequency || 15;
   };
-
-  const isLoading = detectionsLoading || settingsLoading;
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6 bg-background/50 min-h-screen">

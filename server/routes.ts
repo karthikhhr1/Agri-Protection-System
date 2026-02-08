@@ -87,8 +87,8 @@ export async function registerRoutes(
   
   // Protect all API routes with authentication (except auth routes which are already registered)
   app.use('/api', (req, res, next) => {
-    // Allow auth routes to pass through (they handle their own auth)
-    if (req.path.startsWith('/auth') || req.path === '/login' || req.path === '/logout' || req.path === '/callback') {
+    // Allow auth and health routes to pass through
+    if (req.path.startsWith('/auth') || req.path === '/login' || req.path === '/logout' || req.path === '/callback' || req.path === '/health') {
       return next();
     }
     // Apply isAuthenticated middleware to all other API routes
@@ -537,25 +537,100 @@ export async function registerRoutes(
         response_format: { type: "json_object" },
       });
 
+      // Zod schema for AI analysis response - validates and normalizes
+      const analysisResponseSchema = z.object({
+        diseaseDetected: z.boolean().default(false),
+        pestsDetected: z.boolean().default(false),
+        animalsDetected: z.boolean().default(false),
+        severity: z.enum(["none", "low", "medium", "high", "critical"]).default("none"),
+        cropType: z.string().default("unknown"),
+        summary: z.string().default(""),
+        diseases: z.array(z.object({
+          name: z.string(),
+          localName: z.string().optional(),
+          category: z.string().optional(),
+          confidence: z.number().min(0).max(100).default(50),
+          symptoms: z.array(z.string()).default([]),
+        })).default([]),
+        animals: z.array(z.object({
+          type: z.string(),
+          name: z.string().optional(),
+          localName: z.string().optional(),
+          confidence: z.number().min(0).max(100).default(50),
+          estimatedDistance: z.number().optional(),
+          location: z.string().optional(),
+          count: z.number().optional(),
+          threat: z.string().optional(),
+        })).default([]),
+        pests: z.array(z.object({
+          name: z.string(),
+          localName: z.string().optional(),
+          category: z.string().optional(),
+          type: z.string().optional(),
+          lifestage: z.string().optional(),
+          confidence: z.number().min(0).max(100).default(50),
+          description: z.string().optional(),
+          damageType: z.string().optional(),
+          location: z.string().optional(),
+        })).default([]),
+        whatToDoNow: z.array(z.object({
+          step: z.number(),
+          action: z.string(),
+          details: z.string().default(""),
+          urgency: z.string().default("thisWeek"),
+        })).default([]),
+        prevention: z.array(z.object({
+          tip: z.string(),
+          when: z.string().default(""),
+        })).default([]),
+        warningSigns: z.array(z.string()).default([]),
+        risks: z.array(z.object({ risk: z.string(), reason: z.string() })).default([]),
+        organicOptions: z.array(z.string()).default([]),
+        chemicalOptions: z.array(z.string()).default([]),
+        estimatedRecoveryTime: z.string().optional(),
+        canHarvest: z.boolean().optional(),
+        harvestAdvice: z.string().optional(),
+        confirmed: z.boolean().default(false),
+      });
+
+      const safeFallback = {
+        diseaseDetected: false,
+        pestsDetected: false,
+        animalsDetected: false,
+        severity: "none" as const,
+        cropType: "unknown",
+        summary: "Unable to analyze image. Please try again with a clearer photo.",
+        diseases: [],
+        animals: [],
+        pests: [],
+        whatToDoNow: [],
+        prevention: [],
+        warningSigns: [],
+        risks: [],
+        organicOptions: [],
+        chemicalOptions: [],
+        confirmed: false,
+        _validationFailed: true,
+      };
+
       const analysisContent = response.choices[0].message.content || "{}";
       let analysis;
+      let validationFailed = false;
       try {
-        analysis = JSON.parse(analysisContent);
+        const rawParsed = JSON.parse(analysisContent);
+        const validated = analysisResponseSchema.safeParse(rawParsed);
+        if (validated.success) {
+          analysis = validated.data;
+        } else {
+          console.error("AI response schema validation failed:", validated.error.issues);
+          // Use the raw parse but fill in defaults for missing fields
+          analysis = { ...safeFallback, ...rawParsed, _validationFailed: true };
+          validationFailed = true;
+        }
       } catch (parseError) {
         console.error("Failed to parse AI response:", parseError);
-        analysis = {
-          diseaseDetected: false,
-          severity: "none",
-          cropType: "unknown",
-          summary: "Unable to analyze image. Please try again with a clearer photo.",
-          diseases: [],
-          whatToDoNow: [],
-          prevention: [],
-          warningSigns: [],
-          organicOptions: [],
-          chemicalOptions: [],
-          confirmed: false
-        };
+        analysis = safeFallback;
+        validationFailed = true;
       }
 
       // Add model metadata and calculate overall health
@@ -590,7 +665,7 @@ export async function registerRoutes(
 
       const updatedReport = await storage.updateReport(id, {
         analysis: enhancedAnalysis,
-        status: "complete",
+        status: validationFailed ? "failed" : "complete",
         severity: analysis.severity || "none",
         cropType: analysis.cropType || "unknown",
       });
@@ -635,24 +710,38 @@ export async function registerRoutes(
             deterrentActivated: false,
           });
 
-          // Auto-activate deterrent if enabled
-          if (deterrentSettings?.isEnabled && deterrentSettings?.autoActivate) {
+          // Auto-activate deterrent if enabled AND within activation distance
+          const animalDistance = animal.estimatedDistance || 50;
+          const activationDistance = deterrentSettings?.activationDistance || 50;
+          if (deterrentSettings?.isEnabled && deterrentSettings?.autoActivate && animalDistance <= activationDistance) {
             const optimalFrequency = getRecommendedFrequency([animal.type || 'unknown']);
-            
+            const baseVolume = deterrentSettings?.volume || 70;
+            const distanceMultiplier = Math.max(1, 100 / animalDistance);
+            const calculatedVolume = Math.min(100, Math.round(baseVolume * distanceMultiplier / 2));
+
             // Update detection to show deterrent was activated
             await storage.updateAnimalDetection(detection.id, {
               deterrentActivated: true,
               status: 'deterred',
             });
 
+            // Write audio log to keep history consistent with other activation flows
+            await storage.createAudioLog({
+              distance: String(animalDistance),
+              calculatedVolume,
+              coordinates: { x: 0, y: 0 },
+            });
+
             await storage.createActivityLog({
               action: "deterrent",
-              details: `Auto-activated deterrent for ${animal.name || animal.type}: ${optimalFrequency} kHz`,
-              metadata: { 
+              details: `Auto-activated deterrent for ${animal.name || animal.type}: ${optimalFrequency} kHz at ${animalDistance}m`,
+              metadata: {
                 animalType: animal.type,
-                distance: animal.estimatedDistance,
+                distance: animalDistance,
                 frequency: optimalFrequency,
-                detectionId: detection.id
+                volume: calculatedVolume,
+                detectionId: detection.id,
+                source: 'drone_analysis'
               }
             });
           }
