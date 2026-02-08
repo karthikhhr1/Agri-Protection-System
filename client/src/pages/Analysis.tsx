@@ -643,7 +643,7 @@ function ReportView({ report, scanMode }: { report: Report; scanMode: ScanMode }
                   </div>
                   <Badge variant="outline" className="border-orange-500/50 text-orange-600">
                     <Target className="w-3 h-3 mr-1" />
-                    {animal.confidence ? `${animal.confidence}%` : t('analysis.detected') || 'Detected'}
+                    {animal.confidence != null ? `${animal.confidence}%` : t('analysis.detected') || 'Detected'}
                   </Badge>
                 </div>
               );

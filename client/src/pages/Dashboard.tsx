@@ -108,7 +108,7 @@ export default function Dashboard() {
   const deleteMutation = useDeleteReport();
 
   const latestReading = readings?.[0];
-  const irrigationThreshold = irrigationSettings?.moistureThreshold || 40;
+  const irrigationThreshold = irrigationSettings?.moistureThreshold ?? 30;
   const needsIrrigation = irrigationSettings?.isActive
     && !irrigationSettings?.manualOverride
     && (latestReading?.soilMoisture ?? 100) < irrigationThreshold;
