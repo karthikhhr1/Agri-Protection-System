@@ -1982,9 +1982,11 @@ IMPORTANT: The farmer has selected ${languageName} as their preferred language. 
         ],
       });
       res.json({ message: response.choices[0].message.content });
-    } catch (err) {
+    } catch (err: any) {
       console.error("Chat error:", err);
-      res.status(500).json({ message: "Failed to process AI request" });
+      const detail = err?.error?.message || err?.message || "Unknown error";
+      const status = err?.status || 500;
+      res.status(status).json({ message: `AI request failed: ${detail}` });
     }
   });
 
