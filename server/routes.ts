@@ -671,31 +671,39 @@ export async function registerRoutes(
         cropType: analysis.cropType || "unknown",
       });
 
-      // Track scan analytics for admin dashboard
-      const primaryCategory = analysis.diseaseDetected ? "disease" 
-        : analysis.pestsDetected ? "insect" 
-        : analysis.animalsDetected ? "wildlife"
-        : "healthy";
-      
-      const primaryDetection = analysis.diseases?.[0]?.name 
-        || analysis.pests?.[0]?.name 
-        || analysis.animals?.[0]?.name;
-      
-      const avgConfidence = calculateAvgConfidence(analysis);
+      // Only record analytics and success logs for valid analyses
+      if (!validationFailed) {
+        const primaryCategory = analysis.diseaseDetected ? "disease"
+          : analysis.pestsDetected ? "insect"
+          : analysis.animalsDetected ? "wildlife"
+          : "healthy";
 
-      await storage.createScanAnalytic({
-        reportId: id,
-        detectionCategory: primaryCategory,
-        detectionName: primaryDetection || null,
-        confidence: avgConfidence / 100,
-        processingTimeMs: processingTime,
-      });
+        const primaryDetection = analysis.diseases?.[0]?.name
+          || analysis.pests?.[0]?.name
+          || analysis.animals?.[0]?.name;
 
-      await storage.createActivityLog({
-        action: "detection",
-        details: `Analysis complete: ${analysis.diseaseDetected ? 'Disease detected' : 'No disease'} - ${analysis.cropType}`,
-        metadata: { reportId: id, severity: analysis.severity }
-      });
+        const avgConfidence = calculateAvgConfidence(analysis);
+
+        await storage.createScanAnalytic({
+          reportId: id,
+          detectionCategory: primaryCategory,
+          detectionName: primaryDetection || null,
+          confidence: avgConfidence / 100,
+          processingTimeMs: processingTime,
+        });
+
+        await storage.createActivityLog({
+          action: "detection",
+          details: `Analysis complete: ${analysis.diseaseDetected ? 'Disease detected' : 'No disease'} - ${analysis.cropType}`,
+          metadata: { reportId: id, severity: analysis.severity }
+        });
+      } else {
+        await storage.createActivityLog({
+          action: "detection",
+          details: `Analysis failed: AI response validation error`,
+          metadata: { reportId: id, validationFailed: true }
+        });
+      }
 
       // AUTO-TRIGGER WILDLIFE DETERRENT if animals detected (skip if validation failed)
       if (!validationFailed && analysis.animalsDetected && analysis.animals && analysis.animals.length > 0) {
@@ -706,7 +714,7 @@ export async function registerRoutes(
           const detection = await storage.createAnimalDetection({
             animalType: animal.type || 'unknown',
             distance: animal.estimatedDistance || 50,
-            confidence: animal.confidence || 70,
+            confidence: (animal.confidence || 70) / 100, // normalize 0-100 AI scale to 0-1 DB scale
             status: 'detected',
             deterrentActivated: false,
           });
@@ -1971,99 +1979,6 @@ IMPORTANT: The farmer has selected ${languageName} as their preferred language. 
     } catch (err) {
       console.error("Chat error:", err);
       res.status(500).json({ message: "Failed to process AI request" });
-    }
-  });
-
-  app.get("/api/admin/stats", async (req, res) => {
-    try {
-      const reports = await storage.getReports();
-      
-      const categoryBreakdown: Record<string, number> = {
-        disease: 0,
-        insect: 0,
-        nutrient: 0,
-        damage: 0,
-        healthy: 0,
-        wildlife: 0,
-      };
-      
-      let totalConfidence = 0;
-      let confidenceCount = 0;
-      const recentScans: any[] = [];
-      
-      for (const report of reports) {
-        if (report.analysis) {
-          const analysis = report.analysis as any;
-          
-          if (analysis.diseaseDetected) {
-            categoryBreakdown.disease++;
-          }
-          if (analysis.pestsDetected) {
-            categoryBreakdown.insect++;
-          }
-          if (analysis.wildlifeDetected) {
-            categoryBreakdown.wildlife++;
-          }
-          if (!analysis.diseaseDetected && !analysis.pestsDetected && !analysis.wildlifeDetected) {
-            categoryBreakdown.healthy++;
-          }
-          
-          if (analysis.diseases) {
-            for (const disease of analysis.diseases) {
-              if (disease.confidence) {
-                totalConfidence += disease.confidence;
-                confidenceCount++;
-              }
-              
-              recentScans.push({
-                reportId: report.id,
-                detectionCategory: disease.category || 'disease',
-                detectionName: disease.name,
-                confidence: disease.confidence / 100,
-                wasAccurate: null,
-                createdAt: report.createdAt
-              });
-            }
-          }
-          
-          if (analysis.pests) {
-            for (const pest of analysis.pests) {
-              if (pest.confidence) {
-                totalConfidence += pest.confidence;
-                confidenceCount++;
-              }
-              
-              recentScans.push({
-                reportId: report.id,
-                detectionCategory: 'insect',
-                detectionName: pest.name,
-                confidence: pest.confidence / 100,
-                wasAccurate: null,
-                createdAt: report.createdAt
-              });
-            }
-          }
-        }
-      }
-      
-      const sortedRecent = recentScans
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        .slice(0, 10);
-      
-      const stats = {
-        totalScans: reports.length,
-        avgConfidence: confidenceCount > 0 ? totalConfidence / confidenceCount : 0,
-        categoryBreakdown: Object.entries(categoryBreakdown)
-          .filter(([_, count]) => count > 0)
-          .map(([category, count]) => ({ category, count })),
-        accuracyRate: 95.2,
-        recentScans: sortedRecent
-      };
-      
-      res.json(stats);
-    } catch (err) {
-      console.error("Admin stats error:", err);
-      res.status(500).json({ message: "Failed to fetch admin stats" });
     }
   });
 

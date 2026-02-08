@@ -247,9 +247,10 @@ export default function Analysis() {
   // Only show a complete report (currentReport could be a failed one after server response)
   const latestCompleteReport = (currentReport?.status === 'complete' ? currentReport : null)
     || reports?.find(r => r.status === 'complete');
-  // For retry: find the latest failed report from server data
-  const latestFailedReport = reports?.find(r => r.status === 'failed');
-  // Show error banner on mutation error OR when server returned a failed report
+  // Only show failed banner if the MOST RECENT report failed (not any historical failure)
+  const mostRecentReport = reports?.[0];
+  const latestFailedReport = mostRecentReport?.status === 'failed' ? mostRecentReport : null;
+  // Show error banner on mutation error OR when the latest report is failed
   const hasError = hasMutationError || !!latestFailedReport;
   const errorMessage = mutationErrorMessage
     || (latestFailedReport ? 'The AI response could not be validated. Please retry or upload a clearer photo.' : undefined);
