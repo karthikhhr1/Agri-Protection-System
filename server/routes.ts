@@ -623,13 +623,14 @@ export async function registerRoutes(
           analysis = validated.data;
         } else {
           console.error("AI response schema validation failed:", validated.error.issues);
-          // Use the raw parse but fill in defaults for missing fields
-          analysis = { ...safeFallback, ...rawParsed, _validationFailed: true };
+          // Use ONLY the safe fallback for all downstream logic to prevent type crashes.
+          // Store raw response separately for debugging.
+          analysis = { ...safeFallback, _rawResponse: rawParsed };
           validationFailed = true;
         }
       } catch (parseError) {
         console.error("Failed to parse AI response:", parseError);
-        analysis = safeFallback;
+        analysis = { ...safeFallback, _rawResponse: analysisContent };
         validationFailed = true;
       }
 
@@ -696,8 +697,8 @@ export async function registerRoutes(
         metadata: { reportId: id, severity: analysis.severity }
       });
 
-      // AUTO-TRIGGER WILDLIFE DETERRENT if animals detected
-      if (analysis.animalsDetected && analysis.animals && analysis.animals.length > 0) {
+      // AUTO-TRIGGER WILDLIFE DETERRENT if animals detected (skip if validation failed)
+      if (!validationFailed && analysis.animalsDetected && analysis.animals && analysis.animals.length > 0) {
         const deterrentSettings = await storage.getDeterrentSettings();
         
         for (const animal of analysis.animals) {

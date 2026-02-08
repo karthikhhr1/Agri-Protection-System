@@ -31,6 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { type Report } from "@shared/schema";
 import { useLanguage } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 import { Bug, Bird, Rat, Rabbit, Snail, Fish, Dog } from "lucide-react";
 
@@ -207,9 +208,19 @@ export default function Analysis() {
       return res.json();
     },
     onSuccess: (data) => {
-      setCurrentReport(data);
       queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
-      toast({ title: t('analysis.analysisComplete'), description: t('analysis.reportGenerated') });
+      if (data.status === 'failed') {
+        // AI validation failed server-side — treat as a soft failure
+        setCurrentReport(null);
+        toast({
+          title: t('analysis.analysisFailed') || 'Analysis Failed',
+          description: t('analysis.retryHint') || 'The AI response could not be validated. Please retry or upload a clearer photo.',
+          variant: "destructive",
+        });
+      } else {
+        setCurrentReport(data);
+        toast({ title: t('analysis.analysisComplete'), description: t('analysis.reportGenerated') });
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -231,11 +242,17 @@ export default function Analysis() {
   }, [selectedImage]);
 
   const isProcessing = captureMutation.isPending || processMutation.isPending;
-  const hasError = captureMutation.isError || processMutation.isError;
-  const errorMessage = captureMutation.error?.message || processMutation.error?.message;
-  const latestCompleteReport = currentReport || reports?.find(r => r.status === 'complete');
-  // For retry: find the latest pending/failed report
-  const latestFailedReport = reports?.find(r => r.status === 'pending' || r.status === 'failed');
+  const hasMutationError = captureMutation.isError || processMutation.isError;
+  const mutationErrorMessage = captureMutation.error?.message || processMutation.error?.message;
+  // Only show a complete report (currentReport could be a failed one after server response)
+  const latestCompleteReport = (currentReport?.status === 'complete' ? currentReport : null)
+    || reports?.find(r => r.status === 'complete');
+  // For retry: find the latest failed report from server data
+  const latestFailedReport = reports?.find(r => r.status === 'failed');
+  // Show error banner on mutation error OR when server returned a failed report
+  const hasError = hasMutationError || !!latestFailedReport;
+  const errorMessage = mutationErrorMessage
+    || (latestFailedReport ? 'The AI response could not be validated. Please retry or upload a clearer photo.' : undefined);
 
   const handleDownload = async (format: 'pdf' | 'text') => {
     if (!latestCompleteReport) return;
@@ -377,8 +394,10 @@ export default function Analysis() {
                       const file = e.target.files?.[0];
                       if (file) {
                         // Resize/compress before upload
+                        const objectUrl = URL.createObjectURL(file);
                         const img = new Image();
                         img.onload = () => {
+                          URL.revokeObjectURL(objectUrl);
                           let w = img.width, h = img.height;
                           const MAX = 1600;
                           if (w > MAX || h > MAX) {
@@ -394,12 +413,13 @@ export default function Analysis() {
                           }
                         };
                         img.onerror = () => {
+                          URL.revokeObjectURL(objectUrl);
                           // Fallback to raw
                           const reader = new FileReader();
                           reader.onloadend = () => setSelectedImage(reader.result as string);
                           reader.readAsDataURL(file);
                         };
-                        img.src = URL.createObjectURL(file);
+                        img.src = objectUrl;
                       }
                     }}
                     className="absolute inset-0 opacity-0 cursor-pointer z-10"
@@ -495,28 +515,38 @@ export default function Analysis() {
               <div className="flex justify-center p-8">
                 <Loader2 className="w-8 h-8 animate-spin text-green-600" />
               </div>
-            ) : reports?.filter(r => r.status === 'complete').length === 0 ? (
+            ) : reports?.filter(r => r.status === 'complete' || r.status === 'failed').length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Scan className="w-12 h-12 mx-auto mb-3 opacity-30" />
                 <p>{t('analysis.noReportsYet')}</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {reports?.filter(r => r.status === 'complete').slice(0, 5).map((report) => {
+                {reports?.filter(r => r.status === 'complete' || r.status === 'failed').slice(0, 5).map((report) => {
                   const data = report.analysis as any;
+                  const isFailed = report.status === 'failed';
                   return (
                     <motion.div
                       key={report.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      onClick={() => setCurrentReport(report)}
-                      className="flex items-center gap-4 p-3 rounded-xl bg-muted/30 hover-elevate cursor-pointer"
+                      onClick={() => {
+                        if (isFailed) {
+                          processMutation.mutate(report.id);
+                        } else {
+                          setCurrentReport(report);
+                        }
+                      }}
+                      className={cn(
+                        "flex items-center gap-4 p-3 rounded-xl hover-elevate cursor-pointer",
+                        isFailed ? "bg-red-500/5 border border-red-500/20" : "bg-muted/30"
+                      )}
                       data-testid={`card-report-${report.id}`}
                     >
-                      <img 
-                        src={report.imageUrl} 
-                        alt="Report" 
-                        className="w-14 h-14 rounded-lg object-cover border"
+                      <img
+                        src={report.imageUrl}
+                        alt="Report"
+                        className={cn("w-14 h-14 rounded-lg object-cover border", isFailed && "opacity-60")}
                       />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{t('common.entry')} #{report.id}</p>
@@ -524,7 +554,12 @@ export default function Analysis() {
                           {formatDate(report.createdAt, { month: 'short', day: 'numeric' })}
                         </p>
                       </div>
-                      {data?.diseases?.length > 0 ? (
+                      {isFailed ? (
+                        <Badge className="bg-red-500/10 text-red-600 border-0">
+                          <AlertTriangle className="w-3 h-3 mr-1" />
+                          {t('analysis.failed') || 'Failed — tap to retry'}
+                        </Badge>
+                      ) : data?.diseases?.length > 0 ? (
                         <Badge className="bg-red-500/10 text-red-600 border-0">
                           {data.diseases.length} {t('analysis.issues')}
                         </Badge>

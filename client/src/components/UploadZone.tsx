@@ -17,8 +17,10 @@ interface UploadZoneProps {
  */
 function resizeAndCompress(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
       let { width, height } = img;
 
       // Only resize if larger than max dimension
@@ -43,8 +45,11 @@ function resizeAndCompress(file: File): Promise<string> {
       ctx.drawImage(img, 0, 0, width, height);
       resolve(canvas.toDataURL("image/jpeg", JPEG_QUALITY));
     };
-    img.onerror = () => reject(new Error("Failed to load image"));
-    img.src = URL.createObjectURL(file);
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Failed to load image"));
+    };
+    img.src = objectUrl;
   });
 }
 
