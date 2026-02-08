@@ -641,9 +641,9 @@ function ReportView({ report, scanMode }: { report: Report; scanMode: ScanMode }
                     <p className="text-sm font-medium">{animal.estimatedDistance || '?'}m</p>
                     <p className="text-xs text-muted-foreground">{frequency} kHz</p>
                   </div>
-                  <Badge className="bg-green-500 text-white">
-                    <Volume2 className="w-3 h-3 mr-1" />
-                    {t('analysis.deterrentTriggered')}
+                  <Badge variant="outline" className="border-orange-500/50 text-orange-600">
+                    <Target className="w-3 h-3 mr-1" />
+                    {animal.confidence ? `${animal.confidence}%` : t('analysis.detected') || 'Detected'}
                   </Badge>
                 </div>
               );

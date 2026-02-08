@@ -1,4 +1,4 @@
-import { useReports, useIrrigationHistory, useDeleteReport } from "@/hooks/use-agri";
+import { useReports, useIrrigationHistory, useIrrigationSettings, useDeleteReport } from "@/hooks/use-agri";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -104,9 +104,14 @@ export default function Dashboard() {
   const { t, formatTime, formatDate } = useLanguage();
   const { data: reports } = useReports();
   const { data: readings } = useIrrigationHistory();
+  const { data: irrigationSettings } = useIrrigationSettings();
   const deleteMutation = useDeleteReport();
 
   const latestReading = readings?.[0];
+  const irrigationThreshold = irrigationSettings?.moistureThreshold || 40;
+  const needsIrrigation = irrigationSettings?.isActive
+    && !irrigationSettings?.manualOverride
+    && (latestReading?.soilMoisture ?? 100) < irrigationThreshold;
   const criticalReports = reports?.filter((r: any) => r.severity === "critical" || r.severity === "high").length || 0;
   const totalScans = reports?.length || 0;
   const healthyScans = reports?.filter((r: any) => r.severity === "none" || r.severity === "safe" || r.severity === "low").length || 0;
@@ -326,18 +331,34 @@ export default function Dashboard() {
                   </div>
 
                   <div className="flex flex-col gap-4 p-4" data-testid="display-system-status">
-                    <motion.div 
-                      className="flex items-center gap-3 flex-wrap p-3 bg-green-500/10 rounded-xl"
+                    <motion.div
+                      className={`flex items-center gap-3 flex-wrap p-3 rounded-xl ${
+                        needsIrrigation ? "bg-red-500/10" : "bg-green-500/10"
+                      }`}
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.9, duration: 0.4 }}
                       data-testid="status-irrigation"
                     >
-                      <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
+                      <div className={`w-3 h-3 rounded-full animate-pulse ${
+                        needsIrrigation ? "bg-red-500" : "bg-green-500"
+                      }`} />
                       <div className="flex-1">
                         <p className="text-sm font-medium text-foreground">{t('irrigation.title')}</p>
-                        <p className="text-xs text-muted-foreground">{t('dashboard.activeUplink')}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {needsIrrigation
+                            ? `${t('irrigation.needsWater') || 'Needs irrigation'} — ${latestReading?.soilMoisture ?? 0}% < ${irrigationThreshold}%`
+                            : irrigationSettings?.isActive
+                              ? t('dashboard.activeUplink')
+                              : t('irrigation.systemOff') || 'System off'}
+                        </p>
                       </div>
+                      {needsIrrigation && (
+                        <Badge className="bg-red-500/10 text-red-600 border-0">
+                          <AlertTriangle className="w-3 h-3 mr-1" />
+                          {t('common.alert') || 'Alert'}
+                        </Badge>
+                      )}
                     </motion.div>
 
                     <motion.div 

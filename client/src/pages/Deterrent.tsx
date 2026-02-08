@@ -47,7 +47,7 @@ export default function Deterrent() {
   const totalDetections = detections?.length || 0;
 
   const handleToggleSystem = (enabled: boolean) => {
-    updateSettings.mutate({ isEnabled: enabled, autoActivate: enabled });
+    updateSettings.mutate({ isEnabled: enabled });
   };
 
   // Web Audio: play a tone at the given frequency
