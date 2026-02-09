@@ -35,6 +35,30 @@ export function log(message: string, source = "express") {
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
+const MAX_LOG_FIELD_CHARS = 200;
+const MAX_LOG_BODY_CHARS = 1200;
+
+function stringifyForLog(value: unknown): string {
+  try {
+    const seen = new WeakSet<object>();
+    const json = JSON.stringify(value, (key, v: unknown) => {
+      if (typeof v === "string") {
+        if (v.length <= MAX_LOG_FIELD_CHARS) return v;
+        return `${v.slice(0, MAX_LOG_FIELD_CHARS)}…(${v.length} chars)`;
+      }
+      if (typeof v === "object" && v !== null) {
+        if (seen.has(v as object)) return "[Circular]";
+        seen.add(v as object);
+      }
+      return v;
+    });
+    if (json.length <= MAX_LOG_BODY_CHARS) return json;
+    return `${json.slice(0, MAX_LOG_BODY_CHARS)}…(${json.length} chars)`;
+  } catch {
+    return "[Unserializable]";
+  }
+}
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -51,7 +75,7 @@ app.use((req, res, next) => {
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+        logLine += ` :: ${stringifyForLog(capturedJsonResponse)}`;
       }
 
       log(logLine);
