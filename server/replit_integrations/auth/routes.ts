@@ -7,6 +7,18 @@ export function registerAuthRoutes(app: Express): void {
   // Get current authenticated user
   app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
     try {
+      const devAuthBypass =
+        process.env.NODE_ENV !== "production" && process.env.DEV_DISABLE_AUTH === "1";
+      if (devAuthBypass) {
+        return res.json({
+          id: "dev",
+          email: "dev@local",
+          firstName: "Dev",
+          lastName: "User",
+          profileImageUrl: null,
+        });
+      }
+
       const userId = req.user.claims.sub;
       const user = await authStorage.getUser(userId);
       res.json(user);

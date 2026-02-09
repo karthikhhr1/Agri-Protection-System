@@ -41,14 +41,11 @@ Design philosophy: Soul Forest aesthetic - minimalist, earthy tones, sharp corne
 ### Authentication System
 - **Provider**: Replit Auth (OIDC) supporting Google, GitHub, X, Apple, and email/password
 - **Session Storage**: PostgreSQL via connect-pg-simple
-- **Protected Routes**: All /api/* routes require authentication (except auth routes)
+- **Protected Routes**: All /api/* routes require authentication (except auth routes). For local dev, `DEV_DISABLE_AUTH=1` (dev-only) bypasses auth checks.
 - **User Profile**: Displayed in sidebar with avatar, name, email, and logout button
 - **Landing Page**: Professional landing page shown to unauthenticated users
-- **Key Endpoints**:
-  - `/api/login` - Initiates OIDC login flow
-  - `/api/logout` - Logs out user and redirects to landing
-  - `/api/auth/user` - Returns current authenticated user or null
-  - `/api/callback` - OIDC callback handler
+- **Key Endpoints**: `/api/login` (OIDC login), `/api/logout` (logout), `/api/auth/user` (current user), `/api/callback` (OIDC callback)
+- **Local Dev Note**: Session cookies are `secure` in production; in non-production they are not forced secure to allow http dev. If you are not running an HTTPS domain locally that can receive `/api/callback`, use `DEV_DISABLE_AUTH=1`.
 
 ### Data Storage
 - **Database**: PostgreSQL with Drizzle ORM

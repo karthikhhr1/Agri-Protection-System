@@ -34,7 +34,8 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      // In local dev over http, secure cookies will never be set.
+      secure: process.env.NODE_ENV === "production",
       maxAge: sessionTtl,
     },
   });
@@ -131,6 +132,17 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  const devAuthBypass =
+    process.env.NODE_ENV !== "production" && process.env.DEV_DISABLE_AUTH === "1";
+  if (devAuthBypass) {
+    // Provide a minimal user shape for routes like /api/auth/user.
+    (req as any).user ??= {
+      claims: { sub: "dev" },
+      expires_at: Math.floor(Date.now() / 1000) + 60 * 60,
+    };
+    return next();
+  }
+
   const user = req.user as any;
 
   if (!req.isAuthenticated() || !user.expires_at) {

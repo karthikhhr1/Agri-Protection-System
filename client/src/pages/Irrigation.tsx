@@ -57,11 +57,14 @@ export default function Irrigation() {
 
   // Format data for chart with localized dates
   const locale = getLocale();
-  const chartData = history?.map(h => ({
-    date: new Date(h.createdAt!).toLocaleDateString(locale, { month: 'short', day: 'numeric' }),
-    moisture: h.soilMoisture,
-    humidity: h.humidity,
-  })).slice(-10).reverse() || [];
+  const chartData = (history ?? [])
+    .map((h) => ({
+      date: new Date(h.createdAt ?? Date.now()).toLocaleDateString(locale, { month: "short", day: "numeric" }),
+      moisture: h.soilMoisture,
+      humidity: h.humidity,
+    }))
+    .slice(-10)
+    .reverse();
 
   return (
     <div className="space-y-6 md:space-y-8 p-4 md:p-6 lg:p-8">
