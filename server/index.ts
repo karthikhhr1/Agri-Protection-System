@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { ZodError } from "zod";
 
 const app = express();
 const httpServer = createServer(app);
@@ -68,11 +69,18 @@ app.use((req, res, next) => {
     if (err.type === 'entity.too.large') {
       return res.status(413).json({ message: "Image is too large. Please use a smaller image or reduce resolution." });
     }
+    if (err instanceof ZodError) {
+      return res.status(400).json({
+        message: "Invalid request",
+        issues: err.issues,
+      });
+    }
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
     res.status(status).json({ message });
-    throw err;
+    // Don't re-throw after sending a response; it can crash the server process.
+    console.error("Unhandled error:", err);
   });
 
   // importantly only setup vite in development and after

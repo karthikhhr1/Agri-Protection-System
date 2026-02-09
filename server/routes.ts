@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, RequestHandler } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
@@ -11,7 +11,8 @@ import {
   deterrentSettingsRequestSchema,
   irrigationSettingsRequestSchema,
   farmFieldRequestSchema,
-  fieldCaptureRequestSchema
+  fieldCaptureRequestSchema,
+  hardwareDeviceRequestSchema
 } from "@shared/schema";
 import { indianWildlifeFrequencies, getRecommendedFrequency } from "@shared/animalFrequencies";
 import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
@@ -20,6 +21,12 @@ const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
 });
+
+const asyncRoute =
+  (handler: RequestHandler): RequestHandler =>
+  (req, res, next) => {
+    void Promise.resolve(handler(req, res, next)).catch(next);
+  };
 
 // Helper function to calculate overall health score from analysis
 function calculateOverallHealth(analysis: any): number {
@@ -96,7 +103,7 @@ export async function registerRoutes(
   });
   
   // === Health Check ===
-  app.get("/api/health", async (_req, res) => {
+  app.get("/api/health", asyncRoute(async (_req, res) => {
     try {
       // Quick DB connectivity check
       await storage.getReports();
@@ -112,15 +119,15 @@ export async function registerRoutes(
         message: "Database connectivity issue",
       });
     }
-  });
+  }));
 
   // === Reports ===
-  app.get(api.reports.list.path, async (req, res) => {
+  app.get(api.reports.list.path, asyncRoute(async (req, res) => {
     const reports = await storage.getReports();
     res.json(reports);
-  });
+  }));
 
-  app.post(api.reports.capture.path, async (req, res) => {
+  app.post(api.reports.capture.path, asyncRoute(async (req, res) => {
     try {
       const { imageUrl } = api.reports.capture.input.parse(req.body);
       const report = await storage.createReport({
@@ -137,9 +144,9 @@ export async function registerRoutes(
     } catch (err) {
       res.status(400).json({ message: "Failed to capture image" });
     }
-  });
+  }));
 
-  app.post(api.reports.process.path, async (req, res) => {
+  app.post(api.reports.process.path, asyncRoute(async (req, res) => {
     try {
       const id = Number(req.params.id);
       const { language = "en" } = req.body || {};
@@ -768,24 +775,24 @@ export async function registerRoutes(
       console.error("Report processing error:", err);
       res.status(500).json({ message: "Failed to process report" });
     }
-  });
+  }));
 
-  app.get(api.reports.get.path, async (req, res) => {
+  app.get(api.reports.get.path, asyncRoute(async (req, res) => {
     const report = await storage.getReport(Number(req.params.id));
     if (!report) return res.status(404).json({ message: "Report not found" });
     res.json(report);
-  });
+  }));
 
-  app.delete(api.reports.delete.path, async (req, res) => {
+  app.delete(api.reports.delete.path, asyncRoute(async (req, res) => {
     try {
       await storage.deleteReport(Number(req.params.id));
       res.sendStatus(204);
     } catch (err) {
       res.status(500).json({ message: "Failed to delete report" });
     }
-  });
+  }));
 
-  app.post(api.reports.bulkDelete.path, async (req, res) => {
+  app.post(api.reports.bulkDelete.path, asyncRoute(async (req, res) => {
     try {
       const { ids } = z.object({ ids: z.array(z.number()) }).parse(req.body);
       await storage.bulkDeleteReports(ids);
@@ -793,10 +800,10 @@ export async function registerRoutes(
     } catch (err) {
       res.status(500).json({ message: "Failed to bulk delete reports" });
     }
-  });
+  }));
 
   // Export report as PDF
-  app.get(api.reports.exportPdf.path, async (req, res) => {
+  app.get(api.reports.exportPdf.path, asyncRoute(async (req, res) => {
     try {
       const PDFDocument = require('pdfkit');
       const report = await storage.getReport(Number(req.params.id));
@@ -901,10 +908,10 @@ export async function registerRoutes(
       console.error("PDF export error:", err);
       res.status(500).json({ message: "Failed to export PDF" });
     }
-  });
+  }));
 
   // Export report as plain text
-  app.get(api.reports.exportText.path, async (req, res) => {
+  app.get(api.reports.exportText.path, asyncRoute(async (req, res) => {
     try {
       const report = await storage.getReport(Number(req.params.id));
       if (!report) return res.status(404).json({ message: "Report not found" });
@@ -1025,10 +1032,10 @@ export async function registerRoutes(
       console.error("Text export error:", err);
       res.status(500).json({ message: "Failed to export text" });
     }
-  });
+  }));
 
   // === Admin Dashboard ===
-  app.get(api.admin.stats.path, async (req, res) => {
+  app.get(api.admin.stats.path, asyncRoute(async (req, res) => {
     try {
       const stats = await storage.getAdminDashboardStats();
       res.json(stats);
@@ -1036,9 +1043,9 @@ export async function registerRoutes(
       console.error("Admin stats error:", err);
       res.status(500).json({ message: "Failed to get admin stats" });
     }
-  });
+  }));
 
-  app.post(api.admin.updateAccuracy.path, async (req, res) => {
+  app.post(api.admin.updateAccuracy.path, asyncRoute(async (req, res) => {
     try {
       const id = Number(req.params.id);
       const { wasAccurate } = z.object({ wasAccurate: z.boolean() }).parse(req.body);
@@ -1051,19 +1058,19 @@ export async function registerRoutes(
     } catch (err) {
       res.status(500).json({ message: "Failed to update accuracy" });
     }
-  });
+  }));
 
   // === Plant Profiles ===
-  app.get(api.plantProfiles.list.path, async (req, res) => {
+  app.get(api.plantProfiles.list.path, asyncRoute(async (req, res) => {
     try {
       const profiles = await storage.getPlantProfiles();
       res.json(profiles);
     } catch (err) {
       res.status(500).json({ message: "Failed to get plant profiles" });
     }
-  });
+  }));
 
-  app.post(api.plantProfiles.create.path, async (req, res) => {
+  app.post(api.plantProfiles.create.path, asyncRoute(async (req, res) => {
     try {
       const data = api.plantProfiles.create.input.parse(req.body);
       const profile = await storage.createPlantProfile(data);
@@ -1076,9 +1083,9 @@ export async function registerRoutes(
     } catch (err) {
       res.status(400).json({ message: "Failed to create plant profile" });
     }
-  });
+  }));
 
-  app.get(api.plantProfiles.get.path, async (req, res) => {
+  app.get(api.plantProfiles.get.path, asyncRoute(async (req, res) => {
     try {
       const profile = await storage.getPlantProfile(Number(req.params.id));
       if (!profile) return res.status(404).json({ message: "Plant profile not found" });
@@ -1086,19 +1093,19 @@ export async function registerRoutes(
     } catch (err) {
       res.status(500).json({ message: "Failed to get plant profile" });
     }
-  });
+  }));
 
-  app.get(api.plantProfiles.reports.path, async (req, res) => {
+  app.get(api.plantProfiles.reports.path, asyncRoute(async (req, res) => {
     try {
       const reports = await storage.getPlantReports(Number(req.params.id));
       res.json(reports);
     } catch (err) {
       res.status(500).json({ message: "Failed to get plant reports" });
     }
-  });
+  }));
 
   // === Irrigation ===
-  app.post(api.irrigation.calculate.path, async (req, res) => {
+  app.post(api.irrigation.calculate.path, asyncRoute(async (req, res) => {
     const { soilMoisture, humidity } = api.irrigation.calculate.input.parse(req.body);
 
     const temperature = Math.floor(Math.random() * 15) + 20;
@@ -1137,20 +1144,20 @@ export async function registerRoutes(
     });
 
     res.status(201).json(reading);
-  });
+  }));
 
-  app.get(api.irrigation.list.path, async (req, res) => {
+  app.get(api.irrigation.list.path, asyncRoute(async (req, res) => {
     const readings = await storage.getSensorReadings();
     res.json(readings);
-  });
+  }));
 
   // === Irrigation Settings ===
-  app.get("/api/irrigation/settings", async (req, res) => {
+  app.get("/api/irrigation/settings", asyncRoute(async (req, res) => {
     const settings = await storage.getIrrigationSettings();
     res.json(settings || { isActive: false, moistureThreshold: 30, manualOverride: false });
-  });
+  }));
 
-  app.patch("/api/irrigation/settings", async (req, res) => {
+  app.patch("/api/irrigation/settings", asyncRoute(async (req, res) => {
     try {
       const updates = irrigationSettingsRequestSchema.parse(req.body);
       const settings = await storage.updateIrrigationSettings(updates);
@@ -1165,10 +1172,10 @@ export async function registerRoutes(
     } catch (err) {
       res.status(400).json({ message: "Invalid settings" });
     }
-  });
+  }));
 
   // === Audio ===
-  app.post(api.audio.calculate.path, async (req, res) => {
+  app.post(api.audio.calculate.path, asyncRoute(async (req, res) => {
     const { distance, coordinates } = api.audio.calculate.input.parse(req.body);
 
     // Get deterrent settings for volume calculation
@@ -1189,20 +1196,20 @@ export async function registerRoutes(
     });
 
     res.status(201).json(log);
-  });
+  }));
 
-  app.get(api.audio.list.path, async (req, res) => {
+  app.get(api.audio.list.path, asyncRoute(async (req, res) => {
     const logs = await storage.getAudioLogs();
     res.json(logs);
-  });
+  }));
 
   // === Deterrent Settings ===
-  app.get("/api/deterrent/settings", async (req, res) => {
+  app.get("/api/deterrent/settings", asyncRoute(async (req, res) => {
     const settings = await storage.getDeterrentSettings();
     res.json(settings || { isEnabled: false, volume: 70, soundType: 'alarm', activationDistance: 50, autoActivate: true });
-  });
+  }));
 
-  app.patch("/api/deterrent/settings", async (req, res) => {
+  app.patch("/api/deterrent/settings", asyncRoute(async (req, res) => {
     try {
       const updates = deterrentSettingsRequestSchema.parse(req.body);
       const settings = await storage.updateDeterrentSettings(updates);
@@ -1217,15 +1224,15 @@ export async function registerRoutes(
     } catch (err) {
       res.status(400).json({ message: "Invalid settings" });
     }
-  });
+  }));
 
   // === Animal Detections ===
-  app.get("/api/detections", async (req, res) => {
+  app.get("/api/detections", asyncRoute(async (req, res) => {
     const detections = await storage.getAnimalDetections();
     res.json(detections);
-  });
+  }));
 
-  app.post("/api/detections", async (req, res) => {
+  app.post("/api/detections", asyncRoute(async (req, res) => {
     try {
       const schema = z.object({
         animalType: z.string(),
@@ -1292,12 +1299,12 @@ export async function registerRoutes(
     } catch (err) {
       res.status(400).json({ message: "Failed to create detection" });
     }
-  });
+  }));
 
   // === Automated Camera Monitoring ===
   // This endpoint simulates what a real camera would do when connected
   // In production, this would be triggered by actual camera feeds
-  app.post("/api/detections/simulate-camera", async (req, res) => {
+  app.post("/api/detections/simulate-camera", asyncRoute(async (req, res) => {
     try {
       const settings = await storage.getDeterrentSettings();
       if (!settings?.isEnabled) {
@@ -1374,10 +1381,10 @@ export async function registerRoutes(
     } catch (err) {
       res.status(400).json({ message: "Camera simulation failed" });
     }
-  });
+  }));
 
   // Get automation status
-  app.get("/api/automation/status", async (req, res) => {
+  app.get("/api/automation/status", asyncRoute(async (req, res) => {
     const settings = await storage.getDeterrentSettings();
     const recentDetections = await storage.getAnimalDetections();
     const last24h = recentDetections?.filter((d: any) => {
@@ -1396,15 +1403,15 @@ export async function registerRoutes(
       activationDistance: settings?.activationDistance || 50,
       volume: settings?.volume || 70,
     });
-  });
+  }));
 
   // === Farm Tasks ===
-  app.get("/api/tasks", async (req, res) => {
+  app.get("/api/tasks", asyncRoute(async (req, res) => {
     const tasks = await storage.getFarmTasks();
     res.json(tasks);
-  });
+  }));
 
-  app.post("/api/tasks", async (req, res) => {
+  app.post("/api/tasks", asyncRoute(async (req, res) => {
     try {
       const data = farmTaskRequestSchema.parse(req.body);
       const task = await storage.createFarmTask({
@@ -1422,9 +1429,9 @@ export async function registerRoutes(
     } catch (err) {
       res.status(400).json({ message: "Failed to create task" });
     }
-  });
+  }));
 
-  app.patch("/api/tasks/:id", async (req, res) => {
+  app.patch("/api/tasks/:id", asyncRoute(async (req, res) => {
     try {
       const id = Number(req.params.id);
       const updates = req.body;
@@ -1436,24 +1443,24 @@ export async function registerRoutes(
     } catch (err) {
       res.status(400).json({ message: "Failed to update task" });
     }
-  });
+  }));
 
-  app.delete("/api/tasks/:id", async (req, res) => {
+  app.delete("/api/tasks/:id", asyncRoute(async (req, res) => {
     try {
       await storage.deleteFarmTask(Number(req.params.id));
       res.sendStatus(204);
     } catch (err) {
       res.status(500).json({ message: "Failed to delete task" });
     }
-  });
+  }));
 
   // === Inventory ===
-  app.get("/api/inventory", async (req, res) => {
+  app.get("/api/inventory", asyncRoute(async (req, res) => {
     const items = await storage.getInventoryItems();
     res.json(items);
-  });
+  }));
 
-  app.post("/api/inventory", async (req, res) => {
+  app.post("/api/inventory", asyncRoute(async (req, res) => {
     try {
       const data = inventoryItemRequestSchema.parse(req.body);
       const item = await storage.createInventoryItem(data);
@@ -1468,9 +1475,9 @@ export async function registerRoutes(
     } catch (err) {
       res.status(400).json({ message: "Failed to create inventory item" });
     }
-  });
+  }));
 
-  app.patch("/api/inventory/:id", async (req, res) => {
+  app.patch("/api/inventory/:id", asyncRoute(async (req, res) => {
     try {
       const id = Number(req.params.id);
       const item = await storage.updateInventoryItem(id, req.body);
@@ -1478,24 +1485,24 @@ export async function registerRoutes(
     } catch (err) {
       res.status(400).json({ message: "Failed to update inventory item" });
     }
-  });
+  }));
 
-  app.delete("/api/inventory/:id", async (req, res) => {
+  app.delete("/api/inventory/:id", asyncRoute(async (req, res) => {
     try {
       await storage.deleteInventoryItem(Number(req.params.id));
       res.sendStatus(204);
     } catch (err) {
       res.status(500).json({ message: "Failed to delete inventory item" });
     }
-  });
+  }));
 
   // === Transactions ===
-  app.get("/api/transactions", async (req, res) => {
+  app.get("/api/transactions", asyncRoute(async (req, res) => {
     const transactions = await storage.getTransactions();
     res.json(transactions);
-  });
+  }));
 
-  app.post("/api/transactions", async (req, res) => {
+  app.post("/api/transactions", asyncRoute(async (req, res) => {
     try {
       const data = transactionRequestSchema.parse(req.body);
       const trans = await storage.createTransaction({
@@ -1513,36 +1520,36 @@ export async function registerRoutes(
     } catch (err) {
       res.status(400).json({ message: "Failed to create transaction" });
     }
-  });
+  }));
 
-  app.delete("/api/transactions/:id", async (req, res) => {
+  app.delete("/api/transactions/:id", asyncRoute(async (req, res) => {
     try {
       await storage.deleteTransaction(Number(req.params.id));
       res.sendStatus(204);
     } catch (err) {
       res.status(500).json({ message: "Failed to delete transaction" });
     }
-  });
+  }));
 
   // === Activity Logs ===
-  app.get("/api/logs", async (req, res) => {
+  app.get("/api/logs", asyncRoute(async (req, res) => {
     const logs = await storage.getActivityLogs();
     res.json(logs);
-  });
+  }));
 
   // === Farm Fields ===
-  app.get("/api/fields", async (req, res) => {
+  app.get("/api/fields", asyncRoute(async (req, res) => {
     const fields = await storage.getFields();
     res.json(fields);
-  });
+  }));
 
-  app.get("/api/fields/:id", async (req, res) => {
+  app.get("/api/fields/:id", asyncRoute(async (req, res) => {
     const field = await storage.getField(Number(req.params.id));
     if (!field) return res.status(404).json({ message: "Field not found" });
     res.json(field);
-  });
+  }));
 
-  app.post("/api/fields", async (req, res) => {
+  app.post("/api/fields", asyncRoute(async (req, res) => {
     try {
       const data = farmFieldRequestSchema.parse(req.body);
       const field = await storage.createField({
@@ -1561,9 +1568,9 @@ export async function registerRoutes(
     } catch (err) {
       res.status(400).json({ message: "Failed to create field" });
     }
-  });
+  }));
 
-  app.patch("/api/fields/:id", async (req, res) => {
+  app.patch("/api/fields/:id", asyncRoute(async (req, res) => {
     try {
       const id = Number(req.params.id);
       const updates = req.body;
@@ -1586,9 +1593,9 @@ export async function registerRoutes(
     } catch (err) {
       res.status(400).json({ message: "Failed to update field" });
     }
-  });
+  }));
 
-  app.delete("/api/fields/:id", async (req, res) => {
+  app.delete("/api/fields/:id", asyncRoute(async (req, res) => {
     try {
       const id = Number(req.params.id);
       const success = await storage.deleteField(id);
@@ -1604,15 +1611,15 @@ export async function registerRoutes(
     } catch (err) {
       res.status(500).json({ message: "Failed to delete field" });
     }
-  });
+  }));
 
   // === Field Captures ===
-  app.get("/api/fields/:fieldId/captures", async (req, res) => {
+  app.get("/api/fields/:fieldId/captures", asyncRoute(async (req, res) => {
     const captures = await storage.getFieldCaptures(Number(req.params.fieldId));
     res.json(captures);
-  });
+  }));
 
-  app.post("/api/fields/:fieldId/captures", async (req, res) => {
+  app.post("/api/fields/:fieldId/captures", asyncRoute(async (req, res) => {
     try {
       const fieldId = Number(req.params.fieldId);
       const field = await storage.getField(fieldId);
@@ -1638,9 +1645,9 @@ export async function registerRoutes(
     } catch (err) {
       res.status(400).json({ message: "Failed to create field capture" });
     }
-  });
+  }));
 
-  app.delete("/api/captures/:id", async (req, res) => {
+  app.delete("/api/captures/:id", asyncRoute(async (req, res) => {
     try {
       const id = Number(req.params.id);
       const success = await storage.deleteFieldCapture(id);
@@ -1656,11 +1663,11 @@ export async function registerRoutes(
     } catch (err) {
       res.status(500).json({ message: "Failed to delete field capture" });
     }
-  });
+  }));
 
   // === Hardware Devices ===
   // Auto-discover devices on the network
-  app.get("/api/devices/discover", async (req, res) => {
+  app.get("/api/devices/discover", asyncRoute(async (req, res) => {
     try {
       // Simulate network device discovery
       const discoveredDevices = [
@@ -1705,10 +1712,10 @@ export async function registerRoutes(
     } catch (err) {
       res.status(500).json({ message: "Discovery failed" });
     }
-  });
+  }));
 
   // Quick connect - automatically add discovered device
-  app.post("/api/devices/quick-connect", async (req, res) => {
+  app.post("/api/devices/quick-connect", asyncRoute(async (req, res) => {
     try {
       const { ip, type, name, protocol } = req.body;
       
@@ -1744,18 +1751,18 @@ export async function registerRoutes(
     } catch (err) {
       res.status(500).json({ message: "Quick connect failed" });
     }
-  });
+  }));
 
-  app.get("/api/devices", async (req, res) => {
+  app.get("/api/devices", asyncRoute(async (req, res) => {
     try {
       const devices = await storage.getHardwareDevices();
       res.json(devices);
     } catch (err) {
       res.status(500).json({ message: "Failed to fetch devices" });
     }
-  });
+  }));
 
-  app.get("/api/devices/:id", async (req, res) => {
+  app.get("/api/devices/:id", asyncRoute(async (req, res) => {
     try {
       const id = Number(req.params.id);
       const device = await storage.getHardwareDevice(id);
@@ -1764,11 +1771,10 @@ export async function registerRoutes(
     } catch (err) {
       res.status(500).json({ message: "Failed to fetch device" });
     }
-  });
+  }));
 
-  app.post("/api/devices", async (req, res) => {
+  app.post("/api/devices", asyncRoute(async (req, res) => {
     try {
-      const { hardwareDeviceRequestSchema } = await import("@shared/schema");
       const data = hardwareDeviceRequestSchema.parse(req.body);
       const device = await storage.createHardwareDevice(data);
       
@@ -1783,9 +1789,9 @@ export async function registerRoutes(
       console.error("Create device error:", err);
       res.status(500).json({ message: "Failed to create device" });
     }
-  });
+  }));
 
-  app.patch("/api/devices/:id", async (req, res) => {
+  app.patch("/api/devices/:id", asyncRoute(async (req, res) => {
     try {
       const id = Number(req.params.id);
       const updateSchema = z.object({
@@ -1803,9 +1809,9 @@ export async function registerRoutes(
     } catch (err) {
       res.status(500).json({ message: "Failed to update device" });
     }
-  });
+  }));
 
-  app.delete("/api/devices/:id", async (req, res) => {
+  app.delete("/api/devices/:id", asyncRoute(async (req, res) => {
     try {
       const id = Number(req.params.id);
       const success = await storage.deleteHardwareDevice(id);
@@ -1821,10 +1827,10 @@ export async function registerRoutes(
     } catch (err) {
       res.status(500).json({ message: "Failed to delete device" });
     }
-  });
+  }));
 
   // Test device connection
-  app.post("/api/devices/:id/test", async (req, res) => {
+  app.post("/api/devices/:id/test", asyncRoute(async (req, res) => {
     try {
       const id = Number(req.params.id);
       const device = await storage.getHardwareDevice(id);
@@ -1847,10 +1853,10 @@ export async function registerRoutes(
     } catch (err) {
       res.status(500).json({ message: "Connection test failed" });
     }
-  });
+  }));
 
   // Capture image from camera device
-  app.post("/api/devices/:id/capture", async (req, res) => {
+  app.post("/api/devices/:id/capture", asyncRoute(async (req, res) => {
     try {
       const id = Number(req.params.id);
       const device = await storage.getHardwareDevice(id);
@@ -1873,10 +1879,10 @@ export async function registerRoutes(
     } catch (err) {
       res.status(500).json({ message: "Failed to capture image" });
     }
-  });
+  }));
 
   // Get sensor reading from sensor device
-  app.post("/api/devices/:id/read", async (req, res) => {
+  app.post("/api/devices/:id/read", asyncRoute(async (req, res) => {
     try {
       const id = Number(req.params.id);
       const device = await storage.getHardwareDevice(id);
@@ -1951,10 +1957,10 @@ export async function registerRoutes(
     } catch (err) {
       res.status(500).json({ message: "Failed to read sensor data" });
     }
-  });
+  }));
 
   // === AI Assistant ===
-  app.post("/api/chat", async (req, res) => {
+  app.post("/api/chat", asyncRoute(async (req, res) => {
     try {
       const { message, language, languageName } = z.object({ 
         message: z.string(),
@@ -1988,7 +1994,7 @@ IMPORTANT: The farmer has selected ${languageName} as their preferred language. 
       const status = err?.status || 500;
       res.status(status).json({ message: `AI request failed: ${detail}` });
     }
-  });
+  }));
 
   return httpServer;
 }
